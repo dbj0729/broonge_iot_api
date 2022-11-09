@@ -7,7 +7,7 @@ last update: 2022.11.08
 
 ## mobaxterm
 
-- 현재 Lukepain project AWS EC2 서버는 linux를 기반으로 실행되기 때문에 linux에 보다 익숙하지 않을 시 UI의 편의성을 위하여 
+- 현재 AWS EC2 서버는 linux를 기반으로 실행되기 때문에 linux에 보다 익숙하지 않을 시 UI의 편의성을 위하여 
 mobaxterm을 설치(https://mobaxterm.mobatek.net/download.html)
 
 ## info
@@ -83,7 +83,7 @@ mysql> # logged in
 ### db 생성
 
 ```sql
-mysql> create database 'db_명';
+mysql> create database db_명;
 Query OK, 1 row affected (0.01 sec)
 ```
 
@@ -236,9 +236,6 @@ $ yarn -v
 
 ```shell
 $ ssh-keygen -t ed25519 -C "깃허브 아이디 (이메일)"
-$ ssh-add ~/.ssh/id_ed25519
-Identity added: /home/ubuntu/.ssh/id_ed25519 (깃허브 아이디 (이메일))
-$ ssh-keygen -t ed25519 -C "깃허브 아이디 (이메일)"
 Generating public/private ed25519 key pair.
 Enter file in which to save the key (/home/ubuntu/.ssh/id_ed25519):
 Enter passphrase (empty for no passphrase): '그냥 엔터치고 넘어간다'
@@ -288,6 +285,13 @@ $ cat ~/.ssh/id_ed25519.pub
 ssh-ed25519 여기에 알 수 없는 코드가 보여지고 그 다음에 깃허브 아이디 (이메일) 가 보여진다.
 ```
 
+### github 에서 New SSH Keys 추가
+1. github.com 에 로그인
+2. Settings
+3. SSH and GPG Keys
+4. New SSH Keys
+5. 제목 입력 후 Key Type 을 Authentication Key 로 선택
+6. 위의 cat ~/.ssh/id_ed25519.pub 이라고 쳐서 나온 값을 Key 값으로 입력
 ### clone source code
 
 ```shell
@@ -513,7 +517,7 @@ server {
 ### link to sites-enabled
 
 ```shell
-$ ln -s /etc/nginx/sites-available/설정한 파일명 /etc/nginx/sites-enabled/
+$ sudo ln -s /etc/nginx/sites-available/설정한 파일명 /etc/nginx/sites-enabled/
 ```
 
 ### check link
@@ -541,7 +545,7 @@ nginx: configuration file /etc/nginx/nginx.conf test is successful
 $ sudo systemctl reload nginx
 ```
 
-- 이제 '도메인' 으로 들어오는 request는 모두 내부의 http://localhost:5003 으로 프록시된다.
+- 이제 '도메인' 으로 들어오는 request는 모두 내부의 http://localhost:3000 으로 프록시된다.
 - 앞서 `yarn dev`를 통해 서버를 실행했기 때문에 '도메인' 에 접속해서 확인.
 
 이제 SSL ceritification을 획득하여 https로 암호화 통신을 할 수 있도록 하자.
