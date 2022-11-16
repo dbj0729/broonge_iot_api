@@ -5,8 +5,9 @@ const server = net.createServer(conn => {
 
     conn.on ('data', data => {
         conn.write(data + '\r\n');
+        console.log(data);
     });
-
+    
     conn.on('end', () => {
         console.log('client left');
     });
