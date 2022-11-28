@@ -1,5 +1,5 @@
 const net = require('net');
-console.log('hello');
+console.log(date);
 const server = net.createServer(conn => {
     console.log('new client');
     conn.write('Welcome!'+'\r\n');
