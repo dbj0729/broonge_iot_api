@@ -13,7 +13,7 @@ let size_6 = 2;     // MSG Length
 let size_7 = 2;     // Function_1
 let size_8 = 2;     // Function_2
 let size_9 = 2;     // Function_3
-let size_10 = 29;   // Function_4
+let size_10 = 23;   // Function_4
 let size_11 = 4;    // Checksum
 
 // Slice 로 진행하기에 그에 따른 글자 수에 따라 다음 단계를 불러오는 방식
@@ -71,7 +71,7 @@ var server = net.createServer(function(socket){
             const manual_codes_result = combined_manual_codes.map(item => item.charCodeAt()).reduce((acc, curr) => acc + curr)
             console.log({manual_codes_result});
             console.log(manual_codes_result.toString(16));
-            console.log(checksum);
+            console.log("here is the checksum:"+ checksum);
         
             // IoT 에서 보낸 값이 누락없이 잘 왔는지 모든 글자의 ASCII 코드 값을 다 더한 후 16진수로 변환해서
             // IoT 보냈던 Checksum 값과 동일한지를 확인하고 동일해야지만 서버에 저장된다.
@@ -80,8 +80,8 @@ var server = net.createServer(function(socket){
             // 상기 안내를 위해서 별도의 안내 방법이 필요할 수도 있다.
             manual_codes_result_verification = manual_codes_result.toString(16);
             
-            manually_added_0x = '0'+manual_codes_result_verification;
-
+            manually_added_0x = "0"+manual_codes_result_verification;
+console.log(manually_added_0x)
             if (checksum == manually_added_0x){
                 try {
                     console.log("GOOD");
