@@ -66,40 +66,48 @@ var server = net.createServer(function(socket){
         // 변경되는 값; 이 부분을 저장해야 한다.
         let manual_codes = f_1_battery+f_2_device_status+f_3_err_info+f_4_gps;
 
-        const combined_manual_codes = manual_codes.split("");
-
-        const manual_codes_result = combined_manual_codes.map(item => item.charCodeAt()).reduce((acc, curr) => acc + curr)
-        console.log({manual_codes_result});
-        console.log(manual_codes_result.toString(16));
-        console.log(checksum);
-
-        // IoT 에서 보낸 값이 누락없이 잘 왔는지 모든 글자의 ASCII 코드 값을 다 더한 후 16진수로 변환해서
-        // IoT 보냈던 Checksum 값과 동일한지를 확인하고 동일해야지만 서버에 저장된다.
-        // 만약, Checksum 이 다른 경우에는 데이터를 버려버린다. IoT 에 Return 할 필요는 없다.
-        // 단, 만약, 20회 이상 Checksum 오류가 나는 경우에는 관리자에게 안내를 해 줘야 한다.
-        // 상기 안내를 위해서 별도의 안내 방법이 필요할 수도 있다.
-        manual_codes_result_verification = manual_codes_result.toString(16);
+        if(manual_codes.length !== 0){
+            const combined_manual_codes = manual_codes.split("");
+            const manual_codes_result = combined_manual_codes.map(item => item.charCodeAt()).reduce((acc, curr) => acc + curr)
+            console.log({manual_codes_result});
+            console.log(manual_codes_result.toString(16));
+            console.log(checksum);
         
-        manually_added_0x = '0'+manual_codes_result_verification;
+            // IoT 에서 보낸 값이 누락없이 잘 왔는지 모든 글자의 ASCII 코드 값을 다 더한 후 16진수로 변환해서
+            // IoT 보냈던 Checksum 값과 동일한지를 확인하고 동일해야지만 서버에 저장된다.
+            // 만약, Checksum 이 다른 경우에는 데이터를 버려버린다. IoT 에 Return 할 필요는 없다.
+            // 단, 만약, 20회 이상 Checksum 오류가 나는 경우에는 관리자에게 안내를 해 줘야 한다.
+            // 상기 안내를 위해서 별도의 안내 방법이 필요할 수도 있다.
+            manual_codes_result_verification = manual_codes_result.toString(16);
+            
+            manually_added_0x = '0'+manual_codes_result_verification;
 
-        if (checksum == manually_added_0x){
-            try {
-                console.log("GOOD");
-                socket.write(`It's working!`); // 정상등록된 경우에는 IoT 에 뭔가를 전달할 필요는 없다.
-              } catch (error) {
-                console.error(error);
-                
-              }   
-        }
-        else{
-            try {
-                console.log("Bad");
-                socket.write(`It's not working!`); // 상기 횟수에 따라 오류가 발생할 경우, 관리자 Alert 를 띄워야 한다.
-              } catch (error) {
-                console.error(error);
+            if (checksum == manually_added_0x){
+                try {
+                    console.log("GOOD");
+                    socket.write(`It's working!`); // 정상등록된 경우에는 IoT 에 뭔가를 전달할 필요는 없다.
+                } catch (error) {
+                    console.error(error);
+                    
+                }   
+            }
+            else{
+                try {
+                    console.log("Bad");
+                    socket.write(`It's not working!`); // 상기 횟수에 따라 오류가 발생할 경우, 관리자 Alert 를 띄워야 한다.
+                } catch (error) {
+                    console.error(error);
 
-              }   
+                }   
+            }
+        }else{
+            console.log("empty");
+            console.log(manual_codes)
         }
+        
+        
+
+        
 
 
 	});
