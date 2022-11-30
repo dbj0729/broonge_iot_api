@@ -12,6 +12,19 @@
             "database": "test",
             "username": "root",
             "password": "Nc_02075!!"
+        },
+        {
+            "mysqlOptions": {
+                "authProtocol": "default"
+            },
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 3306,
+            "driver": "MariaDB",
+            "name": "mariadb",
+            "database": "test",
+            "username": "root",
+            "password": "Nc_02075!!"
         }
     ]
 }
