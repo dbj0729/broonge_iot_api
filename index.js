@@ -1,7 +1,13 @@
 var net = require('net');
+const readlinePromises = require('node:readline');
+const rl = readlinePromises.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+
 require("dotenv").config();
 
-const IOT_PORT = process.env.IOT_PORT || '9091';
+const IOT_PORT = process.env.IOT_PORT || '9090';
 
 // IoT 에서 받는 Header byte size
 let size_1 = 4;     // Sig.
@@ -29,6 +35,18 @@ let sig_9 = sig_8+size_9;
 let sig_10 = sig_9+size_10;
 let sig_11 = sig_10+size_11;
 
+
+
+// App 에서 IoT 로 정보를 보내기 위한 기본 변수들이다.
+var sig_for_app = '1934';
+var group_for_app = 'BR01';
+var op_code_for_app = '3'; // 3번이 보내는 경우이다.
+var bike_id_for_app = '1241212319';
+var version_for_app = 'V0.31';
+var message_length_for_app = '35';
+var send_default_data_preparation = sig_for_app + group_for_app + op_code_for_app + bike_id_for_app + version_for_app + message_length_for_app;
+
+
 // 서버 생성
 var server = net.createServer(function(socket){
 	console.log(socket.address().address + "Connected to Broonge IoT Server");
@@ -36,6 +54,22 @@ var server = net.createServer(function(socket){
 	// client로 부터 오는 data를 화면에 출력
 	socket.on('data', function(data){
 		console.log('Received Data: ' + data);
+
+
+        
+            const send_code = "01";
+            const send_codes = send_default_data_preparation + send_code;
+
+            // function 으로 만들기?
+            const combined_send_codes = send_codes.split("");
+            const send_codes_value = combined_send_codes.map(item => item.charCodeAt()).reduce((acc, curr) => acc + curr);
+            const send_codes_value_verification = send_codes_value.toString(16);
+            // function 으로 만들기 끝?
+
+            const send_codes_manually_added_0x = "0"+send_codes_value_verification;
+            const final_send_codes = send_codes+send_codes_manually_added_0x;
+            socket.write(final_send_codes);
+        
 
         const data_elements = data;
         const sig = data_elements.slice(0,sig_1);
@@ -67,10 +101,10 @@ var server = net.createServer(function(socket){
         let manual_codes = f_1_battery+f_2_device_status+f_3_err_info+f_4_gps;
 
         if(manual_codes.length !== 0){
-            const combined_manual_codes = manual_codes.split("");
-            const manual_codes_result = combined_manual_codes.map(item => item.charCodeAt()).reduce((acc, curr) => acc + curr)
-            console.log({manual_codes_result});
-            console.log(manual_codes_result.toString(16));
+            const combined_manual_codes = manual_codes.split(""); // data 에서 온 raw 값을 글자 단위로 쪼갠 결과
+            const manual_codes_value = combined_manual_codes.map(item => item.charCodeAt()).reduce((acc, curr) => acc + curr) // 쪼갠 결과를 하나씩 분배
+            console.log({manual_codes_value});
+            console.log(manual_codes_value.toString(16));
             console.log("here is the checksum:"+ checksum);
         
             // IoT 에서 보낸 값이 누락없이 잘 왔는지 모든 글자의 ASCII 코드 값을 다 더한 후 16진수로 변환해서
@@ -78,10 +112,11 @@ var server = net.createServer(function(socket){
             // 만약, Checksum 이 다른 경우에는 데이터를 버려버린다. IoT 에 Return 할 필요는 없다.
             // 단, 만약, 20회 이상 Checksum 오류가 나는 경우에는 관리자에게 안내를 해 줘야 한다.
             // 상기 안내를 위해서 별도의 안내 방법이 필요할 수도 있다.
-            manual_codes_result_verification = manual_codes_result.toString(16);
+            manual_codes_value_verification = manual_codes_value.toString(16); // 분배된 값을 16진수로 변경
             
-            manually_added_0x = "0"+manual_codes_result_verification;
-console.log(manually_added_0x)
+            manually_added_0x = "0"+manual_codes_value_verification; // 마지막 checksum 에 0이 빠져서 0을 넣음
+            console.log(manually_added_0x);
+
             if (checksum == manually_added_0x){
                 try {
                     console.log("GOOD");
@@ -104,11 +139,8 @@ console.log(manually_added_0x)
             console.log("empty");
             console.log(manual_codes)
         }
-        
-        
 
         
-
 
 	});
 	// client와 접속이 끊기는 메시지 출력
@@ -116,7 +148,12 @@ console.log(manually_added_0x)
 		console.log('Client has left the IoT Server.');
 	});
 	// client가 접속하면 화면에 출력해주는 메시지
-	// socket.write('Welcome to the IoT Server');
+	socket.write('Welcome to the IoT Server');
+
+
+
+    
+    
 });
 
 // 에러가 발생할 경우 화면에 에러메시지 출력
