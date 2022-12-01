@@ -1,3 +1,4 @@
+const { appendFile } = require('fs');
 var net = require('net');
 const readlinePromises = require('node:readline');
 const rl = readlinePromises.createInterface({
@@ -41,7 +42,7 @@ let sig_11 = sig_10+size_11;
 var sig_for_app = '1934';
 var group_for_app = 'BR01';
 var op_code_for_app = '3'; // 3번이 보내는 경우이다.
-var bike_id_for_app = '1241212319';
+var bike_id_for_app = '1241212319'; // 이 ID 가 앱에서 눌렀을 때 전달 받는 ID 이다.
 var version_for_app = 'V0.31';
 var message_length_for_app = '35';
 var send_default_data_preparation = sig_for_app + group_for_app + op_code_for_app + bike_id_for_app + version_for_app + message_length_for_app;
@@ -51,24 +52,40 @@ var send_default_data_preparation = sig_for_app + group_for_app + op_code_for_ap
 var server = net.createServer(function(socket){
 	console.log(socket.address().address + "Connected to Broonge IoT Server");
 	
+
+//        app.use ~~(/:id)
+// 이 부분은 app 에서 받는 부분이다.
+
+        // IoT 에 잠금해제 보내는 예제
+        const send_code = "01";
+        const send_codes = send_default_data_preparation + send_code;
+
+        // function 으로 만들기?
+        const combined_send_codes = send_codes.split("");
+        const send_codes_value = combined_send_codes.map(item => item.charCodeAt()).reduce((acc, curr) => acc + curr);
+        const send_codes_value_verification = send_codes_value.toString(16);
+        // function 으로 만들기 끝?
+
+        const send_codes_manually_added_0x = "0"+send_codes_value_verification;
+        const final_send_codes = send_codes+send_codes_manually_added_0x;
+        socket.write(final_send_codes);
+
+
+
+
+
+
+
+
+
+
+
 	// client로 부터 오는 data를 화면에 출력
 	socket.on('data', function(data){
 		console.log('Received Data: ' + data);
 
 
-        
-            const send_code = "01";
-            const send_codes = send_default_data_preparation + send_code;
 
-            // function 으로 만들기?
-            const combined_send_codes = send_codes.split("");
-            const send_codes_value = combined_send_codes.map(item => item.charCodeAt()).reduce((acc, curr) => acc + curr);
-            const send_codes_value_verification = send_codes_value.toString(16);
-            // function 으로 만들기 끝?
-
-            const send_codes_manually_added_0x = "0"+send_codes_value_verification;
-            const final_send_codes = send_codes+send_codes_manually_added_0x;
-            socket.write(final_send_codes);
         
 
         const data_elements = data;
@@ -121,6 +138,7 @@ var server = net.createServer(function(socket){
                 try {
                     console.log("GOOD");
                     socket.write(`It's working!`); // 정상등록된 경우에는 IoT 에 뭔가를 전달할 필요는 없다.
+                    // 이 부분부터 DB 에 저장하는 로직을 만든다.
                 } catch (error) {
                     console.error(error);
                     
