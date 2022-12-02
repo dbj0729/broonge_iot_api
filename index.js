@@ -6,40 +6,9 @@ const rl = readlinePromises.createInterface({
 });
 
 require("dotenv").config();
-const express = require("express");
-const cors = require("cors");
-const { appendFile } = require("fs");
-const morgan = require("morgan");
 const { connection } = require("./config/database");
 
-// const app = express();
-// app.use(cors());
-
-// app.use(morgan("dev"));
-// app.use(express.json());
-
 const IOT_PORT = process.env.IOT_PORT || "9090";
-
-// app.get("/", (req, res) => {
-//   res.json("hello broonge");
-// });
-
-// app.post("/bike/start", async (req, res) => {
-//   try {
-//     const { identifier, status } = req.body;
-//     if (!identifier || !status) return res.status(400).send("no required data");
-
-//     const [rows] = await (
-//       await connection()
-//     ).execute(`select * from bike where identifier = ?`, [identifier]);
-//     if (!rows) return res.status(400).send("no bike");
-
-//     res.send({ rows });
-//   } catch (error) {
-//     console.log(error);
-//     return res.status(500);
-//   }
-// });
 
 // IoT 에서 받는 Header byte size
 let size_1 = 4; // Sig.
@@ -82,6 +51,9 @@ var send_default_data_preparation =
   version_for_app +
   message_length_for_app;
 
+let sockets = {};
+let bikeSocket;
+let bikeId;
 // 서버 생성
 var server = net.createServer(function (socket) {
   console.log(socket.address().address + "Connected to Broonge IoT Server");
@@ -89,43 +61,72 @@ var server = net.createServer(function (socket) {
   // client로 부터 오는 data를 화면에 출력
   socket.on("data", async function (data) {
     console.log("Received Data: " + data);
-
-    // const [rows] = await (
-    //   await connection()
-    // ).execute(`select * from bike where identifier = ?`, [data]);
-
-    // if (!rows)
-    //   await (
-    //     await connection()
-    //   ).execute(`insert into bike (identifier) values(?)`, [data]);
-
     const data_elements = data;
-    const data_commands = data.toString();
-    console.log("HERE WE GO...");
-    console.log(data_commands);
-    if(data_elements == 'unlock') {
-        
-        // 01 이면 잠금해제 이다.
-        const send_code = "01";
-        const send_codes = send_default_data_preparation + send_code;
+    const data_commands = data.toString("utf-8").trim();
 
-        // function 으로 만들기?
-        const combined_send_codes = send_codes.split("");
-        const send_codes_value = combined_send_codes
+    //* FIXME: dummyCode
+    //* bikeSocket은 10자리 1234567890 보낸다
+    //* userSocket은 1234 네자리만 보낸다
+    //* 1234 bikeId
+    bikeSocket = data_commands.length === 10; //자전거에서 보낸 통신인지 앱에서 보낸 통신인지 판별하는 변수
+    bikeId = data_commands.slice(0, 4);
+    let status = data_commands.slice(4);
+    const dummyResult = "unlocked" + bikeId;
+
+    if (bikeSocket) {
+      //자전거가 보낸 통신일 경우
+      console.time("findBike Perfomance Time");
+      //sockets 객체에 key 는 자전거 아이디 value 는 socket 을 할당한다.
+      sockets[bikeId] = socket;
+      //DB에 해당 자전거 ID가 등록되어 있는지 확인
+      const findBikeQuery = `select * from bike where identifier = ? limit 1`;
+      const [findBike] = await (
+        await connection()
+      ).execute(findBikeQuery, [bikeId]);
+      console.timeEnd("findBike Perfomance Time");
+
+      if (findBike.length === 0) {
+        //자전거가 등록되어 있지 않다면 등록
+        console.time("insert data Perfomance Time");
+        const query = `insert into bike (identifier, status) values (?, ?)`;
+        await (await connection()).execute(query, [bikeId, status]);
+        console.timeEnd("insert data Perfomance Time");
+      }
+    } else {
+      //앱에서 보낸 통신일 경우
+      //sockets 객체 안에 bikeId에 해당하는 키값이 있는지 판별한다.
+      if (!sockets[bikeId]) socket.write("sorry, not available");
+      else {
+        console.time("Change Perfomance Time");
+        const updateBikeStatusQuery = `update bike set status = 'riding' where identifier = ?`;
+        await (await connection()).execute(updateBikeStatusQuery, [bikeId]);
+        sockets[bikeId].write(dummyResult);
+        socket.write("success, enjoy your bike ride");
+        console.timeEnd("Change Perfomance Time");
+      }
+    }
+    //* -----end of dummyCode--------------
+
+    if (data_commands == "unlock") {
+      // 01 이면 잠금해제 이다.
+      const send_code = "01";
+      const send_codes = send_default_data_preparation + send_code;
+
+      // function 으로 만들기?
+      const combined_send_codes = send_codes.split("");
+      const send_codes_value = combined_send_codes
         .map((item) => item.charCodeAt())
         .reduce((acc, curr) => acc + curr);
-        const send_codes_value_verification = send_codes_value.toString(16);
-        // function 으로 만들기 끝?
+      const send_codes_value_verification = send_codes_value.toString(16);
+      // function 으로 만들기 끝?
 
-        const send_codes_manually_added_0x = "0" + send_codes_value_verification;
-        const final_send_codes = send_codes + send_codes_manually_added_0x;
-        socket.write(final_send_codes);
+      const send_codes_manually_added_0x = "0" + send_codes_value_verification;
+      const final_send_codes = send_codes + send_codes_manually_added_0x;
+
+      socket.write(final_send_codes, "utf8");
+    } else if (data_commands == "lock") {
+      console.log("locked");
     }
-    else if (data_commands == 'lock'){
-        console.log("locked");
-    }
-
-
 
     const sig = data_elements.slice(0, sig_1);
     const group = data_elements.slice(sig_1, sig_2);
@@ -133,24 +134,18 @@ var server = net.createServer(function (socket) {
     const bike_id_from_iot = data_elements.slice(sig_3, sig_4);
     const version = data_elements.slice(sig_4, sig_5);
     const message_length = data_elements.slice(sig_5, sig_6);
-    console.log(sig + "\r");
-    console.log(group + "\r");
-    console.log(op_code + "\r");
-    console.log(bike_id_from_iot + "\r");
-    console.log(version + "\r");
-    console.log(message_length + "\r");
 
     const f_1_battery = data_elements.slice(sig_6, sig_7);
     const f_2_device_status = data_elements.slice(sig_7, sig_8);
     const f_3_err_info = data_elements.slice(sig_8, sig_9);
     const f_4_gps = data_elements.slice(sig_9, sig_10);
-    console.log(f_1_battery + "\r");
-    console.log(f_2_device_status + "\r");
-    console.log(f_3_err_info + "\r");
-    console.log(f_4_gps + "\r");
+    // console.log(f_1_battery + "\r");
+    // console.log(f_2_device_status + "\r");
+    // console.log(f_3_err_info + "\r");
+    // console.log(f_4_gps + "\r");
 
     const checksum = data_elements.slice(sig_10, sig_11);
-    console.log(checksum + "\r");
+    // console.log(checksum + "\r");
 
     // 변경되는 값; 이 부분을 저장해야 한다.
     let manual_codes = f_1_battery + f_2_device_status + f_3_err_info + f_4_gps;
@@ -196,14 +191,22 @@ var server = net.createServer(function (socket) {
   });
   // client와 접속이 끊기는 메시지 출력
   socket.on("close", function () {
+    // 연결을 끊는 socket이 sockets 안에 등록된 socket인지 판별한다.
+    const findBikeId = Object.entries(sockets).find((s) => s[1] === socket);
+    if (findBikeId) {
+      console.log("bikeSocket disconnected");
+      delete sockets[findBikeId[0]];
+      return;
+    }
     console.log("Client has left the IoT Server.");
   });
   // client가 접속하면 화면에 출력해주는 메시지
-  socket.write("Welcome to the IoT Server");
+  // socket.write("Welcome to the IoT Server");
 });
 
 // 에러가 발생할 경우 화면에 에러메시지 출력
 server.on("error", function (err) {
+  if (bikeSocket) delete sockets[bikeId];
   console.log("err" + err);
 });
 
@@ -218,19 +221,5 @@ server.listen(IOT_PORT, function () {
 checksum length 를 count 하고,
 실제 계산된 값의 length 를 구한다음,
 그 length 에 있어서 자리수가 부족한 경우에는 0으로 매꾼다???
+
 */
-// app.listen(4001, async () => {
-//   try {
-//     console.log("server running port 4001");
-//     const [rows] = await (await connection()).execute(`select * from bike`);
-//     if (rows.length === 0) {
-//       const [result] = await (
-//         await connection()
-//       ).execute(`insert into bike (identifier) values(?)`, ["1241212319"]);
-//       console.log(result);
-//     }
-//     console.log({ bikeList: rows });
-//   } catch (e) {
-//     console.log(e);
-//   }
-// });
