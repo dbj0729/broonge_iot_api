@@ -12,34 +12,34 @@ const { appendFile } = require("fs");
 const morgan = require("morgan");
 const { connection } = require("./config/database");
 
-const app = express();
-app.use(cors());
+// const app = express();
+// app.use(cors());
 
-app.use(morgan("dev"));
-app.use(express.json());
+// app.use(morgan("dev"));
+// app.use(express.json());
 
 const IOT_PORT = process.env.IOT_PORT || "9090";
 
-app.get("/", (req, res) => {
-  res.json("hello broonge");
-});
+// app.get("/", (req, res) => {
+//   res.json("hello broonge");
+// });
 
-app.post("/bike/start", async (req, res) => {
-  try {
-    const { identifier, status } = req.body;
-    if (!identifier || !status) return res.status(400).send("no required data");
+// app.post("/bike/start", async (req, res) => {
+//   try {
+//     const { identifier, status } = req.body;
+//     if (!identifier || !status) return res.status(400).send("no required data");
 
-    const [rows] = await (
-      await connection()
-    ).execute(`select * from bike where identifier = ?`, [identifier]);
-    if (!rows) return res.status(400).send("no bike");
+//     const [rows] = await (
+//       await connection()
+//     ).execute(`select * from bike where identifier = ?`, [identifier]);
+//     if (!rows) return res.status(400).send("no bike");
 
-    res.send({ rows });
-  } catch (error) {
-    console.log(error);
-    return res.status(500);
-  }
-});
+//     res.send({ rows });
+//   } catch (error) {
+//     console.log(error);
+//     return res.status(500);
+//   }
+// });
 
 // IoT 에서 받는 Header byte size
 let size_1 = 4; // Sig.
@@ -90,32 +90,42 @@ var server = net.createServer(function (socket) {
   socket.on("data", async function (data) {
     console.log("Received Data: " + data);
 
-    const [rows] = await (
-      await connection()
-    ).execute(`select * from bike where identifier = ?`, [data]);
+    // const [rows] = await (
+    //   await connection()
+    // ).execute(`select * from bike where identifier = ?`, [data]);
 
-    if (!rows)
-      await (
-        await connection()
-      ).execute(`insert into bike (identifier) values(?)`, [data]);
+    // if (!rows)
+    //   await (
+    //     await connection()
+    //   ).execute(`insert into bike (identifier) values(?)`, [data]);
 
     const data_elements = data;
-    const data_commands = data.toString(16);
+    const data_commands = data.toString();
+    console.log("HERE WE GO...");
     console.log(data_commands);
-    const send_code = "01";
-    const send_codes = send_default_data_preparation + send_code;
+    if(data_elements == 'unlock') {
+        
+        // 01 이면 잠금해제 이다.
+        const send_code = "01";
+        const send_codes = send_default_data_preparation + send_code;
 
-    // function 으로 만들기?
-    const combined_send_codes = send_codes.split("");
-    const send_codes_value = combined_send_codes
-      .map((item) => item.charCodeAt())
-      .reduce((acc, curr) => acc + curr);
-    const send_codes_value_verification = send_codes_value.toString(16);
-    // function 으로 만들기 끝?
+        // function 으로 만들기?
+        const combined_send_codes = send_codes.split("");
+        const send_codes_value = combined_send_codes
+        .map((item) => item.charCodeAt())
+        .reduce((acc, curr) => acc + curr);
+        const send_codes_value_verification = send_codes_value.toString(16);
+        // function 으로 만들기 끝?
 
-    const send_codes_manually_added_0x = "0" + send_codes_value_verification;
-    const final_send_codes = send_codes + send_codes_manually_added_0x;
-    socket.write(final_send_codes);
+        const send_codes_manually_added_0x = "0" + send_codes_value_verification;
+        const final_send_codes = send_codes + send_codes_manually_added_0x;
+        socket.write(final_send_codes);
+    }
+    else if (data_commands == 'lock'){
+        console.log("locked");
+    }
+
+
 
     const sig = data_elements.slice(0, sig_1);
     const group = data_elements.slice(sig_1, sig_2);
@@ -209,18 +219,18 @@ checksum length 를 count 하고,
 실제 계산된 값의 length 를 구한다음,
 그 length 에 있어서 자리수가 부족한 경우에는 0으로 매꾼다???
 */
-app.listen(4001, async () => {
-  try {
-    console.log("server running port 4001");
-    const [rows] = await (await connection()).execute(`select * from bike`);
-    if (rows.length === 0) {
-      const [result] = await (
-        await connection()
-      ).execute(`insert into bike (identifier) values(?)`, ["1241212319"]);
-      console.log(result);
-    }
-    console.log({ bikeList: rows });
-  } catch (e) {
-    console.log(e);
-  }
-});
+// app.listen(4001, async () => {
+//   try {
+//     console.log("server running port 4001");
+//     const [rows] = await (await connection()).execute(`select * from bike`);
+//     if (rows.length === 0) {
+//       const [result] = await (
+//         await connection()
+//       ).execute(`insert into bike (identifier) values(?)`, ["1241212319"]);
+//       console.log(result);
+//     }
+//     console.log({ bikeList: rows });
+//   } catch (e) {
+//     console.log(e);
+//   }
+// });
