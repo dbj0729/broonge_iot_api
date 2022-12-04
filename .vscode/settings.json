@@ -22,7 +22,7 @@
             "port": 3306,
             "driver": "MariaDB",
             "name": "mariadb",
-            "database": "test",
+            "database": "broonge",
             "username": "root",
             "password": "Nc_02075!!"
         }

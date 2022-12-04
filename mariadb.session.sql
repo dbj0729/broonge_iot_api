@@ -1,0 +1,1 @@
+insert into iot_status (bike_id, battery,lat,lng, signal_strength,led, status) values ('1231231231','99',37.123,127.987,'3','on', 'riding')

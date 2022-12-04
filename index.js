@@ -1,9 +1,9 @@
 var net = require("net");
-const readlinePromises = require("node:readline");
-const rl = readlinePromises.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-});
+// const readlinePromises = require("node:readline");
+// const rl = readlinePromises.createInterface({
+//   input: process.stdin,
+//   output: process.stdout,
+// });
 
 require("dotenv").config();
 const { connection } = require("./config/database");
@@ -36,98 +36,24 @@ let sig_9 = sig_8 + size_9;
 let sig_10 = sig_9 + size_10;
 let sig_11 = sig_10 + size_11;
 
-// App 에서 IoT 로 정보를 보내기 위한 기본 변수들이다.
-var sig_for_app = "1934";
-var group_for_app = "BR01";
-var op_code_for_app = "3"; // 3번이 보내는 경우이다.
-var bike_id_for_app = "1241212319";
-var version_for_app = "V0.31";
-var message_length_for_app = "35";
-var send_default_data_preparation =
-  sig_for_app +
-  group_for_app +
-  op_code_for_app +
-  bike_id_for_app +
-  version_for_app +
-  message_length_for_app;
 
 let sockets = {};
 let bikeSocket;
-let bikeId;
 // 서버 생성
 var server = net.createServer(function (socket) {
-  console.log(socket.address().address + "Connected to Broonge IoT Server");
+  console.log(socket.address().address + "Started Broonge IoT Server");
 
-  // client로 부터 오는 data를 화면에 출력
-  socket.on("data", async function (data) {
+    // client로 부터 오는 data를 화면에 출력
+    /* 
+        Data 는 IoT 에서 받던, App 에서 받던 이래저래 같이 쓰이는 것이고
+        아래 로직에서 차이가 나는 것이다.
+    */
+    socket.on("data", async function (data) {
     console.log("Received Data: " + data);
-    const data_elements = data;
-    const data_commands = data.toString("utf-8").trim();
+    const data_elements = data.toString("utf-8").trim();
 
-    //* FIXME: dummyCode
-    //* bikeSocket은 10자리 1234567890 보낸다
-    //* userSocket은 1234 네자리만 보낸다
-    //* 1234 bikeId
-    bikeSocket = data_commands.length === 10; //자전거에서 보낸 통신인지 앱에서 보낸 통신인지 판별하는 변수
-    bikeId = data_commands.slice(0, 4);
-    let status = data_commands.slice(4);
-    const dummyResult = "unlocked" + bikeId;
 
-    if (bikeSocket) {
-      //자전거가 보낸 통신일 경우
-      console.time("findBike Perfomance Time");
-      //sockets 객체에 key 는 자전거 아이디 value 는 socket 을 할당한다.
-      sockets[bikeId] = socket;
-      //DB에 해당 자전거 ID가 등록되어 있는지 확인
-      const findBikeQuery = `select * from bike where identifier = ? limit 1`;
-      const [findBike] = await (
-        await connection()
-      ).execute(findBikeQuery, [bikeId]);
-      console.timeEnd("findBike Perfomance Time");
-
-      if (findBike.length === 0) {
-        //자전거가 등록되어 있지 않다면 등록
-        console.time("insert data Perfomance Time");
-        const query = `insert into bike (identifier, status) values (?, ?)`;
-        await (await connection()).execute(query, [bikeId, status]);
-        console.timeEnd("insert data Perfomance Time");
-      }
-    } else {
-      //앱에서 보낸 통신일 경우
-      //sockets 객체 안에 bikeId에 해당하는 키값이 있는지 판별한다.
-      if (!sockets[bikeId]) socket.write("sorry, not available");
-      else {
-        console.time("Change Perfomance Time");
-        const updateBikeStatusQuery = `update bike set status = 'riding' where identifier = ?`;
-        await (await connection()).execute(updateBikeStatusQuery, [bikeId]);
-        sockets[bikeId].write(dummyResult);
-        socket.write("success, enjoy your bike ride");
-        console.timeEnd("Change Perfomance Time");
-      }
-    }
-    //* -----end of dummyCode--------------
-
-    if (data_commands == "unlock") {
-      // 01 이면 잠금해제 이다.
-      const send_code = "01";
-      const send_codes = send_default_data_preparation + send_code;
-
-      // function 으로 만들기?
-      const combined_send_codes = send_codes.split("");
-      const send_codes_value = combined_send_codes
-        .map((item) => item.charCodeAt())
-        .reduce((acc, curr) => acc + curr);
-      const send_codes_value_verification = send_codes_value.toString(16);
-      // function 으로 만들기 끝?
-
-      const send_codes_manually_added_0x = "0" + send_codes_value_verification;
-      const final_send_codes = send_codes + send_codes_manually_added_0x;
-
-      socket.write(final_send_codes, "utf8");
-    } else if (data_commands == "lock") {
-      console.log("locked");
-    }
-
+// IoT 로부터 받는 정보이다.
     const sig = data_elements.slice(0, sig_1);
     const group = data_elements.slice(sig_1, sig_2);
     const op_code = data_elements.slice(sig_2, sig_3);
@@ -139,25 +65,33 @@ var server = net.createServer(function (socket) {
     const f_2_device_status = data_elements.slice(sig_7, sig_8);
     const f_3_err_info = data_elements.slice(sig_8, sig_9);
     const f_4_gps = data_elements.slice(sig_9, sig_10);
-    // console.log(f_1_battery + "\r");
-    // console.log(f_2_device_status + "\r");
-    // console.log(f_3_err_info + "\r");
-    // console.log(f_4_gps + "\r");
-
+    const gps_reformatted = f_4_gps.split("N"); // 이 부분이 IoT 좌표에서 넘어올 때 구분되어 지는 값이다.
+    const f_4_lat = gps_reformatted[0].slice(0,10); // 딱 10자리만 가져온다.
+    const f_4_lng = gps_reformatted[0].slice(0,10); // 딱 10자리만 가져온다.
+    
     const checksum = data_elements.slice(sig_10, sig_11);
-    // console.log(checksum + "\r");
 
     // 변경되는 값; 이 부분을 저장해야 한다.
     let manual_codes = f_1_battery + f_2_device_status + f_3_err_info + f_4_gps;
+// IoT 로부터 받는 정보 끝
 
+//sockets 객체에 key 는 자전거 아이디 value 는 socket 을 할당한다.
+sockets[bike_id_from_iot] = socket;
+      
+
+
+    
     if (manual_codes.length !== 0) {
       const combined_manual_codes = manual_codes.split(""); // data 에서 온 raw 값을 글자 단위로 쪼갠 결과
       const manual_codes_value = combined_manual_codes
         .map((item) => item.charCodeAt())
         .reduce((acc, curr) => acc + curr); // 쪼갠 결과를 하나씩 분배
+      
+      /* 
       console.log({ manual_codes_value });
       console.log(manual_codes_value.toString(16));
       console.log("here is the checksum:" + checksum);
+      */
 
       // IoT 에서 보낸 값이 누락없이 잘 왔는지 모든 글자의 ASCII 코드 값을 다 더한 후 16진수로 변환해서
       // IoT 보냈던 Checksum 값과 동일한지를 확인하고 동일해야지만 서버에 저장된다.
@@ -169,24 +103,128 @@ var server = net.createServer(function (socket) {
       manually_added_0x = "0" + manual_codes_value_verification; // 마지막 checksum 에 0이 빠져서 0을 넣음
       console.log(manually_added_0x);
 
-      if (checksum == manually_added_0x) {
+      
+
+      if (checksum == manually_added_0x) { // IoT 로 부터 받은 값이 모두 문제 없이 다 통과했을 때 실행
         try {
-          console.log("GOOD");
-          socket.write(`It's working!`); // 정상등록된 경우에는 IoT 에 뭔가를 전달할 필요는 없다.
+            if (bike_id_from_iot) {
+                //자전거가 보낸 통신일 경우
+                console.time("findBike Perfomance Time");
+                // --- 여기가 원래 sockets.[bike_id_from_iot] = socket; 이 있던 자리 ---
+                //DB에 해당 자전거 ID가 등록되어 있는지 확인
+                const findBikeQuery = `SELECT * FROM iot_status WHERE bike_id = ? limit 1`;
+                var [findBike] = await (
+                  await connection()
+                ).execute(findBikeQuery, [bike_id_from_iot]);
+                console.timeEnd("findBike Perfomance Time");
+          
+                if (findBike.length === 0) {
+                console.log("Bike you are searching for is not connected..")
+                }
+                else {
+                    console.time("Change Perfomance Time");
+                    const updateBikeStatusQuery = `
+                    UPDATE iot_status SET 
+                        battery = ${f_1_battery},
+                        lat = ${f_4_lat},
+                        lng = ${f_4_lng},
+                        signal_strength = "1",
+                        led = "on",
+                        status = 'current status'
+                        WHERE bike_id = ?`;
+                    await (await connection()).execute(updateBikeStatusQuery, [bike_id_from_iot]);
+                    sockets[bike_id_from_iot].write('Welcome! '+bike_id_from_iot);
+                    console.timeEnd("Change Perfomance Time");
+                  }
+              } else {
+                //앱에서 보낸 통신일 경우
+                //sockets 객체 안에 bikeId에 해당하는 키값이 있는지 판별한다.
+                if (!sockets[bike_id_from_iot]) socket.write("The requested bike id is not registered in the server array.");
+              }
         } catch (error) {
           console.error(error);
         }
       } else {
         try {
           console.log("Bad");
-          socket.write(`It's not working!`); // 상기 횟수에 따라 오류가 발생할 경우, 관리자 Alert 를 띄워야 한다.
+          socket.write(`Wrong type of data transaction.`); // 상기 횟수에 따라 오류가 발생할 경우, 관리자 Alert 를 띄워야 한다.
         } catch (error) {
           console.error(error);
         }
       }
-    } else {
-      console.log("empty");
-      console.log(manual_codes);
+    } else { // 이 부분이 IoT 로 보내기 위해 App 으로부터 받는 부분이다.
+
+        // App 에서 IoT 로 보내기 위해 받는 Protocol
+        let app_to_iot_data = data_elements.split(",");
+        console.log("Here is the app to iot data: "+app_to_iot_data[0])
+
+
+        // App 에서 IoT 로 정보를 보내기 위한 기본 변수들이다.
+        var sig_for_app = "1934";
+        var group_for_app = "BR01";
+        var op_code_for_app = "3"; // 3번이 보내는 경우이다.
+        var bike_id_for_app = app_to_iot_data[0];
+        var version_for_app = "V0.31";
+        var message_length_for_app = "35";
+        var send_default_data_preparation =
+            sig_for_app +
+            group_for_app +
+            op_code_for_app +
+            bike_id_for_app +
+            version_for_app +
+            message_length_for_app;
+
+        function sending_codes(send_code) {
+            var send_codes = send_default_data_preparation + send_code;
+            var combined_send_codes = send_codes.split("");
+            var send_codes_value = combined_send_codes
+                .map((item) => item.charCodeAt())
+                .reduce((acc, curr) => acc + curr);
+            var send_codes_value_verification = send_codes_value.toString(16);
+            var send_codes_manually_added_0x = "0" + send_codes_value_verification;
+            var final_send_codes = send_codes + send_codes_manually_added_0x;
+            return final_send_codes;
+        }
+
+
+        // bikeSocket = app_to_iot_data[0];
+        // sockets[bike_id_from_iot] = socket; // App 에서 보내려고하는데 그 자전거가 붙어 있는지도 확인해야 하는 과정...?
+        // console.log("================"+JSON.stringify(sockets[bike_id_from_iot]))
+
+// 그 자전거가 붙어있는지 여부를 확인하는 과정이 필요하다. query 를 반드시 돌려야만 하는가? 매번? 아님 한 번? 
+
+        if (app_to_iot_data[1] == "unlock") {
+            try {
+                // 01 이면 잠금해제 이다.
+                const send_code = "01";
+                // 여기서 실제로 IoT 에서 받는 값을 보고 진짜로 잠겼는지 열렸는지 확인해야 한다.
+                socket.write(sending_codes(send_code), "utf8");
+                console.time("Change Perfomance Time");
+                const updateBikeStatusQuery = `UPDATE iot_status SET status = 'unlocked' WHERE bike_id = ?`;
+                await (await connection()).execute(updateBikeStatusQuery, [bike_id_for_app]);
+                sockets[bike_id_from_iot].write('unlocked!');
+                socket.write("success, enjoy your bike ride");
+                console.timeEnd("Change Perfomance Time");
+            } catch (error) {
+                console.error(error);
+              }
+        } else if (app_to_iot_data[1] == "lock") {
+
+            // 00 이면 잠금 이다.
+            const send_code = "00";
+            // 여기서 실제로 IoT 에서 받는 값을 보고 진짜로 잠겼는지 열렸는지 확인해야 한다.
+            // 1. IoT 가 접속 중인지를 확인한다.
+            // 2. Status 가 locked 인지를 확인한다.
+            // 3. locked 이면 굳이 실행시킬 필요는 없다. 그렇다고 굳이 또 안 돌릴 이유도 없다.
+            // 4. IoT --> 현상태 확인 --> IoT 에게 명령 --> 이 후 success 받으면 Server 에 저장 (이것이 정석이다)
+            socket.write(sending_codes(send_code), "utf8");
+            console.time("Change Perfomance Time");
+            const updateBikeStatusQuery = `UPDATE iot_status SET status = 'locked' WHERE bike_id = ?`;
+            await (await connection()).execute(updateBikeStatusQuery, [bike_id_for_app]);
+            sockets[bike_id_from_iot].write('locked!'); // 이거? 아래꺼? 어떤걸로 보내야 그 IoT 로 보낼 수 있는 것인가?
+            socket.write("Thank you for your riding Broonge!");
+            console.timeEnd("Change Perfomance Time");
+        }
     }
   });
   // client와 접속이 끊기는 메시지 출력
@@ -206,7 +244,7 @@ var server = net.createServer(function (socket) {
 
 // 에러가 발생할 경우 화면에 에러메시지 출력
 server.on("error", function (err) {
-  if (bikeSocket) delete sockets[bikeId];
+  if (bikeSocket) delete sockets[bike_id_from_iot];
   console.log("err" + err);
 });
 
@@ -223,3 +261,4 @@ checksum length 를 count 하고,
 그 length 에 있어서 자리수가 부족한 경우에는 0으로 매꾼다???
 
 */
+
