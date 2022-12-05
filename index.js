@@ -190,10 +190,10 @@ var server = net.createServer(function (socket) {
         var send_codes_value_verification = send_codes_value.toString(16)
         var send_codes_manually_added_0x = '0' + send_codes_value_verification
         var final_send_codes = send_codes + send_codes_manually_added_0x
-        final_send_codes_buffer = Buffer.from(final_send_codes, 'utf-8')
+        // final_send_codes_buffer = Buffer.from(final_send_codes, 'utf-8')
         // const buf = Buffer.alloc(100)
         // final_send_codes_buffer = buf.write(final_send_codes)
-        return final_send_codes_buffer
+        return final_send_codes
       }
 
       if (app_to_iot_data[0] == process.env.APP_SIG && sockets[app_to_iot_data[1]]) {
@@ -213,7 +213,7 @@ var server = net.createServer(function (socket) {
             const updateBikeStatusQuery = `UPDATE iot_status SET status = 'unlocked' WHERE bike_id = ?`
             await (await connection()).execute(updateBikeStatusQuery, [bike_id_for_app])
             console.timeEnd('Change Perfomance Time')
-            sockets[app_to_iot_data[1]].write(sending_codes(send_code)) // IoT 에 보내는 소켓
+            // sockets[app_to_iot_data[1]].write(sending_codes(send_code)) // IoT 에 보내는 소켓
             sockets[app_to_iot_data[1]].write('1934BR0131241212318V0.50020105ce') // IoT 에 보내는 소켓
             socket.write('Unlocked!')
             console.log('here is the buffered: ' + final_send_codes_buffer + '\r\n')
@@ -232,9 +232,9 @@ var server = net.createServer(function (socket) {
           console.time('Change Perfomance Time')
           const updateBikeStatusQuery = `UPDATE iot_status SET status = 'locked' WHERE bike_id = ?`
           await (await connection()).execute(updateBikeStatusQuery, [bike_id_for_app])
-          sockets[app_to_iot_data[1]].write(sending_codes(send_code)) // 이건 IoT 로 보내는 경우
+          sockets[app_to_iot_data[1]].write(sending_codes(send_code).toString('utf-8').trim()) // IoT 에 보내는 소켓
           socket.write('Thank you for your riding Broonge!') // 이건 App 으로 보내는 경우
-          console.timeEnd('Change Perfomance Timeß')
+          console.timeEnd('Change Perfomance Time')
           console.log('Update iot_status with lock has been completed.')
         }
       } else socket.end('Not registered bike')
