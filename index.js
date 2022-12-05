@@ -17,11 +17,12 @@ let size_3 = 1 // OP Code
 let size_4 = 10 // ID
 let size_5 = 5 // Version
 let size_6 = 2 // MSG Length
-let size_7 = 2 // Function_1
-let size_8 = 2 // Function_2
-let size_9 = 2 // Function_3
-let size_10 = 23 // Function_4
-let size_11 = 4 // Checksum
+let size_7 = 23 // GPS
+let size_8 = 1 // Signal Strength
+let size_9 = 2 // Battery
+let size_10 = 2 // Device Status
+let size_11 = 2 // Error Info
+let size_12 = 4 // Checksum
 
 // Slice 로 진행하기에 그에 따른 글자 수에 따라 다음 단계를 불러오는 방식
 let sig_1 = size_1
@@ -35,6 +36,7 @@ let sig_8 = sig_7 + size_8
 let sig_9 = sig_8 + size_9
 let sig_10 = sig_9 + size_10
 let sig_11 = sig_10 + size_11
+let sig_12 = sig_11 + size_12
 
 let sockets = {}
 let bikeSocket
@@ -59,18 +61,19 @@ var server = net.createServer(function (socket) {
     const version = data_elements.slice(sig_4, sig_5)
     const message_length = data_elements.slice(sig_5, sig_6)
 
-    const f_1_battery = data_elements.slice(sig_6, sig_7)
-    const f_2_device_status = data_elements.slice(sig_7, sig_8)
-    const f_3_err_info = data_elements.slice(sig_8, sig_9)
-    const f_4_gps = data_elements.slice(sig_9, sig_10)
-    const gps_reformatted = f_4_gps.split('N') // 이 부분이 IoT 좌표에서 넘어올 때 구분되어 지는 값이다.
-    const f_4_lat = gps_reformatted[0].slice(0, 10) // 딱 10자리만 가져온다.
-    const f_4_lng = gps_reformatted[0].slice(0, 10) // 딱 10자리만 가져온다.
+    const f_1_gps = data_elements.slice(sig_6, sig_7)
+    const f_2_signal_strength = data_elements.sllice(sig_7, sig_8)
+    const f_3_battery = data_elements.slice(sig_8, sig_9)
+    const f_4_device_status = data_elements.slice(sig_9, sig_10)
+    const f_5_err_info = data_elements.slice(sig_10, sig_11)
+    const gps_reformatted = f_1_gps.split('N') // 이 부분이 IoT 좌표에서 넘어올 때 구분되어 지는 값이다.
+    const f_1_lat = gps_reformatted[0].slice(0, 10) // 딱 10자리만 가져온다.
+    const f_1_lng = gps_reformatted[0].slice(0, 10) // 딱 10자리만 가져온다.
 
-    const checksum = data_elements.slice(sig_10, sig_11)
+    const checksum = data_elements.slice(sig_11, sig_12)
 
     // 변경되는 값; 이 부분을 저장해야 한다.
-    let manual_codes = f_1_battery + f_2_device_status + f_3_err_info + f_4_gps
+    let manual_codes = f_1_gps + f_2_signal_strength + f_3_battery + f_4_device_status + f_5_err_info
     // IoT 로부터 받는 정보 끝
 
     //sockets 객체에 key 는 자전거 아이디 value 는 socket 을 할당한다.
@@ -98,8 +101,8 @@ var server = net.createServer(function (socket) {
 
       if (checksum == manually_added_0x) {
         // IoT 로 부터 받은 값이 모두 문제 없이 다 통과했을 때 실행
-        try {
-          if (bike_id_from_iot) {
+        if (bike_id_from_iot) {
+          try {
             //자전거가 보낸 통신일 경우
             console.time('findBike Perfomance Time')
             // --- 여기가 원래 sockets.[bike_id_from_iot] = socket; 이 있던 자리 ---
@@ -109,29 +112,29 @@ var server = net.createServer(function (socket) {
             console.timeEnd('findBike Perfomance Time')
 
             if (findBike.length === 0) {
-              console.log('Bike you are searching for is not found..') // 등록되지 않은 자전거이다.
+              socket.end('who are you?')
             } else {
               console.time('Change Perfomance Time')
               const updateBikeStatusQuery = `
-                    UPDATE iot_status SET 
-                        battery = ${f_1_battery},
-                        lat = ${f_4_lat},
-                        lng = ${f_4_lng},
-                        signal_strength = "1",
-                        led = "on",
-                        status = 'current status'
-                        WHERE bike_id = ?`
+                      UPDATE iot_status SET 
+                          battery = ${f_3_battery},
+                          lat = ${f_1_lat},
+                          lng = ${f_1_lng},
+                          signal_strength = ${f_2_signal_strength},
+                          led = "on",
+                          status = 'current status'
+                          WHERE bike_id = ?`
               await (await connection()).execute(updateBikeStatusQuery, [bike_id_from_iot])
               sockets[bike_id_from_iot].write('Welcome! ' + bike_id_from_iot)
               console.timeEnd('Change Perfomance Time')
             }
-          } else {
-            //앱에서 보낸 통신일 경우
-            //sockets 객체 안에 bikeId에 해당하는 키값이 있는지 판별한다.
-            if (!sockets[bike_id_from_iot]) socket.write('The requested bike id is not registered in the server array.')
+          } catch (error) {
+            console.log(error)
           }
-        } catch (error) {
-          console.error(error)
+        } else {
+          //앱에서 보낸 통신일 경우
+          //sockets 객체 안에 bikeId에 해당하는 키값이 있는지 판별한다.
+          if (!sockets[bike_id_from_iot]) socket.write('The requested bike id is not registered in the server array.')
         }
       } else {
         try {
@@ -168,7 +171,7 @@ var server = net.createServer(function (socket) {
         return final_send_codes
       }
 
-      if (app_to_iot_data[0] == process.env.APP_SIG) {
+      if (app_to_iot_data[0] == process.env.APP_SIG && sockets[app_to_iot_data[1]]) {
         // bikeSocket = app_to_iot_data[1];
         // sockets[bike_id_from_iot] = socket; // App 에서 보내려고하는데 그 자전거가 붙어 있는지도 확인해야 하는 과정...?
         // console.log("================"+JSON.stringify(sockets[bike_id_from_iot]))
@@ -180,11 +183,10 @@ var server = net.createServer(function (socket) {
             // 01 이면 잠금해제 이다.
             const send_code = '01'
             // 여기서 실제로 IoT 에서 받는 값을 보고 진짜로 잠겼는지 열렸는지 확인해야 한다.
-            socket.write(sending_codes(send_code), 'utf8')
             console.time('Change Perfomance Time')
             const updateBikeStatusQuery = `UPDATE iot_status SET status = 'unlocked' WHERE bike_id = ?`
             await (await connection()).execute(updateBikeStatusQuery, [bike_id_for_app])
-            sockets[bike_id_from_iot].write('unlocked!') // IoT 에 보내는 소켓
+            sockets[app_to_iot_data[1]].write(sending_codes(send_code), 'utf8') // IoT 에 보내는 소켓
             socket.write('success, enjoy your bike ride') // 사용자 앱
             console.timeEnd('Change Perfomance Time')
           } catch (error) {
@@ -198,15 +200,14 @@ var server = net.createServer(function (socket) {
           // 2. Status 가 locked 인지를 확인한다.
           // 3. locked 이면 굳이 실행시킬 필요는 없다. 그렇다고 굳이 또 안 돌릴 이유도 없다.
           // 4. IoT --> 현상태 확인 --> IoT 에게 명령 --> 이 후 success 받으면 Server 에 저장 (이것이 정석이다)
-          socket.write(sending_codes(send_code), 'utf8')
           console.time('Change Perfomance Time')
           const updateBikeStatusQuery = `UPDATE iot_status SET status = 'locked' WHERE bike_id = ?`
           await (await connection()).execute(updateBikeStatusQuery, [bike_id_for_app])
-          sockets[bike_id_from_iot].write('locked!') // 이거? 아래꺼? 어떤걸로 보내야 그 IoT 로 보낼 수 있는 것인가?
+          sockets[app_to_iot_data[1]].write(sending_codes(send_code), 'utf8') // 이거? 아래꺼? 어떤걸로 보내야 그 IoT 로 보낼 수 있는 것인가?
           socket.write('Thank you for your riding Broonge!')
           console.timeEnd('Change Perfomance Time')
         }
-      }
+      } else socket.end('Not registered bike')
     }
   })
   // client와 접속이 끊기는 메시지 출력
