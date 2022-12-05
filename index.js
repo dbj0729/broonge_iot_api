@@ -88,7 +88,7 @@ var server = net.createServer(function (socket) {
 
       /* 
       console.log({ manual_codes_value });
-      console.log(manual_codes_value.toString(16));
+      consollog(manual_codes_value.toString(16));
       console.log("here is the checksum:" + checksum);
       */
 
@@ -171,7 +171,8 @@ var server = net.createServer(function (socket) {
         var send_codes_value_verification = send_codes_value.toString(16)
         var send_codes_manually_added_0x = '0' + send_codes_value_verification
         var final_send_codes = send_codes + send_codes_manually_added_0x
-        return final_send_codes
+        final_send_codes_buffer = Buffer.from(final_send_codes, 'utf-8')
+        return final_send_codes_buffer
       }
 
       if (app_to_iot_data[0] == process.env.APP_SIG && sockets[app_to_iot_data[1]]) {
@@ -195,6 +196,8 @@ var server = net.createServer(function (socket) {
             console.log('Update iot_status with unlock has been completed.')
             sockets[app_to_iot_data[1]].write(sending_codes(send_code)) // IoT 에 보내는 소켓
             socket.write('Unlocked!')
+            console.log('here is the buffered: ' + final_send_codes_buffer)
+            console.log(send_codes_manually_added_0x)
           } catch (error) {
             console.error(error)
           }
