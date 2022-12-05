@@ -127,6 +127,8 @@ var server = net.createServer(function (socket) {
               console.timeEnd('Change Perfomance Time')
               console.log('Update iot_status table complete!')
             }
+
+            console.log('console :sockets keys', Object.keys(sockets))
           } catch (error) {
             console.log(error)
           }
