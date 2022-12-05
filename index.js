@@ -60,7 +60,7 @@ var server = net.createServer(function (socket) {
     const group = data_elements.slice(sig_1, sig_2)
     const op_code = data_elements.slice(sig_2, sig_3)
     const bike_id_from_iot = data_elements.slice(sig_3, sig_4)
-    const version = data_elements.slice(sig_4, sig_5)
+    const version = data_elements.slice(sig_4, sig_5) // version 을 넣으니까 if 문에서 막힌다.
     const message_length = data_elements.slice(sig_5, sig_6)
 
     const f_1_gps = data_elements.slice(sig_6, sig_7)
@@ -77,8 +77,8 @@ var server = net.createServer(function (socket) {
     // 변경되는 값; 이 부분을 저장해야 한다.
     let manual_codes = f_1_gps + f_2_signal_strength + f_3_battery + f_4_device_status + f_5_err_info
 
-    //TODO: 32 buffer 없애기
-    //TODO: error 하수구
+    //TODO: [X] 32 buffer 없애기
+    //TODO: [O] error 하수구
     //TODO: data 값이 정상적으로 모두 다 들어왔는지 확인 후 정상데이타가 아니면 소켓 연결 끊기
     //TODO: 정상데이터면 iot socket 인지 app socket 인지 확인 후 처리
 
@@ -88,7 +88,7 @@ var server = net.createServer(function (socket) {
       sig == process.env.IOT_SIG &&
       group == process.env.IOT_GROUP &&
       op_code == process.env.IOT_ERROR_OP_CODE &&
-      message_length == process.env.IOT_MESSAGE_LENGTH
+      message_length == process.env.IOT_ERROR_MESSAGE_LENGTH
     ) {
       const error_report_code = data_elements.slice(sig_6, sig_error_report)
       console.log('ERROR_REPORT_CODE:' + error_report_code)
@@ -185,7 +185,8 @@ var server = net.createServer(function (socket) {
         var send_codes_value_verification = send_codes_value.toString(16)
         var send_codes_manually_added_0x = '0' + send_codes_value_verification
         var final_send_codes = send_codes + send_codes_manually_added_0x
-        final_send_codes_buffer = Buffer.from(final_send_codes, 'utf-8')
+        // final_send_codes_buffer = Buffer.from(final_send_codes, 'utf-8')
+        final_send_codes_buffer = final_send_codes.toString('utf-8').trim()
         return final_send_codes_buffer
       }
 
