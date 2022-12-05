@@ -174,7 +174,7 @@ var server = net.createServer(function (socket) {
       var op_code_for_app = '3' // 3번이 보내는 경우이다.
       var bike_id_for_app = app_to_iot_data[1]
       var version_for_app = 'V0.50'
-      var message_length_for_app = '30'
+      var message_length_for_app = '02'
       var send_default_data_preparation =
         sig_for_app + group_for_app + op_code_for_app + bike_id_for_app + version_for_app + message_length_for_app
 
@@ -186,7 +186,7 @@ var server = net.createServer(function (socket) {
         var send_codes_manually_added_0x = '0' + send_codes_value_verification
         var final_send_codes = send_codes + send_codes_manually_added_0x
         final_send_codes_buffer = Buffer.from(final_send_codes, 'utf-8')
-        return final_send_codes_buffer + 1
+        return final_send_codes_buffer
       }
 
       if (app_to_iot_data[0] == process.env.APP_SIG && sockets[app_to_iot_data[1]]) {
