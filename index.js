@@ -214,9 +214,9 @@ var server = net.createServer(function (socket) {
             await (await connection()).execute(updateBikeStatusQuery, [bike_id_for_app])
             console.timeEnd('Change Perfomance Time')
             // sockets[app_to_iot_data[1]].write(sending_codes(send_code)) // IoT 에 보내는 소켓
-            sockets[app_to_iot_data[1]].write('1934BR0131241212318V0.50020105ce') // IoT 에 보내는 소켓
+            sockets[app_to_iot_data[1]].write('1934BR0131241212318V0.50030105ce') // IoT 에 보내는 소켓
             socket.write('Unlocked!')
-            console.log('here is the buffered: ' + final_send_codes_buffer + '\r\n')
+            // console.log('here is the buffered: ' + final_send_codes_buffer + '\r\n')
           } catch (error) {
             console.error(error)
           }
