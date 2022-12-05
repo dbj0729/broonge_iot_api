@@ -110,7 +110,7 @@ var server = net.createServer(function (socket) {
             console.timeEnd('findBike Perfomance Time')
 
             if (findBike.length === 0) {
-              socket.end() // 등록된 자전거가 없을 경우 소켓을 끊는다.
+              socket.end('closed!!!') // 등록된 자전거가 없을 경우 소켓을 끊는다.
             } else {
               console.time('Change Perfomance Time')
               const updateBikeStatusQuery = `
@@ -130,10 +130,6 @@ var server = net.createServer(function (socket) {
           } catch (error) {
             console.log(error)
           }
-        } else {
-          //앱에서 보낸 통신일 경우
-          //sockets 객체 안에 bikeId에 해당하는 키값이 있는지 판별한다.
-          if (!sockets[bike_id_from_iot]) socket.write('The requested bike id is not registered in the server array.')
         }
       } else {
         try {
@@ -154,7 +150,7 @@ var server = net.createServer(function (socket) {
       var group_for_app = process.env.IOT_GROUP
       var op_code_for_app = '3' // 3번이 보내는 경우이다.
       var bike_id_for_app = app_to_iot_data[1]
-      var version_for_app = 'V0.31'
+      var version_for_app = 'V0.50'
       var message_length_for_app = '30'
       var send_default_data_preparation =
         sig_for_app + group_for_app + op_code_for_app + bike_id_for_app + version_for_app + message_length_for_app
@@ -181,13 +177,14 @@ var server = net.createServer(function (socket) {
             // 01 이면 잠금해제 이다.
             const send_code = '01'
             // 여기서 실제로 IoT 에서 받는 값을 보고 진짜로 잠겼는지 열렸는지 확인해야 한다.
-            sockets[app_to_iot_data[1]].write(sending_codes(send_code), 'utf8') // IoT 에 보내는 소켓
+
+            // sockets[app_to_iot_data[1]].write('is there?') // IoT 에 보내는 소켓
             console.time('Change Perfomance Time')
             const updateBikeStatusQuery = `UPDATE iot_status SET status = 'unlocked' WHERE bike_id = ?`
             await (await connection()).execute(updateBikeStatusQuery, [bike_id_for_app])
             console.timeEnd('Change Perfomance Time')
             console.log('Update iot_status with unlock has been completed.')
-            console.log(sending_codes(send_code))
+            sockets[app_to_iot_data[1]].write(sending_codes(send_code), 'utf8') // IoT 에 보내는 소켓
             socket.write('Unlocked!')
           } catch (error) {
             console.error(error)
@@ -200,7 +197,7 @@ var server = net.createServer(function (socket) {
           // 2. Status 가 locked 인지를 확인한다.
           // 3. locked 이면 굳이 실행시킬 필요는 없다. 그렇다고 굳이 또 안 돌릴 이유도 없다.
           // 4. IoT --> 현상태 확인 --> IoT 에게 명령 --> 이 후 success 받으면 Server 에 저장 (이것이 정석이다)
-          sockets[app_to_iot_data[1]].write(sending_codes(send_code), 'utf8') // IoT 에 보내는 소켓
+
           console.time('Change Perfomance Time')
           const updateBikeStatusQuery = `UPDATE iot_status SET status = 'locked' WHERE bike_id = ?`
           await (await connection()).execute(updateBikeStatusQuery, [bike_id_for_app])
@@ -224,7 +221,7 @@ var server = net.createServer(function (socket) {
     console.log('Client has left the IoT Server.')
   })
   // client가 접속하면 화면에 출력해주는 메시지
-  // socket.write("Welcome to the IoT Server");
+  socket.write('Welcome to the IoT Server')
 })
 
 // 에러가 발생할 경우 화면에 에러메시지 출력
