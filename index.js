@@ -198,7 +198,7 @@ var server = net.createServer(function (socket) {
 
       if (app_to_iot_data[0] == process.env.APP_SIG && sockets[app_to_iot_data[1]]) {
         // bikeSocket = app_to_iot_data[1];
-        sockets[bike_id_from_iot] = socket // App 에서 보내려고하는데 그 자전거가 붙어 있는지도 확인해야 하는 과정...?
+        sockets[bike_id_from_iot] = socket // 이렇게 넣으니까 결국 App 의 ID 도 같이 붙네..
         // console.log("================"+JSON.stringify(sockets[bike_id_from_iot]))
 
         // 그 자전거가 붙어있는지 여부를 확인하는 과정이 필요하다. query 를 반드시 돌려야만 하는가? 매번? 아님 한 번?
@@ -214,7 +214,7 @@ var server = net.createServer(function (socket) {
             await (await connection()).execute(updateBikeStatusQuery, [bike_id_for_app])
             console.timeEnd('Change Perfomance Time')
             // sockets[app_to_iot_data[1]].write(sending_codes(send_code)) // IoT 에 보내는 소켓
-            sockets[app_to_iot_data[1]].write('1934BR0131241212318V0.50030105ce') // IoT 에 보내는 소켓
+            sockets[app_to_iot_data[1]].write(sending_codes(send_code).toString('utf-8').trim()) // IoT 에 보내는 소켓
             socket.write('Unlocked!')
             // console.log('here is the buffered: ' + final_send_codes_buffer + '\r\n')
           } catch (error) {
