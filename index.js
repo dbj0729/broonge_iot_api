@@ -186,7 +186,7 @@ var server = net.createServer(function (socket) {
         var send_codes_manually_added_0x = '0' + send_codes_value_verification
         var final_send_codes = send_codes + send_codes_manually_added_0x
         final_send_codes_buffer = Buffer.from(final_send_codes, 'utf-8')
-        return final_send_codes_buffer
+        return final_send_codes_buffer + 1
       }
 
       if (app_to_iot_data[0] == process.env.APP_SIG && sockets[app_to_iot_data[1]]) {
