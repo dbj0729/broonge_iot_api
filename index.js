@@ -71,11 +71,11 @@ var server = net.createServer(function (socket) {
     sockets[bike_id_from_iot] = socket
 
     if (
-      sig == process.env.IOT_SIG &&
-      group == process.env.IOT_GROUP &&
-      op_code == process.env.IOT_OP_CODE &&
-      version == process.env.IOT_VERSION &&
-      message_length == process.env.IOT_MESSAGE_LENGTH &&
+      (sig == process.env.IOT_SIG || 1934) &&
+      (group == process.env.IOT_GROUP || 'BR01') &&
+      (op_code == process.env.IOT_OP_CODE || 1) &&
+      (version == process.env.IOT_VERSION || 'v0.50') &&
+      (message_length == process.env.IOT_MESSAGE_LENGTH || 30) &&
       manual_codes.length !== 0
     ) {
       const f_1_gps = data_elements.slice(sig_6, sig_7)
