@@ -87,7 +87,7 @@ var server = net.createServer(function (socket) {
     if (
       (sig == process.env.IOT_SIG || 1934) &&
       (group == process.env.IOT_GROUP || 'BR01') &&
-      (op_code == process.env.IOT_ERROR_OP_CODE || 3) &&
+      (op_code == process.env.IOT_ERROR_OP_CODE || 2) &&
       (version == process.env.IOT_VERSION || 'v0.50') &&
       (message_length == process.env.IOT_MESSAGE_LENGTH || 02)
     ) {
