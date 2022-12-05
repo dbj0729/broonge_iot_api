@@ -103,7 +103,7 @@ var server = net.createServer(function (socket) {
             //자전거가 보낸 통신일 경우
             console.time('findBike Perfomance Time')
             //sockets 객체에 key 는 자전거 아이디 value 는 socket 을 할당한다.
-            sockets[bike_id_from_iot] = socket
+            if (!sockets[bike_id_from_iot]) sockets[bike_id_from_iot] = socket
             //DB에 해당 자전거 ID가 등록되어 있는지 확인
             const findBikeQuery = `SELECT * FROM iot_status WHERE bike_id = ? limit 1`
             var [findBike] = await (await connection()).execute(findBikeQuery, [bike_id_from_iot])
