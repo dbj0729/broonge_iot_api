@@ -76,9 +76,6 @@ var server = net.createServer(function (socket) {
     let manual_codes = f_1_gps + f_2_signal_strength + f_3_battery + f_4_device_status + f_5_err_info
     // IoT 로부터 받는 정보 끝
 
-    //sockets 객체에 key 는 자전거 아이디 value 는 socket 을 할당한다.
-    sockets[bike_id_from_iot] = socket
-
     if (sig == process.env.IOT_SIG && group == process.env.IOT_GROUP && manual_codes.length !== 0) {
       const combined_manual_codes = manual_codes.split('') // data 에서 온 raw 값을 글자 단위로 쪼갠 결과
       const manual_codes_value = combined_manual_codes.map(item => item.charCodeAt()).reduce((acc, curr) => acc + curr) // 쪼갠 결과를 하나씩 분배
@@ -105,7 +102,8 @@ var server = net.createServer(function (socket) {
           try {
             //자전거가 보낸 통신일 경우
             console.time('findBike Perfomance Time')
-            // --- 여기가 원래 sockets.[bike_id_from_iot] = socket; 이 있던 자리 ---
+            //sockets 객체에 key 는 자전거 아이디 value 는 socket 을 할당한다.
+            sockets[bike_id_from_iot] = socket
             //DB에 해당 자전거 ID가 등록되어 있는지 확인
             const findBikeQuery = `SELECT * FROM iot_status WHERE bike_id = ? limit 1`
             var [findBike] = await (await connection()).execute(findBikeQuery, [bike_id_from_iot])
