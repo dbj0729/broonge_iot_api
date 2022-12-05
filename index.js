@@ -208,7 +208,7 @@ var server = net.createServer(function (socket) {
             console.timeEnd('Change Perfomance Time')
             sockets[app_to_iot_data[1]].write(sending_codes(send_code)) // IoT 에 보내는 소켓
             socket.write('Unlocked!')
-            console.log('here is the buffered: ' + final_send_codes_buffer)
+            console.log('here is the buffered: ' + final_send_codes_buffer + '\r\n')
           } catch (error) {
             console.error(error)
           }
