@@ -85,20 +85,18 @@ var server = net.createServer(function (socket) {
     sockets[bike_id_from_iot] = socket
 
     if (
-      (sig == process.env.IOT_SIG || 1934) &&
-      (group == process.env.IOT_GROUP || 'BR01') &&
-      (op_code == process.env.IOT_ERROR_OP_CODE || 2) &&
-      (version == process.env.IOT_VERSION || 'v0.50') &&
-      (message_length == process.env.IOT_MESSAGE_LENGTH || 02)
+      sig == process.env.IOT_SIG &&
+      group == process.env.IOT_GROUP &&
+      op_code == process.env.IOT_ERROR_OP_CODE &&
+      message_length == process.env.IOT_MESSAGE_LENGTH
     ) {
       const error_report_code = data_elements.slice(sig_6, sig_error_report)
       console.log('ERROR_REPORT_CODE:' + error_report_code)
     } else if (
-      (sig == process.env.IOT_SIG || 1934) &&
-      (group == process.env.IOT_GROUP || 'BR01') &&
-      (op_code == process.env.IOT_OP_CODE || 1) &&
-      (version == process.env.IOT_VERSION || 'v0.50') &&
-      (message_length == process.env.IOT_MESSAGE_LENGTH || 30) &&
+      sig == process.env.IOT_SIG &&
+      group == process.env.IOT_GROUP &&
+      op_code == process.env.IOT_OP_CODE &&
+      message_length == process.env.IOT_MESSAGE_LENGTH &&
       manual_codes.length !== 0
     ) {
       const combined_manual_codes = manual_codes.split('') // data 에서 온 raw 값을 글자 단위로 쪼갠 결과
