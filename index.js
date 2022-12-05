@@ -57,7 +57,7 @@ var server = net.createServer(function (socket) {
     const sig = data_elements.slice(0, sig_1)
     const group = data_elements.slice(sig_1, sig_2)
     const op_code = data_elements.slice(sig_2, sig_3)
-    const bike_id_from_iot = data_elements.slice(sig_3, sig_4)
+    const bike_id_from_iot = data_elements.slice(sig_3, sig_4) // 얘가 항상 고정값이 아니에요
     const version = data_elements.slice(sig_4, sig_5)
     const message_length = data_elements.slice(sig_5, sig_6)
 
@@ -75,7 +75,7 @@ var server = net.createServer(function (socket) {
     // 변경되는 값; 이 부분을 저장해야 한다.
     let manual_codes = f_1_gps + f_2_signal_strength + f_3_battery + f_4_device_status + f_5_err_info
     // IoT 로부터 받는 정보 끝
-    if (sig === process.env.IOT_SIG) sockets[bike_id_from_iot] = socket
+    sockets[bike_id_from_iot] = socket
 
     if (sig == process.env.IOT_SIG && group == process.env.IOT_GROUP && manual_codes.length !== 0) {
       const combined_manual_codes = manual_codes.split('') // data 에서 온 raw 값을 글자 단위로 쪼갠 결과
@@ -225,7 +225,7 @@ var server = net.createServer(function (socket) {
     console.log('Client has left the IoT Server.')
   })
   // client가 접속하면 화면에 출력해주는 메시지
-  // socket.write('Welcome to the IoT Server')
+  socket.write('1934BR0131241212319V0.50300105d0')
 })
 
 // 에러가 발생할 경우 화면에 에러메시지 출력
