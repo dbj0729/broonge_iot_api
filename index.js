@@ -23,6 +23,7 @@ let size_9 = 2 // Battery
 let size_10 = 2 // Device Status
 let size_11 = 2 // Error Info
 let size_12 = 4 // Checksum
+let error_report_size = 2 //Error Report: “01”:Sig error “02”:Group error “03”:OP code error “04”:ID error “05”:chksum error
 
 // Slice 로 진행하기에 그에 따른 글자 수에 따라 다음 단계를 불러오는 방식
 let sig_1 = size_1
@@ -37,6 +38,7 @@ let sig_9 = sig_8 + size_9
 let sig_10 = sig_9 + size_10
 let sig_11 = sig_10 + size_11
 let sig_12 = sig_11 + size_12
+let sig_error_report = sig_6 + error_report_size
 
 let sockets = {}
 let bikeSocket
@@ -57,24 +59,10 @@ var server = net.createServer(function (socket) {
     const sig = data_elements.slice(0, sig_1)
     const group = data_elements.slice(sig_1, sig_2)
     const op_code = data_elements.slice(sig_2, sig_3)
-    const bike_id_from_iot = data_elements.slice(sig_3, sig_4) // 얘가 항상 고정값이 아니에요
+    const bike_id_from_iot = data_elements.slice(sig_3, sig_4)
     const version = data_elements.slice(sig_4, sig_5)
     const message_length = data_elements.slice(sig_5, sig_6)
 
-    const f_1_gps = data_elements.slice(sig_6, sig_7)
-    const f_2_signal_strength = data_elements.slice(sig_7, sig_8)
-    const f_3_battery = data_elements.slice(sig_8, sig_9)
-    const f_4_device_status = data_elements.slice(sig_9, sig_10)
-    const f_5_err_info = data_elements.slice(sig_10, sig_11)
-    const gps_reformatted = f_1_gps.split('N') // 이 부분이 IoT 좌표에서 넘어올 때 구분되어 지는 값이다.
-    const f_1_lat = gps_reformatted[0].slice(0, 10) // 딱 10자리만 가져온다.
-    const f_1_lng = gps_reformatted[0].slice(0, 10) // 딱 10자리만 가져온다.
-
-    const checksum = data_elements.slice(sig_11, sig_12)
-
-    // 변경되는 값; 이 부분을 저장해야 한다.
-    let manual_codes = f_1_gps + f_2_signal_strength + f_3_battery + f_4_device_status + f_5_err_info
-    // IoT 로부터 받는 정보 끝
     //TODO: 32 buffer 없애기
     //TODO: error 하수구
     //TODO: data 값이 정상적으로 모두 다 들어왔는지 확인 후 정상데이타가 아니면 소켓 연결 끊기
@@ -82,7 +70,28 @@ var server = net.createServer(function (socket) {
 
     sockets[bike_id_from_iot] = socket
 
-    if (sig == process.env.IOT_SIG && group == process.env.IOT_GROUP && manual_codes.length !== 0) {
+    if (
+      sig == process.env.IOT_SIG &&
+      group == process.env.IOT_GROUP &&
+      op_code == process.env.IOT_OP_CODE &&
+      version == process.env.IOT_VERSION &&
+      message_length == process.env.IOT_MESSAGE_LENGTH &&
+      manual_codes.length !== 0
+    ) {
+      const f_1_gps = data_elements.slice(sig_6, sig_7)
+      const f_2_signal_strength = data_elements.slice(sig_7, sig_8)
+      const f_3_battery = data_elements.slice(sig_8, sig_9)
+      const f_4_device_status = data_elements.slice(sig_9, sig_10)
+      const f_5_err_info = data_elements.slice(sig_10, sig_11)
+      const gps_reformatted = f_1_gps.split('N') // 이 부분이 IoT 좌표에서 넘어올 때 구분되어 지는 값이다.
+      const f_1_lat = gps_reformatted[0].slice(0, 10) // 딱 10자리만 가져온다.
+      const f_1_lng = gps_reformatted[0].slice(0, 10) // 딱 10자리만 가져온다.
+
+      const checksum = data_elements.slice(sig_11, sig_12)
+
+      // 변경되는 값; 이 부분을 저장해야 한다.
+      let manual_codes = f_1_gps + f_2_signal_strength + f_3_battery + f_4_device_status + f_5_err_info
+
       const combined_manual_codes = manual_codes.split('') // data 에서 온 raw 값을 글자 단위로 쪼갠 결과
       const manual_codes_value = combined_manual_codes.map(item => item.charCodeAt()).reduce((acc, curr) => acc + curr) // 쪼갠 결과를 하나씩 분배
 
@@ -96,11 +105,9 @@ var server = net.createServer(function (socket) {
       // IoT 보냈던 Checksum 값과 동일한지를 확인하고 동일해야지만 서버에 저장된다.
       // 만약, Checksum 이 다른 경우에는 데이터를 버려버린다. IoT 에 Return 할 필요는 없다.
       // 단, 만약, 20회 이상 Checksum 오류가 나는 경우에는 관리자에게 안내를 해 줘야 한다.
-      // 상기 안내를 위해서 별도의 안내 방법이 필요할 수도 있다.
       manual_codes_value_verification = manual_codes_value.toString(16) // 분배된 값을 16진수로 변경
 
       manually_added_0x = '0' + manual_codes_value_verification // 마지막 checksum 에 0이 빠져서 0을 넣음
-      console.log(manually_added_0x)
 
       if (checksum == manually_added_0x) {
         // IoT 로 부터 받은 값이 모두 문제 없이 다 통과했을 때 실행
@@ -147,6 +154,16 @@ var server = net.createServer(function (socket) {
           console.error(error)
         }
       }
+    } else if (
+      sig == process.env.IOT_SIG &&
+      group == process.env.IOT_GROUP &&
+      op_code == process.env.IOT_ERROR_OP_CODE &&
+      version == process.env.IOT_VERSION &&
+      message_length == process.env.IOT_MESSAGE_LENGTH &&
+      manual_codes.length !== 0
+    ) {
+      const error_report_code = data_elements.slice(sig_6, sig_error_report)
+      console.log('ERROR_REPORT_CODE:' + error_report_code)
     } else {
       // 이 부분이 IoT 로 보내기 위해 App 으로부터 받는 부분이다.
 
@@ -188,16 +205,13 @@ var server = net.createServer(function (socket) {
             const send_code = '01'
             // 여기서 실제로 IoT 에서 받는 값을 보고 진짜로 잠겼는지 열렸는지 확인해야 한다.
 
-            // sockets[app_to_iot_data[1]].write('is there?') // IoT 에 보내는 소켓
             console.time('Change Perfomance Time')
             const updateBikeStatusQuery = `UPDATE iot_status SET status = 'unlocked' WHERE bike_id = ?`
             await (await connection()).execute(updateBikeStatusQuery, [bike_id_for_app])
             console.timeEnd('Change Perfomance Time')
-            console.log('Update iot_status with unlock has been completed.')
             sockets[app_to_iot_data[1]].write(sending_codes(send_code)) // IoT 에 보내는 소켓
             socket.write('Unlocked!')
             console.log('here is the buffered: ' + final_send_codes_buffer)
-            console.log(send_codes_manually_added_0x)
           } catch (error) {
             console.error(error)
           }
@@ -213,8 +227,8 @@ var server = net.createServer(function (socket) {
           console.time('Change Perfomance Time')
           const updateBikeStatusQuery = `UPDATE iot_status SET status = 'locked' WHERE bike_id = ?`
           await (await connection()).execute(updateBikeStatusQuery, [bike_id_for_app])
-          sockets[app_to_iot_data[1]].write(sending_codes(send_code)) // 이거? 아래꺼? 어떤걸로 보내야 그 IoT 로 보낼 수 있는 것인가?
-          socket.write('Thank you for your riding Broonge!')
+          sockets[app_to_iot_data[1]].write(sending_codes(send_code)) // 이건 IoT 로 보내는 경우
+          socket.write('Thank you for your riding Broonge!') // 이건 App 으로 보내는 경우
           console.timeEnd('Change Perfomance Timeß')
           console.log('Update iot_status with lock has been completed.')
         }
