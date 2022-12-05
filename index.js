@@ -79,7 +79,7 @@ var server = net.createServer(function (socket) {
     // 변경되는 값; 이 부분을 저장해야 한다.
     let manual_codes = f_1_gps + f_2_signal_strength + f_3_battery + f_4_device_status + f_5_err_info
 
-    //TODO: [X] 32 buffer 없애기
+    //TODO: [X] 32 buffer 없애기... char 로 바꿔서 보내야 할 듯..? 혹은 buffer 로?
     //TODO: [O] error 하수구... IOT_ERROR ~~~ 을 넣어서 처리함... 나머지 부분도 이렇게 만들어야 할 듯
     //TODO: [O] data 값이 정상적으로 모두 다 들어왔는지 확인 후 정상데이타가 아니면 소켓 연결 끊기
     //          --> 1934BR0111241212318V0.503037.2114350N127.0894533E5990000062a 을
@@ -252,7 +252,7 @@ var server = net.createServer(function (socket) {
     console.log('Client has left the IoT Server.')
   })
   // client가 접속하면 화면에 출력해주는 메시지
-  // socket.write('1934BR0131241212319V0.50300105d0')
+  socket.write('1934BR0131241212319V0.50020105ce')
 })
 
 // 에러가 발생할 경우 화면에 에러메시지 출력
