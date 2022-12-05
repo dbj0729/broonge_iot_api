@@ -75,6 +75,11 @@ var server = net.createServer(function (socket) {
     // 변경되는 값; 이 부분을 저장해야 한다.
     let manual_codes = f_1_gps + f_2_signal_strength + f_3_battery + f_4_device_status + f_5_err_info
     // IoT 로부터 받는 정보 끝
+    //TODO: 32 buffer 없애기
+    //TODO: error 하수구
+    //TODO: data 값이 정상적으로 모두 다 들어왔는지 확인 후 정상데이타가 아니면 소켓 연결 끊기
+    //TODO: 정상데이터면 iot socket 인지 app socket 인지 확인 후 처리
+
     sockets[bike_id_from_iot] = socket
 
     if (sig == process.env.IOT_SIG && group == process.env.IOT_GROUP && manual_codes.length !== 0) {
