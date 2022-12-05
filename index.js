@@ -188,7 +188,7 @@ var server = net.createServer(function (socket) {
             console.log('Update iot_status with unlock has been completed.')
             sockets[app_to_iot_data[1]].write(sending_codes(send_code)) // IoT 에 보내는 소켓
             socket.write('Unlocked!')
-            console.log('socket: ', JSON.stringify(sockets[app_to_iot_data[1]], null, 2))
+            console.log('toSocket', sockets[app_to_iot_data[1]])
           } catch (error) {
             console.error(error)
           }
