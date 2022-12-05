@@ -82,8 +82,6 @@ var server = net.createServer(function (socket) {
     //TODO: data 값이 정상적으로 모두 다 들어왔는지 확인 후 정상데이타가 아니면 소켓 연결 끊기
     //TODO: 정상데이터면 iot socket 인지 app socket 인지 확인 후 처리
 
-    sockets[bike_id_from_iot] = socket
-
     if (
       sig == process.env.IOT_SIG &&
       group == process.env.IOT_GROUP &&
@@ -115,6 +113,8 @@ var server = net.createServer(function (socket) {
       manual_codes_value_verification = manual_codes_value.toString(16) // 분배된 값을 16진수로 변경
 
       manually_added_0x = '0' + manual_codes_value_verification // 마지막 checksum 에 0이 빠져서 0을 넣음
+
+      sockets[bike_id_from_iot] = socket
 
       if (checksum == manually_added_0x) {
         // IoT 로 부터 받은 값이 모두 문제 없이 다 통과했을 때 실행
@@ -192,7 +192,7 @@ var server = net.createServer(function (socket) {
 
       if (app_to_iot_data[0] == process.env.APP_SIG && sockets[app_to_iot_data[1]]) {
         // bikeSocket = app_to_iot_data[1];
-        // sockets[bike_id_from_iot] = socket; // App 에서 보내려고하는데 그 자전거가 붙어 있는지도 확인해야 하는 과정...?
+        sockets[bike_id_from_iot] = socket // App 에서 보내려고하는데 그 자전거가 붙어 있는지도 확인해야 하는 과정...?
         // console.log("================"+JSON.stringify(sockets[bike_id_from_iot]))
 
         // 그 자전거가 붙어있는지 여부를 확인하는 과정이 필요하다. query 를 반드시 돌려야만 하는가? 매번? 아님 한 번?
