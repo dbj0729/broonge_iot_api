@@ -118,8 +118,8 @@ var server = net.createServer(function (socket) {
               const updateBikeStatusQuery = `
                       UPDATE iot_status SET 
                           battery = ${f_3_battery},
-                          lat = ${f_1_lat},
-                          lng = ${f_1_lng},
+                          latitude = ${f_1_lat},
+                          longitude = ${f_1_lng},
                           signal_strength = ${f_2_signal_strength},
                           led = "on",
                           status = 'current status'
