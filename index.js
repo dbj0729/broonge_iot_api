@@ -155,11 +155,11 @@ var server = net.createServer(function (socket) {
         }
       }
     } else if (
-      sig == process.env.IOT_SIG &&
-      group == process.env.IOT_GROUP &&
-      op_code == process.env.IOT_ERROR_OP_CODE &&
-      version == process.env.IOT_VERSION &&
-      message_length == process.env.IOT_MESSAGE_LENGTH
+      (sig == process.env.IOT_SIG || 1934) &&
+      (group == process.env.IOT_GROUP || 'BR01') &&
+      (op_code == process.env.IOT_ERROR_OP_CODE || 3) &&
+      (version == process.env.IOT_VERSION || 'v0.50') &&
+      (message_length == process.env.IOT_MESSAGE_LENGTH || 02)
     ) {
       const error_report_code = data_elements.slice(sig_6, sig_error_report)
       console.log('ERROR_REPORT_CODE:' + error_report_code)
