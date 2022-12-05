@@ -62,7 +62,7 @@ var server = net.createServer(function (socket) {
     const message_length = data_elements.slice(sig_5, sig_6)
 
     const f_1_gps = data_elements.slice(sig_6, sig_7)
-    const f_2_signal_strength = data_elements.sllice(sig_7, sig_8)
+    const f_2_signal_strength = data_elements.slice(sig_7, sig_8)
     const f_3_battery = data_elements.slice(sig_8, sig_9)
     const f_4_device_status = data_elements.slice(sig_9, sig_10)
     const f_5_err_info = data_elements.slice(sig_10, sig_11)
