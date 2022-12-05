@@ -63,6 +63,20 @@ var server = net.createServer(function (socket) {
     const version = data_elements.slice(sig_4, sig_5)
     const message_length = data_elements.slice(sig_5, sig_6)
 
+    const f_1_gps = data_elements.slice(sig_6, sig_7)
+    const f_2_signal_strength = data_elements.slice(sig_7, sig_8)
+    const f_3_battery = data_elements.slice(sig_8, sig_9)
+    const f_4_device_status = data_elements.slice(sig_9, sig_10)
+    const f_5_err_info = data_elements.slice(sig_10, sig_11)
+    const gps_reformatted = f_1_gps.split('N') // 이 부분이 IoT 좌표에서 넘어올 때 구분되어 지는 값이다.
+    const f_1_lat = gps_reformatted[0].slice(0, 10) // 딱 10자리만 가져온다.
+    const f_1_lng = gps_reformatted[0].slice(0, 10) // 딱 10자리만 가져온다.
+
+    const checksum = data_elements.slice(sig_11, sig_12)
+
+    // 변경되는 값; 이 부분을 저장해야 한다.
+    let manual_codes = f_1_gps + f_2_signal_strength + f_3_battery + f_4_device_status + f_5_err_info
+
     //TODO: 32 buffer 없애기
     //TODO: error 하수구
     //TODO: data 값이 정상적으로 모두 다 들어왔는지 확인 후 정상데이타가 아니면 소켓 연결 끊기
@@ -78,20 +92,6 @@ var server = net.createServer(function (socket) {
       (message_length == process.env.IOT_MESSAGE_LENGTH || 30) &&
       manual_codes.length !== 0
     ) {
-      const f_1_gps = data_elements.slice(sig_6, sig_7)
-      const f_2_signal_strength = data_elements.slice(sig_7, sig_8)
-      const f_3_battery = data_elements.slice(sig_8, sig_9)
-      const f_4_device_status = data_elements.slice(sig_9, sig_10)
-      const f_5_err_info = data_elements.slice(sig_10, sig_11)
-      const gps_reformatted = f_1_gps.split('N') // 이 부분이 IoT 좌표에서 넘어올 때 구분되어 지는 값이다.
-      const f_1_lat = gps_reformatted[0].slice(0, 10) // 딱 10자리만 가져온다.
-      const f_1_lng = gps_reformatted[0].slice(0, 10) // 딱 10자리만 가져온다.
-
-      const checksum = data_elements.slice(sig_11, sig_12)
-
-      // 변경되는 값; 이 부분을 저장해야 한다.
-      let manual_codes = f_1_gps + f_2_signal_strength + f_3_battery + f_4_device_status + f_5_err_info
-
       const combined_manual_codes = manual_codes.split('') // data 에서 온 raw 값을 글자 단위로 쪼갠 결과
       const manual_codes_value = combined_manual_codes.map(item => item.charCodeAt()).reduce((acc, curr) => acc + curr) // 쪼갠 결과를 하나씩 분배
 
@@ -159,8 +159,7 @@ var server = net.createServer(function (socket) {
       group == process.env.IOT_GROUP &&
       op_code == process.env.IOT_ERROR_OP_CODE &&
       version == process.env.IOT_VERSION &&
-      message_length == process.env.IOT_MESSAGE_LENGTH &&
-      manual_codes.length !== 0
+      message_length == process.env.IOT_MESSAGE_LENGTH
     ) {
       const error_report_code = data_elements.slice(sig_6, sig_error_report)
       console.log('ERROR_REPORT_CODE:' + error_report_code)
