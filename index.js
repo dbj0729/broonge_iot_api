@@ -78,10 +78,13 @@ var server = net.createServer(function (socket) {
     let manual_codes = f_1_gps + f_2_signal_strength + f_3_battery + f_4_device_status + f_5_err_info
 
     //TODO: [X] 32 buffer 없애기
-    //TODO: [O] error 하수구
-    //TODO: data 값이 정상적으로 모두 다 들어왔는지 확인 후 정상데이타가 아니면 소켓 연결 끊기
-    //TODO: 정상데이터면 iot socket 인지 app socket 인지 확인 후 처리
-
+    //TODO: [O] error 하수구... IOT_ERROR ~~~ 을 넣어서 처리함... 나머지 부분도 이렇게 만들어야 할 듯
+    //TODO: [O] data 값이 정상적으로 모두 다 들어왔는지 확인 후 정상데이타가 아니면 소켓 연결 끊기
+    //          --> 1934BR0111241212318V0.503037.2114350N127.0894533E5990000062a 을
+    //          --> 1934BR0111241212318V0.503037.2114350N127.0894533E5990000062 로 넣으면 Wrong... 으로 나옴 즉, manual_codes 랑 checksum 이 안 맞으면 예외처리함.
+    //TODO: [O] 정상데이터면 iot socket 인지 app socket 인지 확인 후 처리... sockets[bike_id_from_iot].socket 을 필요한 곳에만 넣었음
+    //          --> 테스트 방식 ==> 터미널에서 아이디 다른 값으로 먼저 넣어본 후 sockets 에 그 아이디가 붙었을 때 aaaaaaaaaaaaaaaaaaaaaaaaaa 를 넣으면
+    //          통신 두절되고 그 아이디 다른 값은 sockets 에서 사라짐 (원래는 저 aaaaaaaaaa 가 아이디 다른 값을 치환하였음).
     if (
       sig == process.env.IOT_SIG &&
       group == process.env.IOT_GROUP &&
@@ -186,7 +189,7 @@ var server = net.createServer(function (socket) {
         var send_codes_manually_added_0x = '0' + send_codes_value_verification
         var final_send_codes = send_codes + send_codes_manually_added_0x
         // final_send_codes_buffer = Buffer.from(final_send_codes, 'utf-8')
-        final_send_codes_buffer = final_send_codes.toString('utf-8').trim()
+        final_send_codes_buffer = Buffer.write(final_send_codes)
         return final_send_codes_buffer
       }
 
