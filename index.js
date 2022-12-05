@@ -184,7 +184,7 @@ var server = net.createServer(function (socket) {
             await (await connection()).execute(updateBikeStatusQuery, [bike_id_for_app])
             console.timeEnd('Change Perfomance Time')
             console.log('Update iot_status with unlock has been completed.')
-            sockets[app_to_iot_data[1]].write(sending_codes(send_code), 'utf8') // IoT 에 보내는 소켓
+            sockets[app_to_iot_data[1]].write(sending_codes(send_code)) // IoT 에 보내는 소켓
             socket.write('Unlocked!')
           } catch (error) {
             console.error(error)
@@ -201,7 +201,7 @@ var server = net.createServer(function (socket) {
           console.time('Change Perfomance Time')
           const updateBikeStatusQuery = `UPDATE iot_status SET status = 'locked' WHERE bike_id = ?`
           await (await connection()).execute(updateBikeStatusQuery, [bike_id_for_app])
-          sockets[app_to_iot_data[1]].write(sending_codes(send_code), 'utf8') // 이거? 아래꺼? 어떤걸로 보내야 그 IoT 로 보낼 수 있는 것인가?
+          sockets[app_to_iot_data[1]].write(sending_codes(send_code)) // 이거? 아래꺼? 어떤걸로 보내야 그 IoT 로 보낼 수 있는 것인가?
           socket.write('Thank you for your riding Broonge!')
           console.timeEnd('Change Perfomance Timeß')
           console.log('Update iot_status with lock has been completed.')
