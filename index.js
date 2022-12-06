@@ -199,6 +199,7 @@ var server = net.createServer(function (socket) {
 
         if (app_to_iot_data[2] == 'unlock') {
           try {
+            console.log('appSocket : order is' + app_to_iot_data)
             // 01 이면 잠금해제 이다.
             const send_code = '01'
             // 여기서 실제로 IoT 에서 받는 값을 보고 진짜로 잠겼는지 열렸는지 확인해야 한다.
@@ -206,7 +207,7 @@ var server = net.createServer(function (socket) {
             await (await connection()).execute(updateBikeStatusQuery, [bike_id_for_app])
             sockets[app_to_iot_data[1]].write(sending_codes(send_code)) // IoT 에 보내는 소켓
             socket.write('Unlocked!')
-            console.log(' : update iot_status with unlock has been completed')
+            console.log('appSocket: update iot_status with unlock has been completed')
           } catch (error) {
             console.error(error)
           }
