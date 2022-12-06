@@ -188,58 +188,22 @@ var server = net.createServer(function (socket) {
         return final_send_codes
       }
 
+      async function updateBikeStatus(order) {
+        const code = order === 'lock' ? '00' : order === 'unlock' ? '01' : '02'
+        const updateBikeStatusQuery = `UPDATE iot_status SET status = ? WHERE bike_id = ?`
+        await (await connection()).execute(updateBikeStatusQuery, [order, bike_id_for_app])
+        console.log({ toBikeCode: sending_codes(code) })
+        console.log('appSocket : order is ' + order)
+        sockets[app_to_iot_data[1]].write(sending_codes(code))
+        socket.write(order)
+      }
+
       if (app_to_iot_data[0] == process.env.APP_SIG && sockets[app_to_iot_data[1]]) {
-        // bikeSocket = app_to_iot_data[1];
-        // 이렇게 넣으니까 결국 App 의 ID 도 같이 붙네..
-        // console.log("================"+JSON.stringify(sockets[bike_id_from_iot]))
-
-        // 그 자전거가 붙어있는지 여부를 확인하는 과정이 필요하다. query 를 반드시 돌려야만 하는가? 매번? 아님 한 번?
-
-        if (app_to_iot_data[2] == 'unlock') {
-          try {
-            // 01 이면 잠금해제 이다.
-            const send_code = '01'
-            // 여기서 실제로 IoT 에서 받는 값을 보고 진짜로 잠겼는지 열렸는지 확인해야 한다.
-            const updateBikeStatusQuery = `UPDATE iot_status SET status = 'unlocked' WHERE bike_id = ?`
-            await (await connection()).execute(updateBikeStatusQuery, [bike_id_for_app])
-            console.log({ toBikeCode: sending_codes(send_code) })
-            sockets[app_to_iot_data[1]].write(sending_codes(send_code)) // IoT 에 보내는 소켓
-            socket.write('Unlocked!')
-            console.log('appSocket: update iot_status with unlock has been completed')
-          } catch (error) {
-            console.error(error)
-          }
-        } else if (app_to_iot_data[2] == 'lock') {
-          // 00 이면 잠금 이다.
-          const send_code = '00'
-          // 여기서 실제로 IoT 에서 받는 값을 보고 진짜로 잠겼는지 열렸는지 확인해야 한다.
-          // 1. IoT 가 접속 중인지를 확인한다.
-          // 2. Status 가 locked 인지를 확인한다.
-          // 3. locked 이면 굳이 실행시킬 필요는 없다. 그렇다고 굳이 또 안 돌릴 이유도 없다.
-          // 4. IoT --> 현상태 확인 --> IoT 에게 명령 --> 이 후 success 받으면 Server 에 저장 (이것이 정석이다)
-
-          const updateBikeStatusQuery = `UPDATE iot_status SET status = 'locked' WHERE bike_id = ?`
-          await (await connection()).execute(updateBikeStatusQuery, [bike_id_for_app])
-          sockets[app_to_iot_data[1]].write(sending_codes(send_code)) // IoT 에 보내는 소켓
-          socket.write('Thank you for your riding Broonge!') // 이건 App 으로 보내는 경우
-          console.log('appSocket: Update iot_status with lock has been completed.')
-        } else if (app_to_iot_data[2] == 'call') {
-          try {
-            // 01 이면 잠금해제 이다.
-            const send_code = '02'
-            // 여기서 실제로 IoT 에서 받는 값을 보고 진짜로 잠겼는지 열렸는지 확인해야 한다.
-            const updateBikeStatusQuery = `UPDATE iot_status SET status = 'called' WHERE bike_id = ?`
-            await (await connection()).execute(updateBikeStatusQuery, [bike_id_for_app])
-            console.log({ toBikeCode: sending_codes(send_code) })
-            sockets[app_to_iot_data[1]].write(sending_codes(send_code)) // IoT 에 보내는 소켓
-            socket.write('called')
-            console.log('appSocket: update iot_status with called has been completed')
-          } catch (error) {
-            console.error(error)
-          }
-        } else {
+        if (!app_to_iot_data[2]) {
           console.log('appSocket : data parsing error')
           socket.write('something wrong')
+        } else {
+          updateBikeStatus(app_to_iot_data[2])
         }
       } else {
         socket.write('sorry, no bike')
