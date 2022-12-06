@@ -223,6 +223,20 @@ var server = net.createServer(function (socket) {
           sockets[app_to_iot_data[1]].write(sending_codes(send_code)) // IoT 에 보내는 소켓
           socket.write('Thank you for your riding Broonge!') // 이건 App 으로 보내는 경우
           console.log('appSocket: Update iot_status with lock has been completed.')
+        } else if (app_to_iot_data[2] == 'call') {
+          try {
+            // 01 이면 잠금해제 이다.
+            const send_code = '02'
+            // 여기서 실제로 IoT 에서 받는 값을 보고 진짜로 잠겼는지 열렸는지 확인해야 한다.
+            const updateBikeStatusQuery = `UPDATE iot_status SET status = 'called' WHERE bike_id = ?`
+            await (await connection()).execute(updateBikeStatusQuery, [bike_id_for_app])
+            console.log({ toBikeCode: sending_codes(send_code) })
+            sockets[app_to_iot_data[1]].write(sending_codes(send_code)) // IoT 에 보내는 소켓
+            socket.write('called')
+            console.log('appSocket: update iot_status with called has been completed')
+          } catch (error) {
+            console.error(error)
+          }
         } else {
           console.log('appSocket : data parsing error')
           socket.write('something wrong')
