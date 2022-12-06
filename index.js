@@ -166,7 +166,6 @@ var server = net.createServer(function (socket) {
       // App 에서 IoT 로 보내기 위해 받는 Protocol
       let app_to_iot_data = data_elements.split(',')
       console.log('appSocket: bikeId ' + app_to_iot_data[1])
-      if (!app_to_iot_data[1]) socket.destroy()
 
       // App 에서 IoT 로 정보를 보내기 위한 기본 변수들이다.
       var sig_for_app = process.env.IOT_SIG
