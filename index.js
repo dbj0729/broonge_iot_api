@@ -94,6 +94,7 @@ var server = net.createServer(function (socket) {
       message_length == process.env.IOT_ERROR_MESSAGE_LENGTH
     ) {
       const error_report_code = data_elements.slice(sig_6, sig_error_report)
+      socket.end('Terminated')
       console.log('ERROR_REPORT_CODE:' + error_report_code)
     } else if (
       sig == process.env.IOT_SIG &&
@@ -214,7 +215,7 @@ var server = net.createServer(function (socket) {
             await (await connection()).execute(updateBikeStatusQuery, [bike_id_for_app])
             console.timeEnd('Change Perfomance Time')
             // sockets[app_to_iot_data[1]].write(sending_codes(send_code)) // IoT 에 보내는 소켓
-            sockets[app_to_iot_data[1]].write('1934BR0131241212319V0.50020105ce') // IoT 에 보내는 소켓
+            sockets[app_to_iot_data[1]].write('1934BR0131241212319V0.50020105ce', 'utf8') // IoT 에 보내는 소켓
             socket.write('Unlocked!')
             // console.log('here is the buffered: ' + final_send_codes_buffer + '\r\n')
           } catch (error) {
@@ -252,7 +253,7 @@ var server = net.createServer(function (socket) {
     console.log('Client has left the IoT Server.')
   })
   // client가 접속하면 화면에 출력해주는 메시지
-  socket.write('Welcome')
+  socket.write('Welcome', 'utf8')
 })
 
 // 에러가 발생할 경우 화면에 에러메시지 출력
