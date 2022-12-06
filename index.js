@@ -97,7 +97,6 @@ var server = net.createServer(function (socket) {
       message_length == process.env.IOT_ERROR_MESSAGE_LENGTH
     ) {
       const error_report_code = data_elements.slice(sig_6, sig_error_report)
-      socket.end('Terminated')
       console.log('ERROR_REPORT_CODE:' + error_report_code)
     } else if (
       sig == process.env.IOT_SIG &&
@@ -129,16 +128,13 @@ var server = net.createServer(function (socket) {
         // IoT 로 부터 받은 값이 모두 문제 없이 다 통과했을 때 실행
         try {
           //자전거가 보낸 통신일 경우
-          console.time('findBike Perfomance Time')
           //DB에 해당 자전거 ID가 등록되어 있는지 확인
           const findBikeQuery = `SELECT * FROM iot_status WHERE bike_id = ? limit 1`
           var [findBike] = await (await connection()).execute(findBikeQuery, [bike_id_from_iot])
-          console.timeEnd('findBike Perfomance Time')
 
           if (findBike.length === 0) {
-            socket.end('closed!!!') // 등록된 자전거가 없을 경우 소켓을 끊는다.
+            socket.destroy() // 등록된 자전거가 없을 경우 소켓을 끊는다.
           } else {
-            console.time('Change Perfomance Time')
             const updateBikeStatusQuery = `
                       UPDATE iot_status SET 
                           battery = ${f_3_battery},
@@ -150,16 +146,16 @@ var server = net.createServer(function (socket) {
                           WHERE bike_id = ?`
             await (await connection()).execute(updateBikeStatusQuery, [bike_id_from_iot])
             // sockets[bike_id_from_iot].write('Welcome! ' + bike_id_from_iot)
-            console.timeEnd('Change Perfomance Time')
-            console.log('Update iot_status table complete!')
+            console.log('bikeSocket: Update iot_status table complete!')
           }
         } catch (error) {
           console.log(error)
         }
       } else {
         try {
+          delete sockets[bike_id_from_iot]
           socket.destroy()
-          console.log(`Wrong type of data transaction.`) // 상기 횟수에 따라 오류가 발생할 경우, 관리자 Alert 를 띄워야 한다.
+          console.log(`bikeSocket: Wrong type of data transaction.`) // 상기 횟수에 따라 오류가 발생할 경우, 관리자 Alert 를 띄워야 한다.
         } catch (error) {
           console.error(error)
         }
@@ -169,7 +165,8 @@ var server = net.createServer(function (socket) {
 
       // App 에서 IoT 로 보내기 위해 받는 Protocol
       let app_to_iot_data = data_elements.split(',')
-      console.log('Here is the app to iot data: ' + app_to_iot_data[1])
+      console.log('appSocket: bikeId ' + app_to_iot_data[1])
+      if (!app_to_iot_data[1]) socket.destroy()
 
       // App 에서 IoT 로 정보를 보내기 위한 기본 변수들이다.
       var sig_for_app = process.env.IOT_SIG
@@ -206,15 +203,11 @@ var server = net.createServer(function (socket) {
             // 01 이면 잠금해제 이다.
             const send_code = '01'
             // 여기서 실제로 IoT 에서 받는 값을 보고 진짜로 잠겼는지 열렸는지 확인해야 한다.
-
-            console.time('Change Perfomance Time')
             const updateBikeStatusQuery = `UPDATE iot_status SET status = 'unlocked' WHERE bike_id = ?`
             await (await connection()).execute(updateBikeStatusQuery, [bike_id_for_app])
-            console.timeEnd('Change Perfomance Time')
-            // sockets[app_to_iot_data[1]].write(sending_codes(send_code)) // IoT 에 보내는 소켓
-            sockets[app_to_iot_data[1]].write('1934BR0131241212319V0.50020105ce', 'utf8') // IoT 에 보내는 소켓
+            sockets[app_to_iot_data[1]].write(sending_codes(send_code)) // IoT 에 보내는 소켓
             socket.write('Unlocked!')
-            // console.log('here is the buffered: ' + final_send_codes_buffer + '\r\n')
+            console.log('appSocket: update iot_status with unlock has been completed')
           } catch (error) {
             console.error(error)
           }
@@ -227,13 +220,11 @@ var server = net.createServer(function (socket) {
           // 3. locked 이면 굳이 실행시킬 필요는 없다. 그렇다고 굳이 또 안 돌릴 이유도 없다.
           // 4. IoT --> 현상태 확인 --> IoT 에게 명령 --> 이 후 success 받으면 Server 에 저장 (이것이 정석이다)
 
-          console.time('Change Perfomance Time')
           const updateBikeStatusQuery = `UPDATE iot_status SET status = 'locked' WHERE bike_id = ?`
           await (await connection()).execute(updateBikeStatusQuery, [bike_id_for_app])
-          sockets[app_to_iot_data[1]].write(sending_codes(send_code).toString('utf-8').trim()) // IoT 에 보내는 소켓
+          sockets[app_to_iot_data[1]].write(sending_codes(send_code)) // IoT 에 보내는 소켓
           socket.write('Thank you for your riding Broonge!') // 이건 App 으로 보내는 경우
-          console.timeEnd('Change Perfomance Time')
-          console.log('Update iot_status with lock has been completed.')
+          console.log('appSocket: Update iot_status with lock has been completed.')
         }
       }
     }
@@ -247,10 +238,10 @@ var server = net.createServer(function (socket) {
       delete sockets[findBikeId[0]]
       return
     }
-    console.log('Client has left the IoT Server.')
+    console.log('appSocket has left the IoT Server.')
   })
   // client가 접속하면 화면에 출력해주는 메시지
-  socket.write('Welcome', 'utf8')
+  // socket.write('Welcome')
 })
 
 // 에러가 발생할 경우 화면에 에러메시지 출력
