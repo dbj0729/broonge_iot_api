@@ -252,7 +252,7 @@ var server = net.createServer(function (socket) {
     console.log('Client has left the IoT Server.')
   })
   // client가 접속하면 화면에 출력해주는 메시지
-  socket.write('w1934BR0131241212319V0.50020105ce')
+  socket.write('w1934BR0131241')
 })
 
 // 에러가 발생할 경우 화면에 에러메시지 출력
