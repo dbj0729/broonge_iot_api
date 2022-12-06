@@ -189,7 +189,8 @@ var server = net.createServer(function (socket) {
       }
 
       async function updateBikeStatus(order) {
-        const code = order === 'lock' ? '00' : order === 'unlock' ? '01' : '02'
+        const code = order === 'lock' ? '00' : order === 'unlock' ? '01' : order === 'page' ? '02' : null
+        if (!code) return socket.write('not order')
         const updateBikeStatusQuery = `UPDATE iot_status SET status = ? WHERE bike_id = ?`
         await (await connection()).execute(updateBikeStatusQuery, [order, bike_id_for_app])
         console.log({ toBikeCode: sending_codes(code) })
