@@ -49,7 +49,7 @@ var server = net.createServer(function (socket) {
   console.log(socket.address().address + 'Started Broonge IoT Server')
 
   socket.setEncoding('utf8')
-  socket.setNoDelay(true)
+  // socket.setNoDelay(true)
 
   // client로 부터 오는 data를 화면에 출력
   /* 
@@ -206,7 +206,7 @@ var server = net.createServer(function (socket) {
             await (await connection()).execute(updateBikeStatusQuery, [bike_id_for_app])
             sockets[app_to_iot_data[1]].write(sending_codes(send_code)) // IoT 에 보내는 소켓
             socket.write('Unlocked!')
-            console.log('appSocket: update iot_status with unlock has been completed')
+            console.log(' : update iot_status with unlock has been completed')
           } catch (error) {
             console.error(error)
           }
