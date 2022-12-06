@@ -48,6 +48,9 @@ let bikeSocket
 var server = net.createServer(function (socket) {
   console.log(socket.address().address + 'Started Broonge IoT Server')
 
+  socket.setEncoding('utf8')
+  socket.setNoDelay(true)
+
   // client로 부터 오는 data를 화면에 출력
   /* 
         Data 는 IoT 에서 받던, App 에서 받던 이래저래 같이 쓰이는 것이고
@@ -55,7 +58,7 @@ var server = net.createServer(function (socket) {
     */
   socket.on('data', async function (data) {
     console.log('Received Data: ' + data)
-    const data_elements = data.toString('utf-8').trim()
+    const data_elements = data
 
     // IoT 로부터 받는 정보이다.
     const sig = data_elements.slice(0, sig_1)
@@ -123,22 +126,19 @@ var server = net.createServer(function (socket) {
 
       if (checksum == manually_added_0x) {
         // IoT 로 부터 받은 값이 모두 문제 없이 다 통과했을 때 실행
-        if (bike_id_from_iot) {
-          try {
-            //자전거가 보낸 통신일 경우
-            console.time('findBike Perfomance Time')
-            //sockets 객체에 key 는 자전거 아이디 value 는 socket 을 할당한다.
-            if (!sockets[bike_id_from_iot]) sockets[bike_id_from_iot] = socket
-            //DB에 해당 자전거 ID가 등록되어 있는지 확인
-            const findBikeQuery = `SELECT * FROM iot_status WHERE bike_id = ? limit 1`
-            var [findBike] = await (await connection()).execute(findBikeQuery, [bike_id_from_iot])
-            console.timeEnd('findBike Perfomance Time')
+        try {
+          //자전거가 보낸 통신일 경우
+          console.time('findBike Perfomance Time')
+          //DB에 해당 자전거 ID가 등록되어 있는지 확인
+          const findBikeQuery = `SELECT * FROM iot_status WHERE bike_id = ? limit 1`
+          var [findBike] = await (await connection()).execute(findBikeQuery, [bike_id_from_iot])
+          console.timeEnd('findBike Perfomance Time')
 
-            if (findBike.length === 0) {
-              socket.end('closed!!!') // 등록된 자전거가 없을 경우 소켓을 끊는다.
-            } else {
-              console.time('Change Perfomance Time')
-              const updateBikeStatusQuery = `
+          if (findBike.length === 0) {
+            socket.end('closed!!!') // 등록된 자전거가 없을 경우 소켓을 끊는다.
+          } else {
+            console.time('Change Perfomance Time')
+            const updateBikeStatusQuery = `
                       UPDATE iot_status SET 
                           battery = ${f_3_battery},
                           lat = ${f_1_lat},
@@ -147,20 +147,17 @@ var server = net.createServer(function (socket) {
                           led = "on",
                           status = 'current status'
                           WHERE bike_id = ?`
-              await (await connection()).execute(updateBikeStatusQuery, [bike_id_from_iot])
-              // sockets[bike_id_from_iot].write('Welcome! ' + bike_id_from_iot)
-              console.timeEnd('Change Perfomance Time')
-              console.log('Update iot_status table complete!')
-            }
-
-            console.log('console :sockets keys', Object.keys(sockets))
-          } catch (error) {
-            console.log(error)
+            await (await connection()).execute(updateBikeStatusQuery, [bike_id_from_iot])
+            // sockets[bike_id_from_iot].write('Welcome! ' + bike_id_from_iot)
+            console.timeEnd('Change Perfomance Time')
+            console.log('Update iot_status table complete!')
           }
+        } catch (error) {
+          console.log(error)
         }
       } else {
         try {
-          socket.end()
+          socket.destroy()
           console.log(`Wrong type of data transaction.`) // 상기 횟수에 따라 오류가 발생할 경우, 관리자 Alert 를 띄워야 한다.
         } catch (error) {
           console.error(error)
@@ -198,7 +195,7 @@ var server = net.createServer(function (socket) {
 
       if (app_to_iot_data[0] == process.env.APP_SIG && sockets[app_to_iot_data[1]]) {
         // bikeSocket = app_to_iot_data[1];
-        sockets[bike_id_from_iot] = socket // 이렇게 넣으니까 결국 App 의 ID 도 같이 붙네..
+        // 이렇게 넣으니까 결국 App 의 ID 도 같이 붙네..
         // console.log("================"+JSON.stringify(sockets[bike_id_from_iot]))
 
         // 그 자전거가 붙어있는지 여부를 확인하는 과정이 필요하다. query 를 반드시 돌려야만 하는가? 매번? 아님 한 번?
@@ -237,7 +234,7 @@ var server = net.createServer(function (socket) {
           console.timeEnd('Change Perfomance Time')
           console.log('Update iot_status with lock has been completed.')
         }
-      } else socket.end('Not registered bike')
+      }
     }
   })
   // client와 접속이 끊기는 메시지 출력
