@@ -225,6 +225,8 @@ var server = net.createServer(function (socket) {
           socket.write('Thank you for your riding Broonge!') // 이건 App 으로 보내는 경우
           console.log('appSocket: Update iot_status with lock has been completed.')
         }
+      } else {
+        socket.write('sorry, no bike')
       }
     }
   })
