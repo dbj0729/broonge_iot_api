@@ -43,7 +43,6 @@ let sig_12 = sig_11 + size_12
 let sig_error_report = sig_6 + error_report_size
 
 let sockets = {}
-let bikeSocket
 // 서버 생성
 var server = net.createServer(function (socket) {
   console.log(socket.address().address + 'Started Broonge IoT Server')
@@ -58,6 +57,8 @@ var server = net.createServer(function (socket) {
     */
   socket.on('data', async function (data) {
     console.log('Received Data: ' + data)
+    console.log('sockets key list', Object.keys(sockets))
+
     const data_elements = data.toString('utf-8').trim()
 
     // IoT 로부터 받는 정보이다.
@@ -78,6 +79,8 @@ var server = net.createServer(function (socket) {
     const f_1_lng = gps_reformatted[0].slice(0, 10) // 딱 10자리만 가져온다.
 
     const checksum = data_elements.slice(sig_11, sig_12)
+
+    if (sockets[bike_id_from_iot]) console.log('bikeSocketStatus', sockets[bike_id_from_iot].readyState)
 
     // 변경되는 값; 이 부분을 저장해야 한다.
     let manual_codes = f_1_gps + f_2_signal_strength + f_3_battery + f_4_device_status + f_5_err_info
@@ -122,7 +125,7 @@ var server = net.createServer(function (socket) {
 
       manually_added_0x = '0' + manual_codes_value_verification // 마지막 checksum 에 0이 빠져서 0을 넣음
 
-      sockets[bike_id_from_iot] = socket
+      if (!sockets[bike_id_from_iot]) sockets[bike_id_from_iot] = socket
 
       if (checksum == manually_added_0x) {
         // IoT 로 부터 받은 값이 모두 문제 없이 다 통과했을 때 실행
@@ -228,7 +231,6 @@ var server = net.createServer(function (socket) {
 
 // 에러가 발생할 경우 화면에 에러메시지 출력
 server.on('error', function (err) {
-  if (bikeSocket) delete sockets[bike_id_from_iot]
   console.log('err' + err)
 })
 
