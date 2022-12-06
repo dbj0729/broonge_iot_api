@@ -48,8 +48,8 @@ let bikeSocket
 var server = net.createServer(function (socket) {
   console.log(socket.address().address + 'Started Broonge IoT Server')
 
-  socket.setEncoding('utf8')
-  // socket.setNoDelay(true)
+  // socket.setEncoding('utf8')
+  socket.setNoDelay(true)
 
   // client로 부터 오는 data를 화면에 출력
   /* 
@@ -58,7 +58,7 @@ var server = net.createServer(function (socket) {
     */
   socket.on('data', async function (data) {
     console.log('Received Data: ' + data)
-    const data_elements = data
+    const data_elements = data.toString('utf-8').trim()
 
     // IoT 로부터 받는 정보이다.
     const sig = data_elements.slice(0, sig_1)
@@ -165,7 +165,9 @@ var server = net.createServer(function (socket) {
 
       // App 에서 IoT 로 보내기 위해 받는 Protocol
       let app_to_iot_data = data_elements.split(',')
+      console.log('appSocket: sig ' + app_to_iot_data[0])
       console.log('appSocket: bikeId ' + app_to_iot_data[1])
+      console.log('appSocket: order ' + app_to_iot_data[2])
 
       // App 에서 IoT 로 정보를 보내기 위한 기본 변수들이다.
       var sig_for_app = process.env.IOT_SIG
@@ -226,6 +228,9 @@ var server = net.createServer(function (socket) {
           sockets[app_to_iot_data[1]].write(sending_codes(send_code)) // IoT 에 보내는 소켓
           socket.write('Thank you for your riding Broonge!') // 이건 App 으로 보내는 경우
           console.log('appSocket: Update iot_status with lock has been completed.')
+        } else {
+          console.log('appSocket : data parsing error')
+          socket.write('something wrong')
         }
       } else {
         socket.write('sorry, no bike')
