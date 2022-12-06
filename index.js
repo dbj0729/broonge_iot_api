@@ -191,6 +191,7 @@ var server = net.createServer(function (socket) {
       }
 
       if (app_to_iot_data[0] == process.env.APP_SIG && sockets[app_to_iot_data[1]]) {
+        console.log('appSocket: is here? ' + app_to_iot_data)
         // bikeSocket = app_to_iot_data[1];
         // 이렇게 넣으니까 결국 App 의 ID 도 같이 붙네..
         // console.log("================"+JSON.stringify(sockets[bike_id_from_iot]))
