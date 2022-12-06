@@ -165,9 +165,6 @@ var server = net.createServer(function (socket) {
 
       // App 에서 IoT 로 보내기 위해 받는 Protocol
       let app_to_iot_data = data_elements.split(',')
-      console.log('appSocket: sig ' + app_to_iot_data[0])
-      console.log('appSocket: bikeId ' + app_to_iot_data[1])
-      console.log('appSocket: order ' + app_to_iot_data[2])
 
       // App 에서 IoT 로 정보를 보내기 위한 기본 변수들이다.
       var sig_for_app = process.env.IOT_SIG
@@ -180,12 +177,11 @@ var server = net.createServer(function (socket) {
         sig_for_app + group_for_app + op_code_for_app + bike_id_for_app + version_for_app + message_length_for_app
 
       function sending_codes(send_code) {
-        var send_codes = send_default_data_preparation + send_code
-        var combined_send_codes = send_codes.split('')
+        var combined_send_codes = send_code.split('')
         var send_codes_value = combined_send_codes.map(item => item.charCodeAt()).reduce((acc, curr) => acc + curr)
         var send_codes_value_verification = send_codes_value.toString(16)
         var send_codes_manually_added_0x = '0' + send_codes_value_verification
-        var final_send_codes = send_codes + send_codes_manually_added_0x
+        var final_send_codes = send_default_data_preparation + send_code + send_codes_manually_added_0x
         // final_send_codes_buffer = Buffer.from(final_send_codes, 'utf-8')
         // const buf = Buffer.alloc(100)
         // final_send_codes_buffer = buf.write(final_send_codes)
@@ -193,7 +189,6 @@ var server = net.createServer(function (socket) {
       }
 
       if (app_to_iot_data[0] == process.env.APP_SIG && sockets[app_to_iot_data[1]]) {
-        console.log('appSocket: is here? ' + app_to_iot_data)
         // bikeSocket = app_to_iot_data[1];
         // 이렇게 넣으니까 결국 App 의 ID 도 같이 붙네..
         // console.log("================"+JSON.stringify(sockets[bike_id_from_iot]))
@@ -202,12 +197,12 @@ var server = net.createServer(function (socket) {
 
         if (app_to_iot_data[2] == 'unlock') {
           try {
-            console.log('appSocket : order is' + app_to_iot_data)
             // 01 이면 잠금해제 이다.
             const send_code = '01'
             // 여기서 실제로 IoT 에서 받는 값을 보고 진짜로 잠겼는지 열렸는지 확인해야 한다.
             const updateBikeStatusQuery = `UPDATE iot_status SET status = 'unlocked' WHERE bike_id = ?`
             await (await connection()).execute(updateBikeStatusQuery, [bike_id_for_app])
+            console.log({ toBikeCode: sending_codes(send_code) })
             sockets[app_to_iot_data[1]].write(sending_codes(send_code)) // IoT 에 보내는 소켓
             socket.write('Unlocked!')
             console.log('appSocket: update iot_status with unlock has been completed')
