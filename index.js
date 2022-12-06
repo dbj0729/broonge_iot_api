@@ -180,7 +180,7 @@ var server = net.createServer(function (socket) {
         var combined_send_codes = send_code.split('')
         var send_codes_value = combined_send_codes.map(item => item.charCodeAt()).reduce((acc, curr) => acc + curr)
         var send_codes_value_verification = send_codes_value.toString(16)
-        var send_codes_manually_added_0x = '0' + send_codes_value_verification
+        var send_codes_manually_added_0x = '00' + send_codes_value_verification
         var final_send_codes = send_default_data_preparation + send_code + send_codes_manually_added_0x
         // final_send_codes_buffer = Buffer.from(final_send_codes, 'utf-8')
         // const buf = Buffer.alloc(100)
