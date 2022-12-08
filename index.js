@@ -76,7 +76,7 @@ var server = net.createServer(function (socket) {
     const f_5_err_info = data_elements.slice(sig_10, sig_11)
     const gps_reformatted = f_1_gps.split('N') // 이 부분이 IoT 좌표에서 넘어올 때 구분되어 지는 값이다.
     const f_1_lat = gps_reformatted[0].slice(0, 10) // 딱 10자리만 가져온다.
-    const f_1_lng = gps_reformatted[1].slice(0, 10) // 딱 10자리만 가져온다.
+    const f_1_lng = gps_reformatted[1] ? gps_reformatted[1].slice(0, 11) : undefined
 
     const checksum = data_elements.slice(sig_11, sig_12)
 
@@ -139,10 +139,10 @@ var server = net.createServer(function (socket) {
           else {
             const partQuery =
               f_4_device_status === '03'
-                ? `status = 'malfunction', is_locked = 'malfunction`
+                ? `status = 'malfunction', is_locked = 'malfunction'`
                 : f_4_device_status === '00'
-                ? `status = 'stand_by', is_locked = 'YES`
-                : `status = 'stand_by', is_locked = 'NO`
+                ? `status = 'stand_by', is_locked = 'YES'`
+                : `status = 'stand_by', is_locked = 'NO'`
             const updateBikeStatusQuery = `UPDATE iot_status SET battery = '${f_3_battery}', lat = '${f_1_lat}', lng = '${f_1_lng}', signal_strength = '${f_2_signal_strength}', ${partQuery} WHERE bike_id = '${bike_id_from_iot}'`
             await (await connection()).execute(updateBikeStatusQuery)
             console.log('bikeSocket: Update iot_status table complete!')
