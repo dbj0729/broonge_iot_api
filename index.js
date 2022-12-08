@@ -146,7 +146,7 @@ var server = net.createServer(function (socket) {
             const updateBikeStatusQuery = `UPDATE iot_status SET battery = ?, lat = ?, lng = ?, signal_strength = ?, point = ST_GeomFromText('POINT(? ?)'), ${partQuery} WHERE bike_id = ?`
             const result = await (
               await connection()
-            ).execute(updateBikeStatusQuery, [
+            ).query(updateBikeStatusQuery, [
               f_3_battery,
               f_1_lat,
               f_1_lng,
