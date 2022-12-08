@@ -133,7 +133,7 @@ var server = net.createServer(function (socket) {
           //자전거가 보낸 통신일 경우
           //DB에 해당 자전거 ID가 등록되어 있는지 확인
           const findBikeQuery = `SELECT * FROM iot_status WHERE bike_id = ? limit 1`
-          var [findBike] = await (await connection()).execute(findBikeQuery, [bike_id_from_iot])
+          var [findBike] = await (await connection()).query(findBikeQuery, [bike_id_from_iot])
 
           if (findBike.length === 0) socket.destroy() // 등록된 자전거가 없을 경우 소켓을 끊는다.
           else {
