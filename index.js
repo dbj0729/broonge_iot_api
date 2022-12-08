@@ -135,9 +135,14 @@ var server = net.createServer(function (socket) {
           const findBikeQuery = `SELECT * FROM iot_status WHERE bike_id = ? limit 1`
           var [findBike] = await (await connection()).execute(findBikeQuery, [bike_id_from_iot])
 
-          if (findBike.length === 0) {
-            socket.destroy() // 등록된 자전거가 없을 경우 소켓을 끊는다.
-          } else {
+          if (findBike.length === 0) socket.destroy() // 등록된 자전거가 없을 경우 소켓을 끊는다.
+          else {
+            const partQuery =
+              f_4_device_status === '03'
+                ? `status = 'malfunction', is_locked = 'malfunction`
+                : f_4_device_status === '00'
+                ? `status = 'stand_by', is_locked = 'YES`
+                : `status = 'stand_by', is_locked = 'NO`
             const updateBikeStatusQuery = `
                       UPDATE iot_status SET 
                           battery = ${f_3_battery},
@@ -145,10 +150,9 @@ var server = net.createServer(function (socket) {
                           lng = ${f_1_lng},
                           signal_strength = ${f_2_signal_strength},
                           led = "on",
-                          status = 'current status'
+                          ${partQuery}
                           WHERE bike_id = ?`
             await (await connection()).execute(updateBikeStatusQuery, [bike_id_from_iot])
-            // sockets[bike_id_from_iot].write('Welcome! ' + bike_id_from_iot)
             console.log('bikeSocket: Update iot_status table complete!')
           }
         } catch (error) {
@@ -194,12 +198,14 @@ var server = net.createServer(function (socket) {
       async function updateBikeStatus(order) {
         const code = order === 'lock' ? '00' : order === 'unlock' ? '01' : order === 'page' ? '02' : null
         if (!code) return socket.write('not order')
-        const updateBikeStatusQuery = `UPDATE iot_status SET status = ? WHERE bike_id = ?`
-        await (await connection()).execute(updateBikeStatusQuery, [order, bike_id_for_app])
+        // if (code === '00' || code === '01') {
+        //   const updateBikeStatusQuery = `UPDATE iot_status SET is_locked = ? WHERE bike_id = ?`
+        //   await (await connection()).execute(updateBikeStatusQuery, [code === '00' ? 'YES' : 'NO', bike_id_for_app])
+        // }
         console.log({ toBikeCode: sending_codes(code) })
         console.log('appSocket : order is ' + order)
         sockets[app_to_iot_data[1]].write(sending_codes(code))
-        socket.write(order)
+        socket.write(order) // App 한테 보내는 것
       }
 
       if (app_to_iot_data[0] == process.env.APP_SIG && sockets[app_to_iot_data[1]]) {
