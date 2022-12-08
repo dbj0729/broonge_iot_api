@@ -151,8 +151,8 @@ var server = net.createServer(function (socket) {
                           signal_strength = ${f_2_signal_strength},
                           led = "on",
                           ${partQuery}
-                          WHERE bike_id = ?`
-            await (await connection()).execute(updateBikeStatusQuery, [bike_id_from_iot])
+                          WHERE bike_id = '${bike_id_from_iot}'`
+            await (await connection()).execute(updateBikeStatusQuery)
             console.log('bikeSocket: Update iot_status table complete!')
           }
         } catch (error) {
