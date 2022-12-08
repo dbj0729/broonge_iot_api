@@ -143,10 +143,8 @@ var server = net.createServer(function (socket) {
                 : f_4_device_status === '00'
                 ? `status = 'stand_by', is_locked = 'YES'`
                 : `status = 'stand_by', is_locked = 'NO'`
-            const updateBikeStatusQuery = `UPDATE iot_status SET battery = '${f_3_battery}', lat = '${f_1_lat}', lng = '${f_1_lng}', signal_strength = '${f_2_signal_strength}',  point = ST_GeomFromText('POINT(${Number(
-              f_1_lat,
-            )} ${Number(f_1_lng)})')  ${partQuery} WHERE bike_id = '${bike_id_from_iot}'`
-            await (await connection()).execute(updateBikeStatusQuery)
+            const updateBikeStatusQuery = `UPDATE iot_status SET battery = '${f_3_battery}', lat = '${f_1_lat}', lng = '${f_1_lng}', signal_strength = '${f_2_signal_strength}', point = ST_GeomFromText('POINT(? ?)'), ${partQuery} WHERE bike_id = '${bike_id_from_iot}'`
+            await (await connection()).execute(updateBikeStatusQuery, [Number(f_1_lat), Number(f_1_lng)])
             console.log('bikeSocket: Update iot_status table complete!')
           }
         } catch (error) {
