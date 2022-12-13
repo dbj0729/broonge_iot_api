@@ -5,7 +5,36 @@ var net = require('net')
 //   output: process.stdout,
 // });
 
-const distance = require('./functions/distance.js')
+// const distance = require('./functions/distance.js')
+function distance(lat1, lon1, lat2, lon2, unit) {
+  if (lat1 === lat2 && lon1 === lon2) {
+    return 0
+  } else {
+    var radlat1 = (Math.PI * lat1) / 180
+    var radlat2 = (Math.PI * lat2) / 180
+    var theta = lon1 - lon2
+    var radtheta = (Math.PI * theta) / 180
+    var dist = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta)
+    if (dist > 1) {
+      dist = 1
+    }
+    dist = Math.acos(dist)
+    dist = (dist * 180) / Math.PI
+    dist = dist * 60 * 1.1515
+    if (unit === 'K') {
+      dist = dist * 1.609344
+    }
+    if (unit === 'N') {
+      dist = dist * 0.8684
+    }
+    return dist
+  }
+}
+
+function distance_sum(distance_value, previous_value) {
+  const result = distance_value + previous_value
+  return result
+}
 
 var Buffer = require('buffer/').Buffer
 
@@ -15,6 +44,7 @@ const { connection } = require('./config/database')
 const IOT_PORT = process.env.IOT_PORT || '9090'
 
 const gps_array = []
+const distance_value = 0
 
 // IoT 에서 받는 Header byte size
 let size_1 = 4 // Sig.
@@ -92,11 +122,14 @@ var server = net.createServer(function (socket) {
     //TODO: [X] 32 buffer 없애기... char 로 바꿔서 보내야 할 듯..? 혹은 buffer 로?
     //TODO: [O] error 하수구... IOT_ERROR ~~~ 을 넣어서 처리함... 나머지 부분도 이렇게 만들어야 할 듯
     //TODO: [O] data 값이 정상적으로 모두 다 들어왔는지 확인 후 정상데이타가 아니면 소켓 연결 끊기
-    //          --> 1934BR0111241212318V0.503037.2114350N127.0894533E5990000062a 을
+    //          --> 1934BR0111241212319V0.503037.2114350N127.0894533E5990000062a 을
     //          --> 1934BR0111241212318V0.503037.2114350N127.0894533E5990000062 로 넣으면 Wrong... 으로 나옴 즉, manual_codes 랑 checksum 이 안 맞으면 예외처리함.
     //TODO: [x] 정상데이터면 iot socket 인지 app socket 인지 확인 후 처리... sockets[bike_id_from_iot].socket 을 필요한 곳에만 넣었음
     //          --> 테스트 방식 ==> 터미널에서 아이디 다른 값으로 먼저 넣어본 후 sockets 에 그 아이디가 붙었을 때 aaaaaaaaaaaaaaaaaaaaaaaaaa 를 넣으면
     //          통신 두절되고 그 아이디 다른 값은 sockets 에서 사라짐 (원래는 저 aaaaaaaaaa 가 아이디 다른 값을 치환하였음).
+
+    // 1934BR0111241212319V0.503037.2114350N127.0894533E5990100062b
+
     if (
       sig == process.env.IOT_SIG &&
       group == process.env.IOT_GROUP &&
@@ -161,21 +194,46 @@ var server = net.createServer(function (socket) {
               Number(f_1_lng),
               bike_id_from_iot,
             ])
-            console.log('update result: ', JSON.stringify(result, null, 2))
+            // console.log('update result: ', JSON.stringify(result, null, 2))
             console.log('bikeSocket: Update iot_status table complete!')
             if (f_4_device_status === '01') {
               // IoT 가 이용자가 누구인지도 쏴 주면 좋을 것 같긴한데................. @DBJ on 221213
               const gps_object = { lat: Number(f_1_lat), lng: Number(f_1_lng) }
-              const gps_array_result = gps_array.push(gps_object)
-              let distance_value = distance(37.123, 127.123, 38.123, 128.123, 'K')
+              gps_array.push(gps_object)
+              let last = gps_array[gps_array.length - 2]
+              if (last == null) {
+                console.log('Received the first gps coordinates.')
+                previous_distance = 0
+              } else {
+                console.log(last)
+                console.log('Current Value: ' + f_1_lat + ',' + f_1_lng)
+                console.log('Previous Value: ' + last.lat + ',' + last.lng)
+                let distance_value = distance(f_1_lat, f_1_lng, Number(last.lat), Number(last.lng), 'K')
+                // 여기서는 거리 누적을 더할 때 Array 로 하는 것보다는 Function 으로 돌려야 한다.
+                // For 문 같은 건 들어올 수 없다. 언제 끝날지 모르기 때문이다.
+                // previous 1은 한 loop 를 돌기 전의 값이고, previous 2 와 distance_value 가 더해지는 것이다. @DBJ on 221213
+                console.log('previous 1: ' + previous_distance) // c
+                const distance_sum_value = distance_sum(previous_distance, distance_value) // c+d
+                distance_value_result = distance_sum_value // e
+                previous_distance = distance_value_result // e
 
-              const updateBikeStatusQuery2 = `UPDATE riding_info SET coordinates = ? gps_update_datetime WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL`
-              const result2 = await (
-                await connection()
-              ).query(updateBikeStatusQuery2, [gps_array_result, bike_id_from_iot])
-              console.log(distance_value)
-              console.log('update result 2: ', JSON.stringify(result, null, 2))
+                console.log('previous 2: ' + previous_distance)
+                console.log('current: ' + distance_value)
+                const updateBikeStatusQuery2 = `UPDATE riding_data SET coordinates = ?, distance = ? WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
+                const result2 = await (
+                  await connection()
+                ).query(updateBikeStatusQuery2, [
+                  JSON.stringify(gps_array),
+                  distance_value_result.toFixed(7),
+                  bike_id_from_iot,
+                ])
+                console.log(gps_array)
+                console.log('TOTAL DISTANCE: ' + distance_value_result.toFixed(7))
+                // console.log('update result 2: ', JSON.stringify(result, null, 2))
+              }
             } else {
+              gps_array.length = 0
+              console.log('gps_array :' + gps_array)
               console.log('GPS array has been reset.')
             }
           }
