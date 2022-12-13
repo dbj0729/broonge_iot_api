@@ -5,12 +5,16 @@ var net = require('net')
 //   output: process.stdout,
 // });
 
+const distance = require('./functions/distance.js')
+
 var Buffer = require('buffer/').Buffer
 
 require('dotenv').config()
 const { connection } = require('./config/database')
 
 const IOT_PORT = process.env.IOT_PORT || '9090'
+
+const gps_array = []
 
 // IoT 에서 받는 Header byte size
 let size_1 = 4 // Sig.
@@ -142,7 +146,9 @@ var server = net.createServer(function (socket) {
                 ? `status = 'malfunction', is_locked = 'malfunction'`
                 : f_4_device_status === '00'
                 ? `status = 'stand_by', is_locked = 'YES'`
-                : `status = 'stand_by', is_locked = 'NO'`
+                : f_4_device_status === '01'
+                ? `status = 'in-use', is_locked = 'NO'`
+                : `status = 'stand_by', is_locked = 'NO'` // 문제가 발생했다는 의미..? @DBJ on 20221213
             const updateBikeStatusQuery = `UPDATE iot_status SET battery = ?, lat = ?, lng = ?, signal_strength = ?, point = ST_GeomFromText('POINT(? ?)'), ${partQuery} WHERE bike_id = ?`
             const result = await (
               await connection()
@@ -157,6 +163,21 @@ var server = net.createServer(function (socket) {
             ])
             console.log('update result: ', JSON.stringify(result, null, 2))
             console.log('bikeSocket: Update iot_status table complete!')
+            if (f_4_device_status === '01') {
+              // IoT 가 이용자가 누구인지도 쏴 주면 좋을 것 같긴한데................. @DBJ on 221213
+              const gps_object = { lat: Number(f_1_lat), lng: Number(f_1_lng) }
+              const gps_array_result = gps_array.push(gps_object)
+              let distance_value = distance(37.123, 127.123, 38.123, 128.123, 'K')
+
+              const updateBikeStatusQuery2 = `UPDATE riding_info SET coordinates = ? gps_update_datetime WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL`
+              const result2 = await (
+                await connection()
+              ).query(updateBikeStatusQuery2, [gps_array_result, bike_id_from_iot])
+              console.log(distance_value)
+              console.log('update result 2: ', JSON.stringify(result, null, 2))
+            } else {
+              console.log('GPS array has been reset.')
+            }
           }
         } catch (error) {
           console.log(error)

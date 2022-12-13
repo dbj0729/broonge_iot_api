@@ -1,17 +1,16 @@
-require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
 const { appendFile } = require('fs')
 const morgan = require('morgan')
 const { connection } = require('./config/database')
-
+require('dotenv').config()
 const app = express()
+
 app.use(cors())
 
 app.use(morgan('dev'))
 app.use(express.json())
-
-const IOT_PORT = process.env.IOT_PORT || '9090'
+console.log('you are in.')
 
 app.get('/', (req, res) => {
   res.json('hello broonge')
@@ -19,10 +18,10 @@ app.get('/', (req, res) => {
 
 app.post('/bike/start', async (req, res) => {
   try {
-    const { identifier, status } = req.body
+    const { id } = req.body
     if (!identifier || !status) return res.status(400).send('no required data')
 
-    const [rows] = await (await connection()).execute(`select * from bike where identifier = ?`, [identifier])
+    const [rows] = await (await connection()).execute(`select * from iot_status where bike_id = ?`, [id])
     if (!rows) return res.status(400).send('no bike')
 
     res.send({ rows })
