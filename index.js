@@ -177,10 +177,10 @@ var server = net.createServer(function (socket) {
             const partQuery =
               f_4_device_status === '03'
                 ? `status = 'malfunction', is_locked = 'malfunction'`
-                : f_4_device_status === '00'
-                ? `status = 'stand_by', is_locked = 'YES'`
-                : f_4_device_status === '01'
+                : f_4_device_status === '00' // 00 이 해제상태
                 ? `status = 'in-use', is_locked = 'NO'`
+                : f_4_device_status === '01' // 01 이 잠긴상태
+                ? `status = 'stand_by', is_locked = 'YES'`
                 : `status = 'stand_by', is_locked = 'NO'` // 문제가 발생했다는 의미..? @DBJ on 20221213
             const updateBikeStatusQuery = `UPDATE iot_status SET battery = ?, lat = ?, lng = ?, signal_strength = ?, point = ST_GeomFromText('POINT(? ?)'), ${partQuery} WHERE bike_id = ?`
             const result = await (
@@ -196,7 +196,7 @@ var server = net.createServer(function (socket) {
             ])
             // console.log('update result: ', JSON.stringify(result, null, 2))
             console.log('bikeSocket: Update iot_status table complete!')
-            if (f_4_device_status === '01') {
+            if (f_4_device_status === '00') {
               // IoT 가 이용자가 누구인지도 쏴 주면 좋을 것 같긴한데................. @DBJ on 221213
               const gps_object = { lat: Number(f_1_lat), lng: Number(f_1_lng) }
               gps_array.push(gps_object)
