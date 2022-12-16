@@ -227,6 +227,7 @@ var server = net.createServer(function (socket) {
                   distance_value_result.toFixed(7),
                   bike_id_from_iot,
                 ])
+                console.log(result2)
                 console.log(gps_array)
                 console.log('TOTAL DISTANCE: ' + distance_value_result.toFixed(7))
                 // console.log('update result 2: ', JSON.stringify(result, null, 2))
