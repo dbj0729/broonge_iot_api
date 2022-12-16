@@ -43,7 +43,7 @@ const { connection } = require('./config/database')
 
 const IOT_PORT = process.env.IOT_PORT || '9090'
 
-const gps_array = []
+let gps_obj = {}
 const distance_value = 0
 
 // IoT 에서 받는 Header byte size
@@ -198,8 +198,11 @@ var server = net.createServer(function (socket) {
             console.log('bikeSocket: Update iot_status table complete!')
             if (f_4_device_status === '00') {
               // IoT 가 이용자가 누구인지도 쏴 주면 좋을 것 같긴한데................. @DBJ on 221213
+              let gps_array = []
+              if (gps_obj[bike_id_from_iot]) gps_array = gps_obj[bike_id_from_iot]
               const gps_object = { lat: Number(f_1_lat), lng: Number(f_1_lng) }
               gps_array.push(gps_object)
+              gps_obj[bike_id_from_iot] = gps_array
               let last = gps_array[gps_array.length - 2]
               if (last == null) {
                 console.log('Received the first gps coordinates.')
@@ -233,7 +236,8 @@ var server = net.createServer(function (socket) {
                 // console.log('update result 2: ', JSON.stringify(result, null, 2))
               }
             } else {
-              gps_array.length = 0
+              // 한번에 update 하는 자리
+              delete gps_obj[bike_id_from_iot]
               console.log('gps_array :' + gps_array)
               console.log('GPS array has been reset.')
             }
