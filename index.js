@@ -83,6 +83,7 @@ var server = net.createServer(function (socket) {
 
   // socket.setEncoding('utf8')
   socket.setNoDelay(true)
+  socket.setKeepAlive(true, 2000)
 
   // client로 부터 오는 data를 화면에 출력
   /* 
