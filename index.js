@@ -222,17 +222,20 @@ var server = net.createServer(function (socket) {
 
                 console.log('previous 2: ' + previous_distance)
                 console.log('current: ' + distance_value)
-                const updateBikeStatusQuery2 = `UPDATE riding_data SET coordinates = ?, distance = ? WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
+                // 아래 주석 부분은 매번 GPS 가 업데이트 될 때이다.
+                // const updateBikeStatusQuery2 = `UPDATE riding_data SET coordinates = ?, distance = ? WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
+                const updateBikeStatusQuery2 = `UPDATE riding_data SET distance = ? WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
                 const result2 = await (
                   await connection()
                 ).query(updateBikeStatusQuery2, [
-                  JSON.stringify(gps_array),
+                  // JSON.stringify(gps_array), // 건마다 업데이트 된 GPS 정보를 담는다.
                   distance_value_result.toFixed(7),
                   bike_id_from_iot,
                 ])
                 console.log(result2)
+                console.log('THIS ONE MAYBE: ' + JSON.stringify(gps_array))
                 console.log(gps_array)
-                console.log('TOTAL DISTANCE: ' + distance_value_result.toFixed(7))
+                console.log('TOTAL DISTANCE: ' + distance_value_result.toFixed(7) + 'FOR: ' + bike_id_from_iot)
                 // console.log('update result 2: ', JSON.stringify(result, null, 2))
               }
             } else {
