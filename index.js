@@ -4,8 +4,12 @@ var net = require('net')
 //   input: process.stdin,
 //   output: process.stdout,
 // });
-const datetime = new Date()
-console.log(datetime)
+function getCurrentTime() {
+  const datetime = new Date()
+  const result = String(datetime)
+  console.log(result)
+  return result
+}
 // const distance = require('./functions/distance.js')
 function distance(lat1, lon1, lat2, lon2, unit) {
   if (lat1 === lat2 && lon1 === lon2) {
@@ -297,7 +301,7 @@ var server = net.createServer(function (socket) {
         console.log('appSocket : order is ' + order)
         sockets[app_to_iot_data[1]].write(sending_codes(code))
         socket.write(sending_codes(code)) // App 한테 보내는 것
-        socket.write(String(datetime))
+        socket.write(getCurrentTime())
       }
 
       if (app_to_iot_data[0] == process.env.APP_SIG && sockets[app_to_iot_data[1]]) {
