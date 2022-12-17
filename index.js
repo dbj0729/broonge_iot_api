@@ -295,7 +295,8 @@ var server = net.createServer(function (socket) {
         console.log({ toBikeCode: sending_codes(code) })
         console.log('appSocket : order is ' + order)
         sockets[app_to_iot_data[1]].write(sending_codes(code))
-        socket.write(order) // App 한테 보내는 것
+        socket.write(sending_codes(code)) // App 한테 보내는 것
+        socket.write(order)
       }
 
       if (app_to_iot_data[0] == process.env.APP_SIG && sockets[app_to_iot_data[1]]) {
