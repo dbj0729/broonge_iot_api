@@ -4,6 +4,9 @@ var net = require('net')
 //   input: process.stdin,
 //   output: process.stdout,
 // });
+var moment = require('moment')
+require('moment-timezone')
+moment.tz.setDefault('Asia/Seoul')
 
 function getCurrentTime() {
   var current_time = moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
