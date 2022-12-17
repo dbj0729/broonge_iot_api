@@ -235,13 +235,13 @@ var server = net.createServer(function (socket) {
                 console.log(result2)
                 console.log('THIS ONE MAYBE: ' + JSON.stringify(gps_array))
                 console.log(gps_array)
-                console.log('TOTAL DISTANCE: ' + distance_value_result.toFixed(7) + 'FOR: ' + bike_id_from_iot)
+                console.log('TOTAL DISTANCE: ' + distance_value_result.toFixed(7) + ' FOR: ' + bike_id_from_iot)
                 // console.log('update result 2: ', JSON.stringify(result, null, 2))
               }
             } else {
               // 한번에 update 하는 자리
               delete gps_obj[bike_id_from_iot]
-              if (gps_array != null) console.log('gps_array :' + gps_array)
+              // console.log('gps_array :' + gps_array)
               console.log('GPS array has been reset.')
             }
           }
