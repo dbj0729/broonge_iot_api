@@ -4,15 +4,8 @@ var net = require('net')
 //   input: process.stdin,
 //   output: process.stdout,
 // });
-var moment = require('moment')
-require('moment-timezone')
-moment.tz.setDefault('Asia/Seoul')
-
-function getCurrentTime() {
-  var current_time = moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
-  return current_time
-}
-
+const datetime = new Date()
+console.log(datetime)
 // const distance = require('./functions/distance.js')
 function distance(lat1, lon1, lat2, lon2, unit) {
   if (lat1 === lat2 && lon1 === lon2) {
@@ -304,7 +297,7 @@ var server = net.createServer(function (socket) {
         console.log('appSocket : order is ' + order)
         sockets[app_to_iot_data[1]].write(sending_codes(code))
         socket.write(sending_codes(code)) // App 한테 보내는 것
-        socket.write(getCurrentTime())
+        socket.write(datetime)
       }
 
       if (app_to_iot_data[0] == process.env.APP_SIG && sockets[app_to_iot_data[1]]) {
