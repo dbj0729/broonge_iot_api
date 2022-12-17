@@ -241,7 +241,7 @@ var server = net.createServer(function (socket) {
             } else {
               // 한번에 update 하는 자리
               delete gps_obj[bike_id_from_iot]
-              console.log('gps_array :' + gps_array)
+              if (gps_array != null) console.log('gps_array :' + gps_array)
               console.log('GPS array has been reset.')
             }
           }
