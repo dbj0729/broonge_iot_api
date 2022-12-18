@@ -5,7 +5,9 @@ var net = require('net')
 //   output: process.stdout,
 // });
 function getCurrentTime() {
-  const datetime = new Date().toLocaleString('ko-KR')
+  var adjust_time_manual = 9 * 60 * 60 * 1000
+  const datetime_in_number = Number(new Date() + adjust_time_manual)
+  const datetime = new Date(datetime_in_number).toLocaleString('ko-KR')
   const result = String(datetime)
   console.log(result)
   return result
@@ -50,7 +52,7 @@ const { connection } = require('./config/database')
 const IOT_PORT = process.env.IOT_PORT || '9090'
 
 let gps_obj = {}
-const distance_value = 0
+// const distance_value = 0 @DBJ 없어도 되나?
 
 // IoT 에서 받는 Header byte size
 let size_1 = 4 // Sig.
@@ -284,7 +286,7 @@ var server = net.createServer(function (socket) {
         // }
         console.log({ toBikeCode: sending_codes(code) })
         console.log('appSocket : order is ' + order)
-        sockets[app_to_iot_data[1]].write(sending_codes(code)) // 이 부분이 의심
+        sockets[app_to_iot_data[1]].write(sending_codes(code)) // @DBJ 이 부분 점검 필요?
         socket.write(sending_codes(code)) // App 한테 보내는 것
         socket.write(getCurrentTime())
       }
