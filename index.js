@@ -163,6 +163,9 @@ var server = net.createServer(function (socket) {
 
           if (findBike.length === 0) socket.destroy() // 등록된 자전거가 없을 경우 소켓을 끊는다.
           else {
+            // @DBJ 새롭게 추가해서 혹시나 해서...
+            console.log('sockets key list after', Object.keys(sockets))
+
             const partQuery =
               f_4_device_status === '03'
                 ? `status = 'malfunction', is_locked = 'malfunction'`
@@ -320,6 +323,7 @@ server.on('error', function (err) {
 })
 
 // .env 의 포트값으로 진행되던가 아니면 9090 으로 진행되던가 해서 접속이 가능하도록 대기
+// @DBJ 여기 안나오는데?
 server.listen(IOT_PORT, function () {
   console.log(`Listening for requests on port ${IOT_PORT}`)
 })
@@ -332,5 +336,3 @@ checksum length 를 count 하고,
 그 length 에 있어서 자리수가 부족한 경우에는 0으로 매꾼다???
 
 */
-// @DBJ 새롭게 추가해서 혹시나 해서...
-console.log('sockets key list after', Object.keys(sockets))
