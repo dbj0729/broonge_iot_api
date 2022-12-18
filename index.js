@@ -5,7 +5,7 @@ var net = require('net')
 //   output: process.stdout,
 // });
 function getCurrentTime() {
-  const datetime = new Date().toLocaleString('ko-KR', { timeZone: 'UTC' })
+  const datetime = new Date().toLocaleString('ko-KR')
   const result = String(datetime)
   console.log(result)
   return result
@@ -85,12 +85,11 @@ let sig_error_report = sig_6 + error_report_size
 let sockets = {}
 // 서버 생성
 var server = net.createServer(function (socket) {
-  console.log(socket.address().address + 'Started Broonge IoT Server')
+  console.log(socket.address().address + 'Started Broonge IoT Server on ' + getCurrentTime())
 
   // socket.setEncoding('utf8')
   socket.setNoDelay(true)
 
-  sockets.setNoDelay(true) // @dbj 추가함
   // client로 부터 오는 data를 화면에 출력
   /* 
         Data 는 IoT 에서 받던, App 에서 받던 이래저래 같이 쓰이는 것이고
