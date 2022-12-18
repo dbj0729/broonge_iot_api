@@ -97,7 +97,7 @@ var server = net.createServer(function (socket) {
     */
   socket.on('data', async function (data) {
     console.log('Received Data: ' + data)
-    console.log('sockets key list', Object.keys(sockets))
+    console.log('sockets key list before', Object.keys(sockets))
 
     const data_elements = data.toString('utf-8').trim()
 
@@ -298,6 +298,9 @@ var server = net.createServer(function (socket) {
       }
     }
   })
+  // @DBJ 새롭게 추가해서 혹시나 해서...
+  console.log('sockets key list after', Object.keys(sockets))
+
   // client와 접속이 끊기는 메시지 출력
   socket.on('close', function () {
     // 연결을 끊는 socket이 sockets 안에 등록된 socket인지 판별한다.
