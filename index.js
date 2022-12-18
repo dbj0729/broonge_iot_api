@@ -298,8 +298,6 @@ var server = net.createServer(function (socket) {
       }
     }
   })
-  // @DBJ 새롭게 추가해서 혹시나 해서...
-  console.log('sockets key list after', Object.keys(sockets))
 
   // client와 접속이 끊기는 메시지 출력
   socket.on('close', function () {
@@ -334,3 +332,5 @@ checksum length 를 count 하고,
 그 length 에 있어서 자리수가 부족한 경우에는 0으로 매꾼다???
 
 */
+// @DBJ 새롭게 추가해서 혹시나 해서...
+console.log('sockets key list after', Object.keys(sockets))
