@@ -5,11 +5,12 @@ var net = require('net')
 //   output: process.stdout,
 // });
 function getCurrentTime() {
-  const datetime = new Date()
+  const datetime = new Date().toLocaleString('ko-KR', { timeZone: 'UTC' })
   const result = String(datetime)
   console.log(result)
   return result
 }
+console.log(getCurrentTime())
 // const distance = require('./functions/distance.js')
 function distance(lat1, lon1, lat2, lon2, unit) {
   if (lat1 === lat2 && lon1 === lon2) {
@@ -89,6 +90,7 @@ var server = net.createServer(function (socket) {
   // socket.setEncoding('utf8')
   socket.setNoDelay(true)
 
+  sockets.setNoDelay(true) // @dbj 추가함
   // client로 부터 오는 data를 화면에 출력
   /* 
         Data 는 IoT 에서 받던, App 에서 받던 이래저래 같이 쓰이는 것이고
@@ -124,17 +126,6 @@ var server = net.createServer(function (socket) {
     // 변경되는 값; 이 부분을 저장해야 한다.
     let manual_codes = f_1_gps + f_2_signal_strength + f_3_battery + f_4_device_status + f_5_err_info
 
-    //TODO: [X] 32 buffer 없애기... char 로 바꿔서 보내야 할 듯..? 혹은 buffer 로?
-    //TODO: [O] error 하수구... IOT_ERROR ~~~ 을 넣어서 처리함... 나머지 부분도 이렇게 만들어야 할 듯
-    //TODO: [O] data 값이 정상적으로 모두 다 들어왔는지 확인 후 정상데이타가 아니면 소켓 연결 끊기
-    //          --> 1934BR0111241212319V0.503037.2114350N127.0894533E5990000062a 을
-    //          --> 1934BR0111241212318V0.503037.2114350N127.0894533E5990000062 로 넣으면 Wrong... 으로 나옴 즉, manual_codes 랑 checksum 이 안 맞으면 예외처리함.
-    //TODO: [x] 정상데이터면 iot socket 인지 app socket 인지 확인 후 처리... sockets[bike_id_from_iot].socket 을 필요한 곳에만 넣었음
-    //          --> 테스트 방식 ==> 터미널에서 아이디 다른 값으로 먼저 넣어본 후 sockets 에 그 아이디가 붙었을 때 aaaaaaaaaaaaaaaaaaaaaaaaaa 를 넣으면
-    //          통신 두절되고 그 아이디 다른 값은 sockets 에서 사라짐 (원래는 저 aaaaaaaaaa 가 아이디 다른 값을 치환하였음).
-
-    // 1934BR0111241212319V0.503037.2114350N127.0894533E5990100062b
-
     if (
       sig == process.env.IOT_SIG &&
       group == process.env.IOT_GROUP &&
@@ -152,12 +143,6 @@ var server = net.createServer(function (socket) {
     ) {
       const combined_manual_codes = manual_codes.split('') // data 에서 온 raw 값을 글자 단위로 쪼갠 결과
       const manual_codes_value = combined_manual_codes.map(item => item.charCodeAt()).reduce((acc, curr) => acc + curr) // 쪼갠 결과를 하나씩 분배
-
-      /* 
-      console.log({ manual_codes_value });
-      consollog(manual_codes_value.toString(16));
-      console.log("here is the checksum:" + checksum);
-      */
 
       // IoT 에서 보낸 값이 누락없이 잘 왔는지 모든 글자의 ASCII 코드 값을 다 더한 후 16진수로 변환해서
       // IoT 보냈던 Checksum 값과 동일한지를 확인하고 동일해야지만 서버에 저장된다.
@@ -266,6 +251,7 @@ var server = net.createServer(function (socket) {
       // 이 부분이 IoT 로 보내기 위해 App 으로부터 받는 부분이다.
 
       // App 에서 IoT 로 보내기 위해 받는 Protocol
+      // a001, 자전거 번호, unlock...
       let app_to_iot_data = data_elements.split(',')
 
       // App 에서 IoT 로 정보를 보내기 위한 기본 변수들이다.
@@ -284,9 +270,6 @@ var server = net.createServer(function (socket) {
         var send_codes_value_verification = send_codes_value.toString(16)
         var send_codes_manually_added_0x = '00' + send_codes_value_verification
         var final_send_codes = send_default_data_preparation + send_code + send_codes_manually_added_0x
-        // final_send_codes_buffer = Buffer.from(final_send_codes, 'utf-8')
-        // const buf = Buffer.alloc(100)
-        // final_send_codes_buffer = buf.write(final_send_codes)
         return final_send_codes
       }
 
@@ -299,7 +282,7 @@ var server = net.createServer(function (socket) {
         // }
         console.log({ toBikeCode: sending_codes(code) })
         console.log('appSocket : order is ' + order)
-        sockets[app_to_iot_data[1]].write(sending_codes(code))
+        sockets[app_to_iot_data[1]].write(sending_codes(code)) // 이 부분이 의심
         socket.write(sending_codes(code)) // App 한테 보내는 것
         socket.write(getCurrentTime())
       }
@@ -328,7 +311,7 @@ var server = net.createServer(function (socket) {
     console.log('appSocket has left the IoT Server.')
   })
   // client가 접속하면 화면에 출력해주는 메시지
-  // socket.write('Welcome')
+  socket.write('Welcome')
 })
 
 // 에러가 발생할 경우 화면에 에러메시지 출력
