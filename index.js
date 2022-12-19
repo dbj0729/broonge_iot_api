@@ -210,6 +210,7 @@ var server = net.createServer(function (socket) {
               if (gps_array.length === 0) gps_object = { ...gps_obj, totalDist: 0 }
 
               const last = gps_array[gps_array.length - 1]
+              console.log({ last })
               const dist = distance(f_1_lat, f_1_lng, Number(last.lat), Number(last.lng), 'K')
 
               if (dist === 0) return
