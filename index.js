@@ -92,6 +92,7 @@ var server = net.createServer(function (socket) {
 
   // socket.setEncoding('utf8')
   socket.setNoDelay(true)
+  let bike_id_from_iot
 
   // client로 부터 오는 data를 화면에 출력
   /* 
@@ -108,7 +109,7 @@ var server = net.createServer(function (socket) {
     const sig = data_elements.slice(0, sig_1)
     const group = data_elements.slice(sig_1, sig_2)
     const op_code = data_elements.slice(sig_2, sig_3)
-    const bike_id_from_iot = data_elements.slice(sig_3, sig_4)
+    bike_id_from_iot = data_elements.slice(sig_3, sig_4)
     const version = data_elements.slice(sig_4, sig_5) // version 을 넣으니까 if 문에서 막힌다.
     const message_length = data_elements.slice(sig_5, sig_6)
 
@@ -317,7 +318,7 @@ var server = net.createServer(function (socket) {
   // client와 접속이 끊기는 메시지 출력
   socket.on('close', function () {
     // 연결을 끊는 socket이 sockets 안에 등록된 socket인지 판별한다.
-    const findBikeId = Object.entries(sockets).find(s => s[1] === socket)
+    const findBikeId = Object.entries(sockets).find(s => s[0] === bike_id_from_iot)
     if (findBikeId) {
       console.log('bikeSocket disconnected')
       delete sockets[findBikeId[0]]
