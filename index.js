@@ -234,7 +234,7 @@ var server = net.createServer(function (socket) {
 
               await (
                 await connection()
-              ).query(updateBikeStatusQuery2, [dist, JSON.stringify(ridingData), bike_id_from_iot])
+              ).query(updateBikeStatusQuery2, [dist.toFixed(3), JSON.stringify(ridingData), bike_id_from_iot])
               delete gps_obj[bike_id_from_iot]
               console.log('GPS array has been reset.')
             }
