@@ -172,10 +172,9 @@ var server = net.createServer(function (socket) {
             findBikeInBikes.length === 0 ||
             findBikeInBikes[0].is_active !== 'YES'
           ) {
-            // delete sockets[bike_id_from_iot]
+            // 등록된 자전거가 없을 경우 소켓을 끊는다.
             socket.destroy()
-          } // 등록된 자전거가 없을 경우 소켓을 끊는다.
-          else {
+          } else {
             // @DBJ 새롭게 추가해서 혹시나 해서...
             console.log('sockets key list after', Object.keys(sockets))
 
@@ -204,49 +203,33 @@ var server = net.createServer(function (socket) {
             if (f_4_device_status === '00') {
               // IoT 가 이용자가 누구인지도 쏴 주면 좋을 것 같긴한데................. @DBJ on 221213
               let gps_array = []
+              let gps_object = { lat: Number(f_1_lat), lng: Number(f_1_lng) }
+
               if (gps_obj[bike_id_from_iot]) gps_array = gps_obj[bike_id_from_iot]
-              const gps_object = { lat: Number(f_1_lat), lng: Number(f_1_lng) }
+
+              if (gps_array.length === 0) gps_object = { ...gps_obj, totalDist: 0 }
+              else {
+                const last = gps_array[gps_array.length - 1]
+                const dist = distance(f_1_lat, f_1_lng, Number(last.lat), Number(last.lng), 'K')
+
+                if (dist === 0) return
+
+                const totalDist = distance_sum(dist, last.totalDist)
+                gps_object = { ...gps_obj, totalDist }
+              }
+
               gps_array.push(gps_object)
               gps_obj[bike_id_from_iot] = gps_array
-              let last = gps_array[gps_array.length - 2]
-              if (last == null) {
-                console.log('Received the first gps coordinates.')
-                previous_distance = 0
-              } else {
-                console.log(last)
-                console.log('Current Value: ' + f_1_lat + ',' + f_1_lng)
-                console.log('Previous Value: ' + last.lat + ',' + last.lng)
-                let distance_value = distance(f_1_lat, f_1_lng, Number(last.lat), Number(last.lng), 'K')
-                // 여기서는 거리 누적을 더할 때 Array 로 하는 것보다는 Function 으로 돌려야 한다.
-                // For 문 같은 건 들어올 수 없다. 언제 끝날지 모르기 때문이다.
-                // previous 1은 한 loop 를 돌기 전의 값이고, previous 2 와 distance_value 가 더해지는 것이다. @DBJ on 221213
-                console.log('previous 1: ' + previous_distance) // c
-                const distance_sum_value = distance_sum(previous_distance, distance_value) // c+d
-                distance_value_result = distance_sum_value // e
-                previous_distance = distance_value_result // e
 
-                console.log('previous 2: ' + previous_distance)
-                console.log('current: ' + distance_value)
-                // 아래 주석 부분은 매번 GPS 가 업데이트 될 때이다.
-                // const updateBikeStatusQuery2 = `UPDATE riding_data SET coordinates = ?, distance = ? WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
-                const updateBikeStatusQuery2 = `UPDATE riding_data SET distance = ? WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
-                const result2 = await (
-                  await connection()
-                ).query(updateBikeStatusQuery2, [
-                  // JSON.stringify(gps_array), // 건마다 업데이트 된 GPS 정보를 담는다.
-                  distance_value_result.toFixed(7),
-                  bike_id_from_iot,
-                ])
-                console.log(result2)
-                console.log('THIS ONE MAYBE: ' + JSON.stringify(gps_array))
-                console.log(gps_array)
-                console.log('TOTAL DISTANCE: ' + distance_value_result.toFixed(7) + ' FOR: ' + bike_id_from_iot)
-                // console.log('update result 2: ', JSON.stringify(result, null, 2))
-              }
+              console.log(`${bike_id_from_iot}-gps_array: ${gps_array}`)
             } else {
-              // 한번에 update 하는 자리
+              const updateBikeStatusQuery2 = `UPDATE riding_data SET distance = ?, coordinates = ? WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
+              const ridingData = gps_obj[bike_id_from_iot]
+              const lastIdx = ridingData.length - 1
+              const dist = ridingData[lastIdx].totalDist
+
+              await (await connection()).query(updateBikeStatusQuery2, [dist, ridingData, bike_id_from_iot])
               delete gps_obj[bike_id_from_iot]
-              // console.log('gps_array :' + gps_array)
               console.log('GPS array has been reset.')
             }
           }
