@@ -161,10 +161,19 @@ var server = net.createServer(function (socket) {
         try {
           //자전거가 보낸 통신일 경우
           //DB에 해당 자전거 ID가 등록되어 있는지 확인
-          const findBikeQuery = `SELECT * FROM iot_status WHERE bike_id = ? limit 1`
-          var [findBike] = await (await connection()).query(findBikeQuery, [bike_id_from_iot])
+          const findBikeInIotStatusQuery = `SELECT * FROM iot_status WHERE bike_id = ? limit 1`
+          var [findBikeInIotStatus] = await (await connection()).query(findBikeInIotStatusQuery, [bike_id_from_iot])
+          const findBikeInBikesQuery = `SELECT * FROM bikes WHERE id = ? limit 1`
+          let [findBikeInBikes] = await (await connection()).query(findBikeInBikesQuery, [bike_id_from_iot])
 
-          if (findBike.length === 0) socket.destroy() // 등록된 자전거가 없을 경우 소켓을 끊는다.
+          if (
+            findBikeInIotStatus.length === 0 ||
+            findBikeInBikes.length === 0 ||
+            findBikeInBikes[0].is_active !== 'YES'
+          ) {
+            // delete sockets[bike_id_from_iot]
+            socket.destroy()
+          } // 등록된 자전거가 없을 경우 소켓을 끊는다.
           else {
             // @DBJ 새롭게 추가해서 혹시나 해서...
             console.log('sockets key list after', Object.keys(sockets))
@@ -312,6 +321,7 @@ var server = net.createServer(function (socket) {
     if (findBikeId) {
       console.log('bikeSocket disconnected')
       delete sockets[findBikeId[0]]
+      console.log({ sockets })
       return
     }
     console.log('appSocket has left the IoT Server.')
