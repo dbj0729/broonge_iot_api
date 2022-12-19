@@ -208,20 +208,19 @@ var server = net.createServer(function (socket) {
               if (gps_obj[bike_id_from_iot]) gps_array = gps_obj[bike_id_from_iot]
 
               if (gps_array.length === 0) gps_object = { ...gps_obj, totalDist: 0 }
-              else {
-                const last = gps_array[gps_array.length - 1]
-                const dist = distance(f_1_lat, f_1_lng, Number(last.lat), Number(last.lng), 'K')
 
-                if (dist === 0) return
+              const last = gps_array[gps_array.length - 1]
+              const dist = distance(f_1_lat, f_1_lng, Number(last.lat), Number(last.lng), 'K')
 
-                const totalDist = distance_sum(dist, last.totalDist)
-                gps_object = { ...gps_obj, totalDist }
-              }
+              if (dist === 0) return
+
+              const totalDist = distance_sum(dist, last.totalDist)
+              gps_object = { ...gps_obj, totalDist }
 
               gps_array.push(gps_object)
               gps_obj[bike_id_from_iot] = gps_array
 
-              console.log(`${bike_id_from_iot}-gps_array: ${gps_array}`)
+              console.log({ gps_array })
             } else {
               const updateBikeStatusQuery2 = `UPDATE riding_data SET distance = ?, coordinates = ? WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
               const ridingData = gps_obj[bike_id_from_iot]
