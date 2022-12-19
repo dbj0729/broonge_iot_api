@@ -220,7 +220,7 @@ var server = net.createServer(function (socket) {
               if (dist === 0) return console.log('위치변화가 없습니다.')
 
               const totalDist = distance_sum(dist, last.totalDist)
-              gps_object = { ...gps_obj, totalDist }
+              gps_object = { ...gps_object, totalDist }
 
               gps_array.push(gps_object)
               gps_obj[bike_id_from_iot] = gps_array
