@@ -217,7 +217,7 @@ var server = net.createServer(function (socket) {
               console.log({ last })
               const dist = distance(f_1_lat, f_1_lng, Number(last.lat), Number(last.lng), 'K')
 
-              if (dist === 0) return
+              if (dist === 0) return console.log('위치변화가 없습니다.')
 
               const totalDist = distance_sum(dist, last.totalDist)
               gps_object = { ...gps_obj, totalDist }
@@ -241,13 +241,11 @@ var server = net.createServer(function (socket) {
           console.log(error)
         }
       } else {
-        try {
-          delete sockets[bike_id_from_iot]
-          socket.destroy()
-          console.log(`bikeSocket: Wrong type of data transaction.`) // 상기 횟수에 따라 오류가 발생할 경우, 관리자 Alert 를 띄워야 한다.
-        } catch (error) {
-          console.error(error)
-        }
+        delete sockets[bike_id_from_iot]
+        socket.destroy()
+        console.log({ checksum })
+        console.log({ manually_added_0x })
+        console.log(`bikeSocket: Wrong type of data transaction.`) // 상기 횟수에 따라 오류가 발생할 경우, 관리자 Alert 를 띄워야 한다.
       }
     } else {
       // 이 부분이 IoT 로 보내기 위해 App 으로부터 받는 부분이다.
