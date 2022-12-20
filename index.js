@@ -89,7 +89,8 @@ let sockets = {}
 // 서버 생성
 var server = net.createServer(function (socket) {
   console.log(socket.address().address + 'Started Broonge IoT Server on ' + getCurrentTime())
-
+  console.log(socket.remoteAddress + socket.remotePort)
+  console.log('socketName :' + socket.name)
   // socket.setEncoding('utf8')
   socket.setNoDelay(true)
   let bike_id_from_iot
