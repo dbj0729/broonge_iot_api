@@ -101,6 +101,7 @@ var server = net.createServer(function (socket) {
     */
   socket.on('data', async function (data) {
     console.log('Received Data: ' + data)
+    console.log('###################################################', getCurrentTime())
     console.log('sockets key list before', Object.keys(sockets))
 
     const data_elements = data.toString('utf-8').trim()
@@ -285,7 +286,9 @@ var server = net.createServer(function (socket) {
         console.log({ toBikeCode: sending_codes(code) })
         console.log('appSocket : order is ' + order)
         sockets[app_to_iot_data[1]].write(sending_codes(code)) // @DBJ 이 부분 점검 필요?
-        console.log('---------------success sending----------------')
+        console.log(
+          '---------------success sending------------------------------------------------' + app_to_iot_data[1],
+        )
 
         socket.write(sending_codes(code))
         socket.write('   ') // App 한테 보내는 것
