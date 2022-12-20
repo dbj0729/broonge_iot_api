@@ -89,8 +89,6 @@ let sockets = {}
 // 서버 생성
 var server = net.createServer(function (socket) {
   console.log(socket.address().address + 'Started Broonge IoT Server on ' + getCurrentTime())
-  console.log(socket.remoteAddress + socket.remotePort)
-  console.log('socketName :' + socket.name)
   // socket.setEncoding('utf8')
   socket.setNoDelay(true)
   let bike_id_from_iot
@@ -101,6 +99,7 @@ var server = net.createServer(function (socket) {
         아래 로직에서 차이가 나는 것이다.
     */
   socket.on('data', async function (data) {
+    console.log(socket.remoteAddress + socket.remotePort)
     console.log('Received Data: ' + data)
     console.log('###################################################', getCurrentTime())
     console.log('sockets key list before', Object.keys(sockets))
