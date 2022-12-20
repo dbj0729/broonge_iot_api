@@ -294,6 +294,7 @@ var server = net.createServer(function (socket) {
         socket.write(sending_codes(code))
         socket.write('   ') // App 한테 보내는 것
         socket.write(getCurrentTime())
+        socket.destroy()
       }
 
       if (app_to_iot_data[0] == process.env.APP_SIG && sockets[app_to_iot_data[1]]) {
