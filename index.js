@@ -303,7 +303,7 @@ var server = net.createServer(function (socket) {
     }
   })
 
-  server.on('error', function (err) {
+  socket.on('error', function (err) {
     console.log('err' + err)
   })
 
@@ -324,6 +324,10 @@ var server = net.createServer(function (socket) {
 })
 
 // 에러가 발생할 경우 화면에 에러메시지 출력
+
+server.on('error', function (err) {
+  console.log('err' + err)
+})
 
 // .env 의 포트값으로 진행되던가 아니면 9090 으로 진행되던가 해서 접속이 가능하도록 대기
 // @DBJ 여기 안나오는데?
