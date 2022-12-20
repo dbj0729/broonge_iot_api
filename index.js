@@ -328,6 +328,11 @@ var server = net.createServer(function (socket) {
   socket.write('Welcome')
 })
 
+server.getConnections((err, count) => {
+  if (err) console.log(err)
+  console.log(count)
+})
+
 // 에러가 발생할 경우 화면에 에러메시지 출력
 
 server.on('error', function (err) {
