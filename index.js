@@ -89,7 +89,6 @@ let sockets = {}
 // 서버 생성
 var server = net.createServer(function (socket) {
   console.log(socket.address().address + 'Started Broonge IoT Server on ' + getCurrentTime())
-  // socket.setEncoding('utf8')
   socket.setNoDelay(true)
   let bike_id_from_iot
 
@@ -100,6 +99,7 @@ var server = net.createServer(function (socket) {
     */
   socket.on('data', async function (data) {
     console.log(socket.remoteAddress + socket.remotePort)
+
     console.log('Received Data: ' + data)
     console.log('###################################################', getCurrentTime())
     console.log('sockets key list before', Object.keys(sockets))
@@ -276,6 +276,22 @@ var server = net.createServer(function (socket) {
         return final_send_codes
       }
 
+      //FIXME: 같은 바이크에 거의 동시에 같은 명령이 왔을 경우에는 하나의 명령을 block 하고 먼저 온 한 개만 수행?
+      async function CheckBikeStatus() {
+        const result = await (
+          await connection()
+        ).query(`SELECT * FROM iot_thread_data WHERE bike_id = ${bike_id_for_app} LIMIT 1`)
+
+        if (!result[0]) {
+          await (
+            await connection()
+          ).query(`INSERT INTO iot_thread_data (bike_id, command) values(${bike_id_for_app}, ${app_to_iot_data[2]})`)
+
+          return
+        }
+        return result[0].command
+      }
+
       async function updateBikeStatus(order) {
         const code = order === 'lock' ? '00' : order === 'unlock' ? '01' : order === 'page' ? '02' : null
         if (!code) return socket.write('not order')
@@ -286,7 +302,6 @@ var server = net.createServer(function (socket) {
         console.log({ toBikeCode: sending_codes(code) })
         console.log('appSocket : order is ' + order)
         const isSending = sockets[app_to_iot_data[1]].write(sending_codes(code)) // @DBJ 이 부분 점검 필요?
-        console.log('sending codes : ' + sending_codes(code))
         console.log('---------------success sending??????????????????????????????' + isSending)
 
         socket.write(sending_codes(code))
