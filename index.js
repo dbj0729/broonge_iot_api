@@ -86,6 +86,7 @@ let sig_12 = sig_11 + size_12
 let sig_error_report = sig_6 + error_report_size
 
 let sockets = {}
+const connectedBikeSocket = new Set()
 let socketArr = []
 // 서버 생성
 var server = net.createServer(async function (socket) {
@@ -93,7 +94,6 @@ var server = net.createServer(async function (socket) {
   socket.setNoDelay(true)
   let bike_id_from_iot
   socket.id = socket.remoteAddress + ':' + socket.remotePort
-  socketArr.push(socket)
 
   // client로 부터 오는 data를 화면에 출력
   /* 
@@ -126,8 +126,6 @@ var server = net.createServer(async function (socket) {
 
     const checksum = data_elements.slice(sig_11, sig_12)
 
-    if (sockets[bike_id_from_iot]) console.log('bikeSocketStatus', sockets[bike_id_from_iot].readyState)
-
     // 변경되는 값; 이 부분을 저장해야 한다.
     let manual_codes = f_1_gps + f_2_signal_strength + f_3_battery + f_4_device_status + f_5_err_info
 
@@ -157,7 +155,8 @@ var server = net.createServer(async function (socket) {
 
       manually_added_0x = '0' + manual_codes_value_verification // 마지막 checksum 에 0이 빠져서 0을 넣음
 
-      sockets[bike_id_from_iot] = socket
+      socket.bikeId = bike_id_from_iot
+      connectedBikeSocket.add(socket)
 
       if (checksum == manually_added_0x) {
         // IoT 로 부터 받은 값이 모두 문제 없이 다 통과했을 때 실행
@@ -303,10 +302,9 @@ var server = net.createServer(async function (socket) {
         console.log({ toBikeCode: sending_codes(code) })
         console.log('appSocket : order is ' + order)
 
-        const testArr = socketArr.map(sock => ({ socketId: sock.id }))
-        console.log(testArr)
-        const isSending = sockets[app_to_iot_data[1]].write(sending_codes(code)) // @DBJ 이 부분 점검 필요?
-        console.log('---------------success sending??????????????????????????????' + isSending)
+        for (let sock of connectedBikeSocket) {
+          if (sock.bikeId === bike_id_for_app) sock.write(sending_codes(code))
+        }
 
         socket.write(sending_codes(code))
         socket.write('   ') // App 한테 보내는 것
