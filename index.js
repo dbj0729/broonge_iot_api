@@ -4,7 +4,7 @@ var net = require('net')
 //   input: process.stdin,
 //   output: process.stdout,
 // });
-function getCurrentTime() {
+export function getCurrentTime() {
   var adjust_time_manual = 9 * 60 * 60 * 1000
   const datetime_in_number = Number(new Date()) + adjust_time_manual
   const datetime = new Date(datetime_in_number).toLocaleString('ko-KR')
@@ -15,7 +15,7 @@ function getCurrentTime() {
 }
 console.log(getCurrentTime())
 // const distance = require('./functions/distance.js')
-function distance(lat1, lon1, lat2, lon2, unit) {
+export function distance(lat1, lon1, lat2, lon2, unit) {
   if (lat1 === lat2 && lon1 === lon2) {
     return 0
   } else {
@@ -40,7 +40,7 @@ function distance(lat1, lon1, lat2, lon2, unit) {
   }
 }
 
-function distance_sum(distance_value, previous_value) {
+export function distance_sum(distance_value, previous_value) {
   const result = distance_value + previous_value
   return result
 }
@@ -86,11 +86,13 @@ let sig_12 = sig_11 + size_12
 let sig_error_report = sig_6 + error_report_size
 
 let sockets = {}
+let socketArr = []
 // 서버 생성
 var server = net.createServer(async function (socket) {
   console.log(socket.address().address + 'Started Broonge IoT Server on ' + getCurrentTime())
   socket.setNoDelay(true)
   let bike_id_from_iot
+  socket.id = socket.remoteAddress + ':' + socket.remotePort
 
   // client로 부터 오는 data를 화면에 출력
   /* 
@@ -98,8 +100,6 @@ var server = net.createServer(async function (socket) {
         아래 로직에서 차이가 나는 것이다.
     */
   socket.on('data', async function (data) {
-    console.log(socket.remoteAddress + socket.remotePort)
-
     console.log('Received Data: ' + data)
     console.log('###################################################', getCurrentTime())
     console.log('sockets key list before', Object.keys(sockets))
@@ -157,6 +157,9 @@ var server = net.createServer(async function (socket) {
       manually_added_0x = '0' + manual_codes_value_verification // 마지막 checksum 에 0이 빠져서 0을 넣음
 
       sockets[bike_id_from_iot] = socket
+
+      socket.bikeId = bike_id_from_iot
+      socketArr.push(socket)
 
       if (checksum == manually_added_0x) {
         // IoT 로 부터 받은 값이 모두 문제 없이 다 통과했을 때 실행
@@ -267,7 +270,7 @@ var server = net.createServer(async function (socket) {
       var send_default_data_preparation =
         sig_for_app + group_for_app + op_code_for_app + bike_id_for_app + version_for_app + message_length_for_app
 
-      function sending_codes(send_code) {
+      async function sending_codes(send_code) {
         var combined_send_codes = send_code.split('')
         var send_codes_value = combined_send_codes.map(item => item.charCodeAt()).reduce((acc, curr) => acc + curr)
         var send_codes_value_verification = send_codes_value.toString(16)
@@ -301,10 +304,17 @@ var server = net.createServer(async function (socket) {
         // }
         console.log({ toBikeCode: sending_codes(code) })
         console.log('appSocket : order is ' + order)
+
+        const testArr = socketArr.map(sock =>
+          sock.bikeId
+            ? { socketId: sock.id, bikeId: sock.bikeId }
+            : { socketId: sock.id, bikeId: 'this is app socket' },
+        )
+        console.log(socketArr)
         const isSending = sockets[app_to_iot_data[1]].write(sending_codes(code)) // @DBJ 이 부분 점검 필요?
         console.log('---------------success sending??????????????????????????????' + isSending)
 
-        socket.write(sending_codes(code))
+        socket.write(await sending_codes(code))
         socket.write('   ') // App 한테 보내는 것
         socket.write(getCurrentTime())
         socket.destroy()
