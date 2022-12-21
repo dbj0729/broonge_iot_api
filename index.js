@@ -93,6 +93,7 @@ var server = net.createServer(async function (socket) {
   socket.setNoDelay(true)
   let bike_id_from_iot
   socket.id = socket.remoteAddress + ':' + socket.remotePort
+  socketArr.push(socket)
 
   // client로 부터 오는 data를 화면에 출력
   /* 
@@ -157,9 +158,6 @@ var server = net.createServer(async function (socket) {
       manually_added_0x = '0' + manual_codes_value_verification // 마지막 checksum 에 0이 빠져서 0을 넣음
 
       sockets[bike_id_from_iot] = socket
-
-      socket.bikeId = bike_id_from_iot
-      socketArr.push(socket)
 
       if (checksum == manually_added_0x) {
         // IoT 로 부터 받은 값이 모두 문제 없이 다 통과했을 때 실행
@@ -305,7 +303,7 @@ var server = net.createServer(async function (socket) {
         console.log({ toBikeCode: sending_codes(code) })
         console.log('appSocket : order is ' + order)
 
-        const testArr = socketArr.map(sock => ({ socketId: sock.id, bikeId: sock.bikeId }))
+        const testArr = socketArr.map(sock => ({ socketId: sock.id }))
         console.log(testArr)
         const isSending = sockets[app_to_iot_data[1]].write(sending_codes(code)) // @DBJ 이 부분 점검 필요?
         console.log('---------------success sending??????????????????????????????' + isSending)
