@@ -314,7 +314,7 @@ var server = net.createServer(async function (socket) {
         socket.destroy()
       }
 
-      if (app_to_iot_data[0] == process.env.APP_SIG && sockets[app_to_iot_data[1]]) {
+      if (app_to_iot_data[0] == process.env.APP_SIG) {
         if (!app_to_iot_data[2]) {
           console.log('appSocket : data parsing error')
           socket.write('something wrong')
