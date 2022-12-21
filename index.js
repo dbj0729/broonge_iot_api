@@ -305,7 +305,10 @@ var server = net.createServer(async function (socket) {
         console.log('appSocket : order is ' + order)
 
         for (let sock of connectedBikeSocket) {
-          if (sock.bikeId === bike_id_for_app) sock.write(sending_codes(code))
+          if (sock.bikeId === bike_id_for_app) {
+            sock.write(sending_codes(code))
+            console.log(`------------------------------------------sending to socket :${sock.bikeId}`)
+          }
         }
 
         socket.write(sending_codes(code))
