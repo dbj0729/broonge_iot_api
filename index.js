@@ -103,7 +103,9 @@ var server = net.createServer(async function (socket) {
   socket.on('data', async function (data) {
     console.log('Received Data: ' + data)
     console.log('###################################################', getCurrentTime())
-    console.log('sockets key list before', Object.keys(sockets))
+    let showSockArr = []
+    for (let sock of connectedBikeSocket) showSockArr.push(sock.bikeId)
+    console.log('sockets key list before', showSockArr)
 
     const data_elements = data.toString('utf-8').trim()
 
