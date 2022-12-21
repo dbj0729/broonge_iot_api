@@ -87,7 +87,7 @@ let sig_error_report = sig_6 + error_report_size
 
 let sockets = {}
 // 서버 생성
-var server = net.createServer(function (socket) {
+var server = net.createServer(async function (socket) {
   console.log(socket.address().address + 'Started Broonge IoT Server on ' + getCurrentTime())
   socket.setNoDelay(true)
   let bike_id_from_iot
@@ -156,7 +156,7 @@ var server = net.createServer(function (socket) {
 
       manually_added_0x = '0' + manual_codes_value_verification // 마지막 checksum 에 0이 빠져서 0을 넣음
 
-      if (!sockets[bike_id_from_iot]) sockets[bike_id_from_iot] = socket
+      sockets[bike_id_from_iot] = socket
 
       if (checksum == manually_added_0x) {
         // IoT 로 부터 받은 값이 모두 문제 없이 다 통과했을 때 실행
