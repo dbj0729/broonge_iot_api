@@ -305,12 +305,8 @@ var server = net.createServer(async function (socket) {
         console.log({ toBikeCode: sending_codes(code) })
         console.log('appSocket : order is ' + order)
 
-        const testArr = socketArr.map(sock =>
-          sock.bikeId
-            ? { socketId: sock.id, bikeId: sock.bikeId }
-            : { socketId: sock.id, bikeId: 'this is app socket' },
-        )
-        console.log(socketArr)
+        const testArr = socketArr.map(sock => ({ socketId: sock.id, bikeId: sock.bikeId }))
+        console.log(testArr)
         const isSending = sockets[app_to_iot_data[1]].write(sending_codes(code)) // @DBJ 이 부분 점검 필요?
         console.log('---------------success sending??????????????????????????????' + isSending)
 
