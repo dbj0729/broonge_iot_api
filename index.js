@@ -270,7 +270,7 @@ var server = net.createServer(async function (socket) {
       var send_default_data_preparation =
         sig_for_app + group_for_app + op_code_for_app + bike_id_for_app + version_for_app + message_length_for_app
 
-      async function sending_codes(send_code) {
+      function sending_codes(send_code) {
         var combined_send_codes = send_code.split('')
         var send_codes_value = combined_send_codes.map(item => item.charCodeAt()).reduce((acc, curr) => acc + curr)
         var send_codes_value_verification = send_codes_value.toString(16)
@@ -310,7 +310,7 @@ var server = net.createServer(async function (socket) {
         const isSending = sockets[app_to_iot_data[1]].write(sending_codes(code)) // @DBJ 이 부분 점검 필요?
         console.log('---------------success sending??????????????????????????????' + isSending)
 
-        socket.write(await sending_codes(code))
+        socket.write(sending_codes(code))
         socket.write('   ') // App 한테 보내는 것
         socket.write(getCurrentTime())
         socket.destroy()
