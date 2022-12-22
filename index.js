@@ -336,7 +336,7 @@ var server = net.createServer(async function (socket) {
       }
     }
 
-    console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<socket end')
+    console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<socket end' + count)
   })
 
   socket.on('error', function (err) {
