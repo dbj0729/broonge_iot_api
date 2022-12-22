@@ -316,8 +316,10 @@ var server = net.createServer(async function (socket) {
 
         for (let sock of connectedBikeSocket) {
           if (sock.bikeId === bike_id_for_app) {
-            sock.write(sending_codes(code), () => console.log('success writing'))
-            console.log(`------------------------------------------sending to socket :${sock.bikeId}`)
+            while (sock.readyState !== 'open') {
+              console.log('waiting...............................................................................')
+            }
+            sock.write(sending_codes(code), () => console.log('socketState :' + sock.readyState))
           }
         }
 
