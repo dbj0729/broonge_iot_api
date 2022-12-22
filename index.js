@@ -223,7 +223,11 @@ var server = net.createServer(async function (socket) {
             console.log({ last })
             const dist = distance(f_1_lat, f_1_lng, Number(last.lat), Number(last.lng), 'K')
 
-            if (dist === 0) return console.log('위치변화가 없습니다.')
+            if (dist === 0) {
+              console.log('위치변화가 없습니다.')
+              console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<IOT socket END')
+              return
+            }
 
             const totalDist = distance_sum(dist, last.totalDist)
             gps_object = { ...gps_object, totalDist: totalDist.toFixed(3) }
