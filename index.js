@@ -1,4 +1,4 @@
-var net = require('net')
+const net = require('net')
 // const readlinePromises = require("node:readline");
 // const rl = readlinePromises.createInterface({
 //   input: process.stdin,
@@ -170,78 +170,79 @@ var server = net.createServer(async function (socket) {
           const findBikeInBikesQuery = `SELECT * FROM bikes WHERE id = ? limit 1`
           let [findBikeInBikes] = await (await connection()).query(findBikeInBikesQuery, [bike_id_from_iot])
 
-          if (
-            findBikeInIotStatus.length === 0 ||
-            findBikeInBikes.length === 0 ||
-            findBikeInBikes[0].is_active !== 'YES'
-          ) {
-            // 등록된 자전거가 없을 경우 소켓을 끊는다.
-            socket.destroy()
-          } else {
-            // @DBJ 새롭게 추가해서 혹시나 해서...
-            console.log('sockets key list after', Object.keys(sockets))
+          // if (
+          //   findBikeInIotStatus.length === 0 ||
+          //   findBikeInBikes.length === 0 ||
+          //   findBikeInBikes[0].is_active !== 'YES'
+          // ) {
+          // 등록된 자전거가 없을 경우 소켓을 끊는다.
+          // connectedBikeSocket.delete(socket)
+          // socket.destroy()
+          // } else {
+          // @DBJ 새롭게 추가해서 혹시나 해서...
+          console.log('sockets key list after', Object.keys(sockets))
 
-            const partQuery =
-              f_4_device_status === '03'
-                ? `status = 'malfunction', is_locked = 'malfunction'`
-                : f_4_device_status === '00' // 00 이 해제상태
-                ? `status = 'in-use', is_locked = 'NO'`
-                : f_4_device_status === '01' // 01 이 잠긴상태
-                ? `status = 'stand_by', is_locked = 'YES'`
-                : `status = 'stand_by', is_locked = 'NO'` // 문제가 발생했다는 의미..? @DBJ on 20221213
-            const updateBikeStatusQuery = `UPDATE iot_status SET battery = ?, lat = ?, lng = ?, signal_strength = ?, point = ST_GeomFromText('POINT(? ?)'), ${partQuery} WHERE bike_id = ?`
-            const result = await (
-              await connection()
-            ).query(updateBikeStatusQuery, [
-              f_3_battery,
-              f_1_lat,
-              f_1_lng,
-              f_2_signal_strength,
-              Number(f_1_lat),
-              Number(f_1_lng),
-              bike_id_from_iot,
-            ])
-            // console.log('update result: ', JSON.stringify(result, null, 2))
-            console.log('bikeSocket: Update iot_status table complete!')
-            if (f_4_device_status === '00') {
-              // IoT 가 이용자가 누구인지도 쏴 주면 좋을 것 같긴한데................. @DBJ on 221213
-              let gps_array = []
-              let gps_object = { lat: Number(f_1_lat), lng: Number(f_1_lng) }
+          const partQuery =
+            f_4_device_status === '03'
+              ? `status = 'malfunction', is_locked = 'malfunction'`
+              : f_4_device_status === '00' // 00 이 해제상태
+              ? `status = 'in-use', is_locked = 'NO'`
+              : f_4_device_status === '01' // 01 이 잠긴상태
+              ? `status = 'stand_by', is_locked = 'YES'`
+              : `status = 'stand_by', is_locked = 'NO'` // 문제가 발생했다는 의미..? @DBJ on 20221213
+          const updateBikeStatusQuery = `UPDATE iot_status SET battery = ?, lat = ?, lng = ?, signal_strength = ?, point = ST_GeomFromText('POINT(? ?)'), ${partQuery} WHERE bike_id = ?`
+          const result = await (
+            await connection()
+          ).query(updateBikeStatusQuery, [
+            f_3_battery,
+            f_1_lat,
+            f_1_lng,
+            f_2_signal_strength,
+            Number(f_1_lat),
+            Number(f_1_lng),
+            bike_id_from_iot,
+          ])
+          // console.log('update result: ', JSON.stringify(result, null, 2))
+          console.log('bikeSocket: Update iot_status table complete!')
+          if (f_4_device_status === '00') {
+            // IoT 가 이용자가 누구인지도 쏴 주면 좋을 것 같긴한데................. @DBJ on 221213
+            let gps_array = []
+            let gps_object = { lat: Number(f_1_lat), lng: Number(f_1_lng) }
 
-              if (gps_obj[bike_id_from_iot]) gps_array = gps_obj[bike_id_from_iot]
+            if (gps_obj[bike_id_from_iot]) gps_array = gps_obj[bike_id_from_iot]
 
-              if (gps_array.length === 0) {
-                gps_object = { ...gps_object, totalDist: 0 }
-                gps_array.push(gps_object)
-                gps_obj[bike_id_from_iot] = gps_array
-              }
-
-              const last = gps_array[gps_array.length - 1]
-              console.log({ last })
-              const dist = distance(f_1_lat, f_1_lng, Number(last.lat), Number(last.lng), 'K')
-
-              if (dist === 0) return console.log('위치변화가 없습니다.')
-
-              const totalDist = distance_sum(dist, last.totalDist)
-              gps_object = { ...gps_object, totalDist: totalDist.toFixed(3) }
-
+            if (gps_array.length === 0) {
+              gps_object = { ...gps_object, totalDist: 0 }
               gps_array.push(gps_object)
               gps_obj[bike_id_from_iot] = gps_array
-
-              console.log({ gps_array })
-            } else {
-              const updateBikeStatusQuery2 = `UPDATE riding_data SET distance = ?, coordinates = ? WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
-              const ridingData = gps_obj[bike_id_from_iot]
-              const lastIdx = ridingData.length - 1
-              const dist = ridingData[lastIdx].totalDist
-
-              await (
-                await connection()
-              ).query(updateBikeStatusQuery2, [dist.toFixed(3), JSON.stringify(ridingData), bike_id_from_iot])
-              delete gps_obj[bike_id_from_iot]
-              console.log('GPS array has been reset.')
             }
+
+            const last = gps_array[gps_array.length - 1]
+            console.log({ last })
+            const dist = distance(f_1_lat, f_1_lng, Number(last.lat), Number(last.lng), 'K')
+
+            if (dist === 0) return console.log('위치변화가 없습니다.')
+
+            const totalDist = distance_sum(dist, last.totalDist)
+            gps_object = { ...gps_object, totalDist: totalDist.toFixed(3) }
+
+            gps_array.push(gps_object)
+            gps_obj[bike_id_from_iot] = gps_array
+
+            console.log({ gps_array })
+          } else {
+            const updateBikeStatusQuery2 = `UPDATE riding_data SET distance = ?, coordinates = ? WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
+            const ridingData = gps_obj[bike_id_from_iot]
+            const lastIdx = ridingData.length - 1
+            const dist = ridingData[lastIdx].totalDist
+
+            await (
+              await connection()
+            ).query(updateBikeStatusQuery2, [dist.toFixed(3), JSON.stringify(ridingData), bike_id_from_iot])
+            delete gps_obj[bike_id_from_iot]
+            console.log('GPS array has been reset.')
           }
+          // }
         } catch (error) {
           console.log(error)
         }
