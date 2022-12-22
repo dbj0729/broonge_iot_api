@@ -320,6 +320,10 @@ var server = net.createServer(async function (socket) {
               console.log('waiting...............................................................................')
             }
             sock.write(sending_codes(code), () => console.log('socketState :' + sock.readyState))
+
+            while (sock.readyState !== 'open') {
+              console.log('waiting...............................................................................')
+            }
           }
         }
 
