@@ -319,10 +319,10 @@ var server = net.createServer(async function (socket) {
             while (sock.readyState !== 'open') {
               setTimeout(() => console.log('waiting'), 100)
             }
-            sock.write(sending_codes(code), () => console.log('socketState :' + sock.readyState))
-
-            while (sock.readyState !== 'open') {
-              setTimeout(() => console.log('waiting'), 100)
+            let loading = false
+            setTimeout(() => (loading = true), 100)
+            if (loading) {
+              sock.write(sending_codes(code), () => console.log('socketState :' + sock.readyState))
             }
           }
         }
