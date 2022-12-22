@@ -323,9 +323,9 @@ var server = net.createServer(async function (socket) {
             // console.log('waiting2...........................................................................')
             // await new Promise(resolve => setTimeout(resolve, 10))
             // console.log('checkOrder.........................................................................')
-            const isWrite = sock.write(sending_codes(code), () => console.log('socketState :' + sock.readyState))
+            sock.write(sending_codes(code), () => console.log('socketState :' + sock.readyState))
             console.time('writeStart')
-            await new Promise(resolve => setTimeout(resolve, 3000))
+            await new Promise(resolve => setTimeout(resolve, 5000))
             console.timeEnd('writeStart')
           }
         }
