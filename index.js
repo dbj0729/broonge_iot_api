@@ -309,6 +309,7 @@ var server = net.createServer(async function (socket) {
           if (sock.bikeId === bike_id_for_app) {
             sock.write(sending_codes(code))
             console.log(`------------------------------------------sending to socket :${sock.bikeId}`)
+            sock.destroy()
           }
         }
 
