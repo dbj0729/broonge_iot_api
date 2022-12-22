@@ -88,7 +88,8 @@ let sig_error_report = sig_6 + error_report_size
 let sockets = {}
 const connectedBikeSocket = new Set()
 let socketArr = []
-let count = 0
+let iotCount = 0
+let appCount = 0
 // 서버 생성
 var server = net.createServer(async function (socket) {
   console.log(socket.address().address + 'Started Broonge IoT Server on ' + getCurrentTime())
@@ -102,7 +103,11 @@ var server = net.createServer(async function (socket) {
         아래 로직에서 차이가 나는 것이다.
     */
   socket.on('data', async function (data) {
-    console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>start iot' + count++)
+    iotCount++
+    appCount++
+    console.log(
+      `>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>IOT count: ${iotCount} AppCount: ${appCount}`,
+    )
     console.log('Received Data: ' + data)
     console.log('###################################################', getCurrentTime())
     let showSockArr = []
