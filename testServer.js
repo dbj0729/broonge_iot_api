@@ -4,7 +4,10 @@ const server = net.createServer(async socket => {
   console.log('connected socket' + socket.remoteAddress + socket.remotePort)
 
   socket.on('data', async data => {
-    setTimeout(() => socket.write(data), 1000)
+    setTimeout(() => {
+      console.log('send to iot data' + data)
+      socket.write(data)
+    }, 1000)
   })
 
   socket.on('error', err => console.log(err))
