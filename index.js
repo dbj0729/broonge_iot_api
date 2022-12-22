@@ -163,7 +163,7 @@ var server = net.createServer(async function (socket) {
       connectedBikeSocket.add(socket)
 
       if (checksum == manually_added_0x) {
-        console.log(`11111111111111111 START`)
+        // console.log(`11111111111111111 START`)
         // IoT 로 부터 받은 값이 모두 문제 없이 다 통과했을 때 실행
         try {
           //자전거가 보낸 통신일 경우
@@ -225,8 +225,8 @@ var server = net.createServer(async function (socket) {
             const dist = distance(f_1_lat, f_1_lng, Number(last.lat), Number(last.lng), 'K')
 
             if (dist === 0) {
-              console.log('위치변화가 없습니다.')
-              console.log(`11111111111111111111111111 END`)
+              // console.log('위치변화가 없습니다.')
+              // console.log(`11111111111111111111111111 END`)
               return
             }
 
@@ -256,12 +256,12 @@ var server = net.createServer(async function (socket) {
       } else {
         delete sockets[bike_id_from_iot]
         socket.destroy()
-        console.log({ checksum })
-        console.log({ manually_added_0x })
-        console.log(`bikeSocket: Wrong type of data transaction.`) // 상기 횟수에 따라 오류가 발생할 경우, 관리자 Alert 를 띄워야 한다.
+        // console.log({ checksum })
+        // console.log({ manually_added_0x })
+        // console.log(`bikeSocket: Wrong type of data transaction.`) // 상기 횟수에 따라 오류가 발생할 경우, 관리자 Alert 를 띄워야 한다.
       }
     } else {
-      console.log(`2222222222222222222222222222 start`)
+      // console.log(`2222222222222222222222222222 start`)
       appCount++
       // 이 부분이 IoT 로 보내기 위해 App 으로부터 받는 부분이다.
 
@@ -311,34 +311,19 @@ var server = net.createServer(async function (socket) {
         //   const updateBikeStatusQuery = `UPDATE iot_status SET is_locked = ? WHERE bike_id = ?`
         //   await (await connection()).execute(updateBikeStatusQuery, [code === '00' ? 'YES' : 'NO', bike_id_for_app])
         // }
-        console.log({ toBikeCode: sending_codes(code) })
-        console.log('appSocket : order is ' + order)
+        // console.log({ toBikeCode: sending_codes(code) })
+        // console.log('appSocket : order is ' + order)
 
         for (let sock of connectedBikeSocket) {
           if (sock.bikeId === bike_id_for_app) {
-            while (sock.readyState !== 'open') {
-              console.log('late 1...........................................................................')
-              // await new Promise(resolve => setTimeout(resolve, 10))
-            }
-            console.log('waiting2...........................................................................')
-            // await new Promise(resolve => setTimeout(resolve, 10))
-            console.log('checkOrder.........................................................................')
-            sock.write(sending_codes(code), () => console.log('socketState :' + sock.readyState))
-            // sock.end()
             // while (sock.readyState !== 'open') {
-            console.log('late 3...........................................................................')
-            console.log('late 4...........................................................................')
-            console.log('late 5...........................................................................')
-            console.log('late 6...........................................................................')
-            console.log('late 7...........................................................................')
-            console.log('late 8...........................................................................')
-            console.log('late 9...........................................................................')
-            console.log('late 10...........................................................................')
-            console.log('late 11...........................................................................')
-            console.log('late 12...........................................................................')
-            console.log('late 13...........................................................................')
-            //   // await new Promise(resolve => setTimeout(resolve, 10))
+            // console.log('late 1...........................................................................')
+            // await new Promise(resolve => setTimeout(resolve, 10))
             // }
+            // console.log('waiting2...........................................................................')
+            // await new Promise(resolve => setTimeout(resolve, 10))
+            // console.log('checkOrder.........................................................................')
+            sock.write(sending_codes(code), () => console.log('socketState :' + sock.readyState))
           }
         }
 
@@ -358,7 +343,7 @@ var server = net.createServer(async function (socket) {
       } else {
         socket.write('sorry, no bike')
       }
-      console.log(`222222222222222222 END`)
+      // console.log(`222222222222222222 END`)
     }
   })
 
