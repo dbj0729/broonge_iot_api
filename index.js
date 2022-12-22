@@ -101,6 +101,7 @@ var server = net.createServer(async function (socket) {
         아래 로직에서 차이가 나는 것이다.
     */
   socket.on('data', async function (data) {
+    console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>start iot')
     console.log('Received Data: ' + data)
     console.log('###################################################', getCurrentTime())
     let showSockArr = []
@@ -309,7 +310,6 @@ var server = net.createServer(async function (socket) {
           if (sock.bikeId === bike_id_for_app) {
             sock.write(sending_codes(code))
             console.log(`------------------------------------------sending to socket :${sock.bikeId}`)
-            sock.destroy()
           }
         }
 
@@ -330,6 +330,8 @@ var server = net.createServer(async function (socket) {
         socket.write('sorry, no bike')
       }
     }
+
+    console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<socket end')
   })
 
   socket.on('error', function (err) {
