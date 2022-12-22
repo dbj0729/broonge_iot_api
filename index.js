@@ -103,15 +103,11 @@ var server = net.createServer(async function (socket) {
         아래 로직에서 차이가 나는 것이다.
     */
   socket.on('data', async function (data) {
-    iotCount++
-    console.log(
-      `>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>IOTcount: ${iotCount} AppCount: ${appCount}`,
-    )
-    console.log('Received Data: ' + data)
-    console.log('###################################################', getCurrentTime())
+    // console.log('Received Data: ' + data)
+    // console.log('###################################################', getCurrentTime())
     let showSockArr = []
     for (let sock of connectedBikeSocket) showSockArr.push(sock.bikeId)
-    console.log('sockets key list before', showSockArr)
+    // console.log('sockets key list before', showSockArr)
 
     const data_elements = data.toString('utf-8').trim()
 
@@ -144,7 +140,7 @@ var server = net.createServer(async function (socket) {
       message_length == process.env.IOT_ERROR_MESSAGE_LENGTH
     ) {
       const error_report_code = data_elements.slice(sig_6, sig_error_report)
-      console.log('ERROR_REPORT_CODE:' + error_report_code)
+      // console.log('ERROR_REPORT_CODE:' + error_report_code)
     } else if (
       sig == process.env.IOT_SIG &&
       group == process.env.IOT_GROUP &&
@@ -167,6 +163,7 @@ var server = net.createServer(async function (socket) {
       connectedBikeSocket.add(socket)
 
       if (checksum == manually_added_0x) {
+        console.log(`11111111111111111 START`)
         // IoT 로 부터 받은 값이 모두 문제 없이 다 통과했을 때 실행
         try {
           //자전거가 보낸 통신일 경우
@@ -209,7 +206,7 @@ var server = net.createServer(async function (socket) {
             bike_id_from_iot,
           ])
           // console.log('update result: ', JSON.stringify(result, null, 2))
-          console.log('bikeSocket: Update iot_status table complete!')
+          // console.log('bikeSocket: Update iot_status table complete!')
           if (f_4_device_status === '00') {
             // IoT 가 이용자가 누구인지도 쏴 주면 좋을 것 같긴한데................. @DBJ on 221213
             let gps_array = []
@@ -229,12 +226,7 @@ var server = net.createServer(async function (socket) {
 
             if (dist === 0) {
               console.log('위치변화가 없습니다.')
-              console.log(
-                '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<IOT socket END iotCount :' +
-                  iotCount +
-                  'appCount :' +
-                  appCount,
-              )
+              console.log(`11111111111111111111111111 END`)
               return
             }
 
@@ -269,6 +261,7 @@ var server = net.createServer(async function (socket) {
         console.log(`bikeSocket: Wrong type of data transaction.`) // 상기 횟수에 따라 오류가 발생할 경우, 관리자 Alert 를 띄워야 한다.
       }
     } else {
+      console.log(`2222222222222222222222222222 start`)
       appCount++
       // 이 부분이 IoT 로 보내기 위해 App 으로부터 받는 부분이다.
 
@@ -344,14 +337,8 @@ var server = net.createServer(async function (socket) {
       } else {
         socket.write('sorry, no bike')
       }
+      console.log(`222222222222222222 END`)
     }
-
-    console.log(
-      '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<socket end iotCount :' +
-        iotCount +
-        'AppCount : ' +
-        appCount,
-    )
   })
 
   socket.on('error', function (err) {
