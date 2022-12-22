@@ -337,7 +337,7 @@ var server = net.createServer(async function (socket) {
           console.log('appSocket : data parsing error')
           socket.write('something wrong')
         } else {
-          updateBikeStatus(app_to_iot_data[2])
+          await updateBikeStatus(app_to_iot_data[2])
         }
       } else {
         socket.write('sorry, no bike')
