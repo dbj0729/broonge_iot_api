@@ -104,9 +104,8 @@ var server = net.createServer(async function (socket) {
     */
   socket.on('data', async function (data) {
     iotCount++
-    appCount++
     console.log(
-      `>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>IOT count: ${iotCount} AppCount: ${appCount}`,
+      `>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>IOTcount: ${iotCount} AppCount: ${appCount}`,
     )
     console.log('Received Data: ' + data)
     console.log('###################################################', getCurrentTime())
@@ -230,7 +229,12 @@ var server = net.createServer(async function (socket) {
 
             if (dist === 0) {
               console.log('위치변화가 없습니다.')
-              console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<IOT socket END' + count)
+              console.log(
+                '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<IOT socket END iotCount :' +
+                  iotCount +
+                  'appCount :' +
+                  appCount,
+              )
               return
             }
 
@@ -265,6 +269,7 @@ var server = net.createServer(async function (socket) {
         console.log(`bikeSocket: Wrong type of data transaction.`) // 상기 횟수에 따라 오류가 발생할 경우, 관리자 Alert 를 띄워야 한다.
       }
     } else {
+      appCount++
       // 이 부분이 IoT 로 보내기 위해 App 으로부터 받는 부분이다.
 
       // App 에서 IoT 로 보내기 위해 받는 Protocol
@@ -341,7 +346,12 @@ var server = net.createServer(async function (socket) {
       }
     }
 
-    console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<socket end' + count)
+    console.log(
+      '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<socket end iotCount :' +
+        iotCount +
+        'AppCount : ' +
+        appCount,
+    )
   })
 
   socket.on('error', function (err) {
