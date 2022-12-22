@@ -317,9 +317,9 @@ var server = net.createServer(async function (socket) {
         for (let sock of connectedBikeSocket) {
           if (sock.bikeId === bike_id_for_app) {
             while (sock.readyState !== 'open') {
-              setTimeout(() => console.log('waiting'), 100)
+              await new Promise(resolve => setTimeout(resolve, 10))
             }
-            // await new Promise(resolve => setTimeout(resolve, 10))
+            await new Promise(resolve => setTimeout(resolve, 10))
             sock.write(sending_codes(code), () => console.log('socketState :' + sock.readyState))
           }
         }
