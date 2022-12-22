@@ -86,10 +86,10 @@ let sig_12 = sig_11 + size_12
 let sig_error_report = sig_6 + error_report_size
 
 let sockets = {}
+let isPending = false
 const connectedBikeSocket = new Set()
 let socketArr = []
-let iotCount = 0
-let appCount = 0
+
 // 서버 생성
 var server = net.createServer(async function (socket) {
   console.log(socket.address().address + 'Started Broonge IoT Server on ' + getCurrentTime())
@@ -287,6 +287,12 @@ var server = net.createServer(async function (socket) {
         var final_send_codes = send_default_data_preparation + send_code + send_codes_manually_added_0x
         return final_send_codes
       }
+
+      // function real_send (value){
+      //   const
+      // }
+
+      //TODO: 함수 값을 배열에 담아서 그 후로 뺀다.
 
       //FIXME: 같은 바이크에 거의 동시에 같은 명령이 왔을 경우에는 하나의 명령을 block 하고 먼저 온 한 개만 수행?
       async function CheckBikeStatus() {
