@@ -225,7 +225,7 @@ var server = net.createServer(async function (socket) {
 
             if (dist === 0) {
               console.log('위치변화가 없습니다.')
-              console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<IOT socket END')
+              console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<IOT socket END' + count)
               return
             }
 
