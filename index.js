@@ -338,9 +338,7 @@ var server = net.createServer(async function (socket) {
             sock.write(sending_codes(code), () => console.log('socketState :' + sock.readyState))
             console.time('writeStart')
             await new Promise(resolve => setTimeout(resolve, 500))
-            console.log('Before unshift: ' + result_array)
-            result_array.unshift
-            console.log('After unshift: ' + result_array)
+
             console.timeEnd('writeStart')
           }
         }
@@ -357,6 +355,9 @@ var server = net.createServer(async function (socket) {
           socket.write('something wrong')
         } else {
           await updateBikeStatus(app_to_iot_data[2])
+          console.log('Before unshift: ' + result_array)
+          result_array.unshift
+          console.log('After unshift: ' + result_array)
         }
       } else {
         socket.write('sorry, no bike')
