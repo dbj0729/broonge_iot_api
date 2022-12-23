@@ -4,6 +4,9 @@ const net = require('net')
 //   input: process.stdin,
 //   output: process.stdout,
 // });
+
+var traffic_light = 'red'
+
 function getCurrentTime() {
   var adjust_time_manual = 9 * 60 * 60 * 1000
   const datetime_in_number = Number(new Date()) + adjust_time_manual
@@ -311,7 +314,7 @@ var server = net.createServer(async function (socket) {
       }
 
       async function updateBikeStatus(order) {
-        const code = order === 'lock' ? '00' : order === 'unlock' ? '01' : order === 'page' ? '02' : null
+        const code = order === 'lock' ? '01' : order === 'unlock' ? '00' : order === 'page' ? '02' : null
         if (!code) return socket.write('not order')
         // if (code === '00' || code === '01') {
         //   const updateBikeStatusQuery = `UPDATE iot_status SET is_locked = ? WHERE bike_id = ?`
@@ -322,6 +325,9 @@ var server = net.createServer(async function (socket) {
 
         for (let sock of connectedBikeSocket) {
           if (sock.bikeId === bike_id_for_app) {
+            const result_array = []
+            result_array.push(sending_codes(code))
+
             // while (sock.readyState !== 'open') {
             // console.log('late 1...........................................................................')
             // await new Promise(resolve => setTimeout(resolve, 10))
@@ -332,6 +338,9 @@ var server = net.createServer(async function (socket) {
             sock.write(sending_codes(code), () => console.log('socketState :' + sock.readyState))
             console.time('writeStart')
             await new Promise(resolve => setTimeout(resolve, 500))
+            console.log('Before unshift: ' + result_array)
+            result_array.unshift
+            console.log('After unshift: ' + result_array)
             console.timeEnd('writeStart')
           }
         }
