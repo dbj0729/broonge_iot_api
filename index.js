@@ -265,7 +265,7 @@ var server = net.createServer(async function (socket) {
       }
     } else {
       // console.log(`2222222222222222222222222222 start`)
-      appCount++
+      // appCount++
       // 이 부분이 IoT 로 보내기 위해 App 으로부터 받는 부분이다.
 
       // App 에서 IoT 로 보내기 위해 받는 Protocol
