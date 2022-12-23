@@ -6,7 +6,7 @@ const net = require('net')
 // });
 
 var traffic_light = 'red'
-
+var result_array = []
 function getCurrentTime() {
   var adjust_time_manual = 9 * 60 * 60 * 1000
   const datetime_in_number = Number(new Date()) + adjust_time_manual
@@ -325,7 +325,6 @@ var server = net.createServer(async function (socket) {
 
         for (let sock of connectedBikeSocket) {
           if (sock.bikeId === bike_id_for_app) {
-            const result_array = []
             result_array.push(sending_codes(code))
 
             // while (sock.readyState !== 'open') {
@@ -355,9 +354,11 @@ var server = net.createServer(async function (socket) {
           socket.write('something wrong')
         } else {
           await updateBikeStatus(app_to_iot_data[2])
+          console.time('unshift')
           console.log('Before unshift: ' + result_array)
           result_array.unshift
           console.log('After unshift: ' + result_array)
+          console.timeEnd('unshift')
         }
       } else {
         socket.write('sorry, no bike')
