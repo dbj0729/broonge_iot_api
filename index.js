@@ -356,7 +356,7 @@ var server = net.createServer(async function (socket) {
           await updateBikeStatus(app_to_iot_data[2])
           console.time('unshift')
           console.log('Before unshift: ' + result_array)
-          result_array.unshift()
+          result_array.unshift('1934BR0131241212319V0.8502000060')
           console.log('After unshift: ' + result_array)
           console.timeEnd('unshift')
         }
