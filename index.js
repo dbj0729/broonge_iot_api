@@ -5,7 +5,7 @@ const net = require('net')
 //   output: process.stdout,
 // });
 
-var traffic_light = 'red'
+var traffic_light = 'green'
 var result_array = []
 function getCurrentTime() {
   var adjust_time_manual = 9 * 60 * 60 * 1000
@@ -325,31 +325,37 @@ var server = net.createServer(async function (socket) {
 
         for (let sock of connectedBikeSocket) {
           if (sock.bikeId === bike_id_for_app) {
-            result_array.push(sending_codes(code))
+            if (traffic_light == 'red') {
+              console.log('Nothing can come in!')
+            } else if (traffic_light == 'green') {
+              result_array.push(sending_codes(code))
 
-            // while (sock.readyState !== 'open') {
-            // console.log('late 1...........................................................................')
-            // await new Promise(resolve => setTimeout(resolve, 10))
-            // }
-            // console.log('waiting2...........................................................................')
-            // await new Promise(resolve => setTimeout(resolve, 10))
-            // console.log('checkOrder.........................................................................')
+              traffic_light = 'red'
+              // while (sock.readyState !== 'open') {
+              // console.log('late 1...........................................................................')
+              // await new Promise(resolve => setTimeout(resolve, 10))
+              // }
+              // console.log('waiting2...........................................................................')
+              // await new Promise(resolve => setTimeout(resolve, 10))
+              // console.log('checkOrder.........................................................................')
 
-            // --- @DBJ 원래의 sending_codes 를 제외하고 아래의 것을 넣었다.
-            //sock.write(sending_codes(code), () => console.log('socketState :' + sock.readyState))
-            sock.write(result_array[0], () => console.log('socketState :' + sock.readyState))
-            console.time('writeStart')
-            console.log('Hi, I am the result_array[0]... There should be ONLY 1 value!!!' + result_array[0])
-            await new Promise(resolve => setTimeout(resolve, 500))
+              // --- @DBJ 원래의 sending_codes 를 제외하고 아래의 것을 넣었다.
+              //sock.write(sending_codes(code), () => console.log('socketState :' + sock.readyState))
+              sock.write(result_array[0], () => console.log('socketState :' + sock.readyState))
 
-            console.timeEnd('writeStart')
+              console.time('writeStart')
+              console.log('Hi, I am the result_array[0]... There should be ONLY 1 value!!!' + result_array[0])
+              console.timeEnd('writeStart')
+              await new Promise(resolve => setTimeout(resolve, 500))
+
+              socket.write(sending_codes(code))
+              socket.write('   ') // App 한테 보내는 것
+              socket.write(getCurrentTime())
+              socket.destroy()
+              traffic_light = 'green'
+            }
           }
         }
-
-        socket.write(sending_codes(code))
-        socket.write('   ') // App 한테 보내는 것
-        socket.write(getCurrentTime())
-        socket.destroy()
       }
 
       if (app_to_iot_data[0] == process.env.APP_SIG) {
