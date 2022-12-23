@@ -339,7 +339,7 @@ var server = net.createServer(async function (socket) {
             //sock.write(sending_codes(code), () => console.log('socketState :' + sock.readyState))
             sock.write(result_array[0], () => console.log('socketState :' + sock.readyState))
             console.time('writeStart')
-            console.log('Hi, I am the result_array which should contain I might have more than one!' + result_array)
+            console.log('Hi, I am the result_array[0]... There should be ONLY 1 value!!!' + result_array[0])
             await new Promise(resolve => setTimeout(resolve, 500))
 
             console.timeEnd('writeStart')
