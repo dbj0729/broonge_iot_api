@@ -211,7 +211,6 @@ var server = net.createServer(async function (socket) {
           // console.log('update result: ', JSON.stringify(result, null, 2))
           // console.log('bikeSocket: Update iot_status table complete!')
           if (f_4_device_status === '00') {
-            // IoT 가 이용자가 누구인지도 쏴 주면 좋을 것 같긴한데................. @DBJ on 221213
             let gps_array = []
             let gps_object = { lat: Number(f_1_lat), lng: Number(f_1_lng) }
 
@@ -226,12 +225,6 @@ var server = net.createServer(async function (socket) {
             const last = gps_array[gps_array.length - 1]
             console.log({ last })
             const dist = distance(f_1_lat, f_1_lng, Number(last.lat), Number(last.lng), 'K')
-
-            if (dist === 0) {
-              // console.log('위치변화가 없습니다.')
-              // console.log(`11111111111111111111111111 END`)
-              return
-            }
 
             const totalDist = distance_sum(dist, last.totalDist)
             gps_object = { ...gps_object, totalDist: totalDist.toFixed(3) }
