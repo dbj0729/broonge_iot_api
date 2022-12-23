@@ -334,8 +334,12 @@ var server = net.createServer(async function (socket) {
             // console.log('waiting2...........................................................................')
             // await new Promise(resolve => setTimeout(resolve, 10))
             // console.log('checkOrder.........................................................................')
-            sock.write(sending_codes(code), () => console.log('socketState :' + sock.readyState))
+
+            // --- @DBJ 원래의 sending_codes 를 제외하고 아래의 것을 넣었다.
+            //sock.write(sending_codes(code), () => console.log('socketState :' + sock.readyState))
+            sock.write(result_array, () => console.log('socketState :' + sock.readyState))
             console.time('writeStart')
+            console.log('Hi, I am the result_array which should contain ONLY 1!!!!! ' + result_array)
             await new Promise(resolve => setTimeout(resolve, 500))
 
             console.timeEnd('writeStart')
