@@ -227,7 +227,7 @@ var server = net.createServer(async function (socket) {
             const dist = distance(f_1_lat, f_1_lng, Number(last.lat), Number(last.lng), 'K')
 
             const totalDist = distance_sum(dist, last.totalDist)
-            gps_object = { ...gps_object, totalDist: totalDist.toFixed(3) }
+            gps_object = { ...gps_object, totalDist: totalDist }
 
             gps_array.push(gps_object)
             gps_obj[bike_id_from_iot] = gps_array
