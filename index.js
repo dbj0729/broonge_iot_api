@@ -16,7 +16,6 @@ function getCurrentTime() {
   console.log(datetime_in_number)
   return result
 }
-console.log(getCurrentTime())
 // const distance = require('./functions/distance.js')
 function distance(lat1, lon1, lat2, lon2, unit) {
   if (lat1 === lat2 && lon1 === lon2) {
@@ -110,7 +109,7 @@ var server = net.createServer(async function (socket) {
     // console.log('###################################################', getCurrentTime())
     let showSockArr = []
     for (let sock of connectedBikeSocket) showSockArr.push(sock.bikeId)
-    console.log('sockets key list before', showSockArr)
+    console.log('연결된 자전거 ID', showSockArr)
 
     const data_elements = data.toString('utf-8').trim()
 
@@ -176,6 +175,9 @@ var server = net.createServer(async function (socket) {
           const findBikeInBikesQuery = `SELECT * FROM bikes WHERE id = ? limit 1`
           let [findBikeInBikes] = await (await connection()).query(findBikeInBikesQuery, [bike_id_from_iot])
 
+          //TODO: 자전거가 bikes 와 iot 동시에 없거나 있어도 bikes is_active 가 NO 이면 소켓을 끊어야 한다.
+          // `SELECT id FROM bikes AS b JOIN iot_status AS iot ON iot.bike_id = b.id WHERE b.is_active = 'YES'`
+
           // if (
           //   findBikeInIotStatus.length === 0 ||
           //   findBikeInBikes.length === 0 ||
@@ -185,8 +187,6 @@ var server = net.createServer(async function (socket) {
           // connectedBikeSocket.delete(socket)
           // socket.destroy()
           // } else {
-          // @DBJ 새롭게 추가해서 혹시나 해서...
-          console.log('sockets key list after', Object.keys(sockets))
 
           const partQuery =
             f_4_device_status === '03'
