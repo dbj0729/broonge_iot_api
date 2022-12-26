@@ -325,31 +325,31 @@ var server = net.createServer(async function (socket) {
         // console.log({ toBikeCode: sending_codes(code) })
         // console.log('appSocket : order is ' + order)
 
-        // if (traffic_light == 'red') {
-        //   console.log('Nothing can come in!')
-        // } else if (traffic_light == 'green') {
-        //   result_array.push(sending_codes(code))
+        if (traffic_light == 'red') {
+          console.log('Nothing can come in!')
+        } else if (traffic_light == 'green') {
+          result_array.push(sending_codes(code))
 
-        //   traffic_light = 'red'
+          traffic_light = 'red'
 
-        //   sockets[bike_id_for_app].write(sending_codes(code))
-        //   // sock.write(result_array[0], () => console.log('socketState :' + sock.readyState))
+          sockets[bike_id_for_app].write(sending_codes(code))
+          // sock.write(result_array[0], () => console.log('socketState :' + sock.readyState))
 
-        //   console.time('writeStart')
-        //   console.log('Hi, I am the result_array[0]... There should be ONLY 1 value!!!' + result_array[0])
-        //   console.timeEnd('writeStart')
-        //   await new Promise(resolve => setTimeout(resolve, 500))
+          console.time('writeStart')
+          console.log('Hi, I am the result_array[0]... There should be ONLY 1 value!!!' + result_array[0])
+          console.timeEnd('writeStart')
+          await new Promise(resolve => setTimeout(resolve, 500))
 
-        sockets[bike_id_for_app].write(sending_codes(code))
-        sockets[bike_id_for_app].pause()
-        setTimeout(() => sockets[bike_id_for_app].resume(), 400)
+          // sockets[bike_id_for_app].write(sending_codes(code))
+          // sockets[bike_id_for_app].pause()
+          // setTimeout(() => sockets[bike_id_for_app].resume(), 400)
 
-        socket.write(sending_codes(code))
-        socket.write('   ') // App 한테 보내는 것
-        socket.write(getCurrentTime())
-        socket.destroy()
-        //   traffic_light = 'green'
-        // }
+          socket.write(sending_codes(code))
+          socket.write('   ') // App 한테 보내는 것
+          socket.write(getCurrentTime())
+          socket.destroy()
+          traffic_light = 'green'
+        }
       }
 
       if (app_to_iot_data[0] == process.env.APP_SIG) {
