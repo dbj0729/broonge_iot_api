@@ -4,7 +4,8 @@ const { iotProcess } = require('./functions/iotProcess')
 const { convertData, sendingCode } = require('./functions/convertData')
 
 let gps_obj = {}
-const connectedBikeSocket = new Set()
+// const connectedBikeSocket = new Set()
+let sockets = {}
 
 const server = net.createServer(async socket => {
   console.log('connected socket' + socket.remoteAddress + socket.remotePort)
@@ -47,8 +48,9 @@ const server = net.createServer(async socket => {
       message_length == process.env.IOT_MESSAGE_LENGTH &&
       manual_codes.length !== 0
     ) {
-      socket.bikeId = bike_id_from_iot
-      connectedBikeSocket.add(socket)
+      // socket.bikeId = bike_id_from_iot
+      // connectedBikeSocket.add(socket)
+      sockets[bike_id_from_iot] = socket
 
       gps_obj = iotProcess(
         checksum,
@@ -77,20 +79,16 @@ const server = net.createServer(async socket => {
         message_length_for_app
 
       async function updateBikeStatus(order) {
-        const code = order === 'lock' ? '01' : order === 'unlock' ? '00' : order === 'page' ? '02' : null
+        const code = order === 'unlock' ? '01' : order === 'page' ? '02' : null
         if (!code) return socket.write('not order')
 
-        for (let sock of connectedBikeSocket) {
-          if (sock.bikeId === bike_id_for_app) {
-            sock.write(sendingCode(code, send_default_data_preparation))
-            sock.pause()
-            setTimeout(() => sock.resume(), 400)
-            socket.write(sendingCode(code, send_default_data_preparation))
-            socket.write('   ') // App 한테 보내는 것
-            socket.write(getCurrentTime())
-            socket.destroy()
-          }
-        }
+        sockets[bike_id_for_app].write(sendingCode(code, send_default_data_preparation))
+        sockets[bike_id_for_app].pause()
+        setTimeout(() => sockets[bike_id_for_app].resume(), 400)
+        socket.write(sendingCode(code, send_default_data_preparation))
+        socket.write('   ') // App 한테 보내는 것
+        socket.write(getCurrentTime())
+        socket.destroy()
       }
 
       if (app_to_iot_data[0] == process.env.APP_SIG) {
@@ -108,7 +106,17 @@ const server = net.createServer(async socket => {
 
   socket.on('error', err => console.log(err))
 
-  socket.on('close', () => console.log('socket connection closed'))
+  socket.on('close', function () {
+    // 연결을 끊는 socket이 sockets 안에 등록된 socket인지 판별한다.
+    const findBikeId = Object.entries(sockets).find(s => s[0] === bike_id_from_iot)
+    if (findBikeId) {
+      console.log('bikeSocket disconnected')
+      delete sockets[findBikeId[0]]
+      console.log({ sockets })
+      return
+    }
+    console.log('appSocket has left the IoT Server.')
+  })
 })
 
 server.on('error', err => console.log(err))
