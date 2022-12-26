@@ -332,7 +332,7 @@ var server = net.createServer(async function (socket) {
 
           traffic_light = 'red'
 
-          sockets[bike_id_for_app].write(sending_codes(code), () => console.log('socketState :' + sock.readyState))
+          sockets[bike_id_for_app].write(sending_codes(code))
           // sock.write(result_array[0], () => console.log('socketState :' + sock.readyState))
 
           console.time('writeStart')
