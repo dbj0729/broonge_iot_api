@@ -113,11 +113,11 @@ var server = net.createServer(async function (socket) {
     console.log(socket.address().address + 'Started Broonge IoT Server on ' + getCurrentTime())
     socket.setNoDelay(true)
     socket.id = socket.remoteAddress + ':' + socket.remotePort
-    socket.on('data', async function (data) {
-      // const release = await mutex.acquire()
+    const [value, release] = await semaphore.acquire()
+    try {
+      socket.on('data', async function (data) {
+        // const release = await mutex.acquire()
 
-      const [value, release] = await semaphore.acquire()
-      try {
         // console.log('Received Data: ' + data)
         // console.log('###################################################', getCurrentTime())
         // let showSockArr = []
@@ -386,10 +386,10 @@ var server = net.createServer(async function (socket) {
           }
           // console.log(`222222222222222222 END`)
         }
-      } finally {
-        release()
-      }
-    })
+      })
+    } finally {
+      release()
+    }
 
     socket.on('error', function (err) {
       console.log('err' + err)
