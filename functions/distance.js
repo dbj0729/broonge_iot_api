@@ -1,4 +1,4 @@
-function distance(lat1, lon1, lat2, lon2, unit) {
+module.exports.distance = function (lat1, lon1, lat2, lon2, unit) {
   if (lat1 === lat2 && lon1 === lon2) {
     return 0
   } else {
@@ -22,5 +22,3 @@ function distance(lat1, lon1, lat2, lon2, unit) {
     return dist
   }
 }
-
-return distance
