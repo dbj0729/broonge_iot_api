@@ -387,6 +387,7 @@ var server = net.createServer(async function (socket) {
           // console.log(`222222222222222222 END`)
         }
       } finally {
+        await new Promise(resolve => setTimeout(resolve, 100))
         release()
       }
     })
