@@ -338,8 +338,8 @@ var server = net.createServer(async function (socket) {
               // console.log('checkOrder.........................................................................')
 
               // --- @DBJ 원래의 sending_codes 를 제외하고 아래의 것을 넣었다.
-              //sock.write(sending_codes(code), () => console.log('socketState :' + sock.readyState))
-              sock.write(result_array[0], () => console.log('socketState :' + sock.readyState))
+              sock.write(sending_codes(code), () => console.log('socketState :' + sock.readyState))
+              // sock.write(result_array[0], () => console.log('socketState :' + sock.readyState))
 
               console.time('writeStart')
               console.log('Hi, I am the result_array[0]... There should be ONLY 1 value!!!' + result_array[0])
