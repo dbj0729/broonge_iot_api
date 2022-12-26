@@ -100,11 +100,11 @@ var server = net.createServer(async function (socket) {
         Data 는 IoT 에서 받던, App 에서 받던 이래저래 같이 쓰이는 것이고
         아래 로직에서 차이가 나는 것이다.
     */
+  let bike_id_from_iot
   const release = await mutex.acquire()
   try {
     console.log(socket.address().address + 'Started Broonge IoT Server on ' + getCurrentTime())
     socket.setNoDelay(true)
-    let bike_id_from_iot
     socket.id = socket.remoteAddress + ':' + socket.remotePort
     socket.on('data', async function (data) {
       // console.log('Received Data: ' + data)
