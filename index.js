@@ -107,9 +107,9 @@ var server = net.createServer(async function (socket) {
   socket.on('data', async function (data) {
     // console.log('Received Data: ' + data)
     // console.log('###################################################', getCurrentTime())
-    let showSockArr = []
-    for (let sock of connectedBikeSocket) showSockArr.push(sock.bikeId)
-    console.log('연결된 자전거 ID', showSockArr)
+    // let showSockArr = []
+    // for (let sock of connectedBikeSocket) showSockArr.push(sock.bikeId)
+    // console.log('연결된 자전거 ID', showSockArr)
 
     const data_elements = data.toString('utf-8').trim()
 
@@ -161,8 +161,12 @@ var server = net.createServer(async function (socket) {
 
       manually_added_0x = '0' + manual_codes_value_verification // 마지막 checksum 에 0이 빠져서 0을 넣음
 
-      socket.bikeId = bike_id_from_iot
-      connectedBikeSocket.add(socket)
+      // socket.bikeId = bike_id_from_iot
+      // connectedBikeSocket.add(socket)
+
+      sockets[bike_id_from_iot] = socket
+
+      console.log(Object.keys(sockets))
 
       if (checksum == manually_added_0x) {
         // console.log(`11111111111111111 START`)
@@ -312,7 +316,7 @@ var server = net.createServer(async function (socket) {
       }
 
       async function updateBikeStatus(order) {
-        const code = order === 'lock' ? '01' : order === 'unlock' ? '00' : order === 'page' ? '02' : null
+        const code = order === 'unlock' ? '01' : order === 'page' ? '02' : null
         if (!code) return socket.write('not order')
         // if (code === '00' || code === '01') {
         //   const updateBikeStatusQuery = `UPDATE iot_status SET is_locked = ? WHERE bike_id = ?`
@@ -321,38 +325,26 @@ var server = net.createServer(async function (socket) {
         // console.log({ toBikeCode: sending_codes(code) })
         // console.log('appSocket : order is ' + order)
 
-        for (let sock of connectedBikeSocket) {
-          if (sock.bikeId === bike_id_for_app) {
-            if (traffic_light == 'red') {
-              console.log('Nothing can come in!')
-            } else if (traffic_light == 'green') {
-              result_array.push(sending_codes(code))
+        if (traffic_light == 'red') {
+          console.log('Nothing can come in!')
+        } else if (traffic_light == 'green') {
+          result_array.push(sending_codes(code))
 
-              traffic_light = 'red'
-              // while (sock.readyState !== 'open') {
-              // console.log('late 1...........................................................................')
-              // await new Promise(resolve => setTimeout(resolve, 10))
-              // }
-              // console.log('waiting2...........................................................................')
-              // await new Promise(resolve => setTimeout(resolve, 10))
-              // console.log('checkOrder.........................................................................')
+          traffic_light = 'red'
 
-              // --- @DBJ 원래의 sending_codes 를 제외하고 아래의 것을 넣었다.
-              sock.write(sending_codes(code), () => console.log('socketState :' + sock.readyState))
-              // sock.write(result_array[0], () => console.log('socketState :' + sock.readyState))
+          sockets[bike_id_for_app].write(sending_codes(code), () => console.log('socketState :' + sock.readyState))
+          // sock.write(result_array[0], () => console.log('socketState :' + sock.readyState))
 
-              console.time('writeStart')
-              console.log('Hi, I am the result_array[0]... There should be ONLY 1 value!!!' + result_array[0])
-              console.timeEnd('writeStart')
-              await new Promise(resolve => setTimeout(resolve, 500))
+          console.time('writeStart')
+          console.log('Hi, I am the result_array[0]... There should be ONLY 1 value!!!' + result_array[0])
+          console.timeEnd('writeStart')
+          await new Promise(resolve => setTimeout(resolve, 500))
 
-              socket.write(sending_codes(code))
-              socket.write('   ') // App 한테 보내는 것
-              socket.write(getCurrentTime())
-              socket.destroy()
-              traffic_light = 'green'
-            }
-          }
+          socket.write(sending_codes(code))
+          socket.write('   ') // App 한테 보내는 것
+          socket.write(getCurrentTime())
+          socket.destroy()
+          traffic_light = 'green'
         }
       }
 
