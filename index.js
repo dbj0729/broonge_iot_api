@@ -374,28 +374,28 @@ var server = net.createServer(async function (socket) {
         // console.log(`222222222222222222 END`)
       }
     })
+
+    socket.on('error', function (err) {
+      console.log('err' + err)
+    })
+
+    // client와 접속이 끊기는 메시지 출력
+    socket.on('close', function () {
+      // 연결을 끊는 socket이 sockets 안에 등록된 socket인지 판별한다.
+      const findBikeId = Object.entries(sockets).find(s => s[0] === bike_id_from_iot)
+      if (findBikeId) {
+        console.log('bikeSocket disconnected')
+        delete sockets[findBikeId[0]]
+        console.log({ sockets })
+        return
+      }
+      console.log('appSocket has left the IoT Server.')
+    })
+    // client가 접속하면 화면에 출력해주는 메시지
+    socket.write('Welcome')
   } finally {
     release()
   }
-
-  socket.on('error', function (err) {
-    console.log('err' + err)
-  })
-
-  // client와 접속이 끊기는 메시지 출력
-  socket.on('close', function () {
-    // 연결을 끊는 socket이 sockets 안에 등록된 socket인지 판별한다.
-    const findBikeId = Object.entries(sockets).find(s => s[0] === bike_id_from_iot)
-    if (findBikeId) {
-      console.log('bikeSocket disconnected')
-      delete sockets[findBikeId[0]]
-      console.log({ sockets })
-      return
-    }
-    console.log('appSocket has left the IoT Server.')
-  })
-  // client가 접속하면 화면에 출력해주는 메시지
-  socket.write('Welcome')
 })
 
 server.getConnections((err, count) => {
