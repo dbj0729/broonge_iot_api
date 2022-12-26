@@ -1,4 +1,5 @@
 const { distance } = require('./distance')
+const { connection } = require('../config/database')
 
 module.exports.iotProcess = async (
   checksum,
