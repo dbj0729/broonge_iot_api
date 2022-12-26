@@ -95,11 +95,6 @@ let socketArr = []
 
 // 서버 생성
 var server = net.createServer(async function (socket) {
-  console.log(socket.address().address + 'Started Broonge IoT Server on ' + getCurrentTime())
-  socket.setNoDelay(true)
-  let bike_id_from_iot
-  socket.id = socket.remoteAddress + ':' + socket.remotePort
-
   // client로 부터 오는 data를 화면에 출력
   /* 
         Data 는 IoT 에서 받던, App 에서 받던 이래저래 같이 쓰이는 것이고
@@ -107,6 +102,10 @@ var server = net.createServer(async function (socket) {
     */
   const release = await mutex.acquire()
   try {
+    console.log(socket.address().address + 'Started Broonge IoT Server on ' + getCurrentTime())
+    socket.setNoDelay(true)
+    let bike_id_from_iot
+    socket.id = socket.remoteAddress + ':' + socket.remotePort
     socket.on('data', async function (data) {
       // console.log('Received Data: ' + data)
       // console.log('###################################################', getCurrentTime())
