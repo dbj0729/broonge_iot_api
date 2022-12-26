@@ -387,7 +387,6 @@ var server = net.createServer(async function (socket) {
           // console.log(`222222222222222222 END`)
         }
       } finally {
-        await new Promise(resolve => setTimeout(resolve, 100))
         release()
       }
     })
@@ -412,6 +411,7 @@ var server = net.createServer(async function (socket) {
     // client가 접속하면 화면에 출력해주는 메시지
     socket.write('Welcome')
   } finally {
+    await new Promise(resolve => setTimeout(resolve, 300))
     release1()
   }
 })
