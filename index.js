@@ -5,7 +5,11 @@ const net = require('net')
 //   output: process.stdout,
 // });
 var Mutex = require('async-mutex').Mutex
+var Semaphore = require('async-mutex').Semaphore
+
 const mutex = new Mutex()
+const semaphore = new Semaphore(1)
+
 var traffic_light = 'green'
 var result_array = []
 function getCurrentTime() {
@@ -105,7 +109,9 @@ var server = net.createServer(async function (socket) {
   socket.setNoDelay(true)
   socket.id = socket.remoteAddress + ':' + socket.remotePort
   socket.on('data', async function (data) {
-    const release = await mutex.acquire()
+    // const release = await mutex.acquire()
+
+    const [value, release] = await semaphore.acquire()
     try {
       // console.log('Received Data: ' + data)
       // console.log('###################################################', getCurrentTime())
