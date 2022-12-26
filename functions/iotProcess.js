@@ -68,6 +68,11 @@ module.exports.iotProcess = async (
         console.log({ last })
         const dist = distance(f_1_lat, f_1_lng, Number(last.lat), Number(last.lng), 'K')
 
+        if (dist === 0) {
+          console.log('위치변화가 없습니다.')
+          return
+        }
+
         const totalDist = dist + last.totalDist
         gps_object = { ...gps_object, totalDist: totalDist }
 
