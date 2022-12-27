@@ -359,9 +359,10 @@ var server = net.createServer(async function (socket) {
             //   await new Promise(resolve => setTimeout(resolve, 500))
             if (beforeSendBikeId === bike_id_for_app) await new Promise(resolve => setTimeout(resolve, 500))
 
-            sockets[bike_id_for_app].write(sending_codes(code), () =>
-              console.log('%%%%%%%%%%%%%%%%%write callback%%%%%%%%%%%%%%%%'),
-            )
+            sockets[bike_id_for_app].write(sending_codes(code), () => {
+              console.log('%%%%%%%%%%%%%%%%%write callback%%%%%%%%%%%%%%%%')
+              release()
+            })
             beforeSendBikeId = bike_id_for_app
             // sockets[bike_id_for_app].pause()
             // setTimeout(() => sockets[bike_id_for_app].resume(), 1000)
@@ -394,7 +395,6 @@ var server = net.createServer(async function (socket) {
       })
     } finally {
       console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^release scope^^^^^^^^^^^^^^^^^^^^^^^^')
-      release()
     }
 
     socket.on('error', function (err) {
