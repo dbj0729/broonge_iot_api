@@ -359,7 +359,7 @@ var server = net.createServer(async function (socket) {
             //   console.log('Hi, I am the result_array[0]... There should be ONLY 1 value!!!' + result_array[0])
             //   console.timeEnd('writeStart')
             //   await new Promise(resolve => setTimeout(resolve, 500))
-            if (beforeSendBikeId === bike_id_for_app) await new Promise(resolve => setTimeout(resolve, 3000))
+            if (beforeSendBikeId === bike_id_for_app) await new Promise(resolve => setTimeout(resolve, 1000))
 
             sockets[bike_id_for_app].write(sending_codes(code), () => {
               if (isSending) {
