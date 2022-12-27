@@ -97,6 +97,7 @@ let isPending = false
 const connectedBikeSocket = new Set()
 let socketArr = []
 let beforeSendBikeId = ''
+let isSending = false
 
 // 서버 생성
 var server = net.createServer(async function (socket) {
@@ -334,6 +335,7 @@ var server = net.createServer(async function (socket) {
           }
 
           async function updateBikeStatus(order) {
+            isSending = true
             const code = order === 'unlock' ? '01' : order === 'page' ? '02' : null
             if (!code) return socket.write('not order')
             // if (code === '00' || code === '01') {
@@ -357,10 +359,13 @@ var server = net.createServer(async function (socket) {
             //   console.log('Hi, I am the result_array[0]... There should be ONLY 1 value!!!' + result_array[0])
             //   console.timeEnd('writeStart')
             //   await new Promise(resolve => setTimeout(resolve, 500))
-            if (beforeSendBikeId === bike_id_for_app) await new Promise(resolve => setTimeout(resolve, 1000))
+            if (beforeSendBikeId === bike_id_for_app) await new Promise(resolve => setTimeout(resolve, 3000))
 
             sockets[bike_id_for_app].write(sending_codes(code), () => {
-              console.log('%%%%%%%%%%%%%%%%%write callback%%%%%%%%%%%%%%%%')
+              if (isSending) {
+                console.log('%%%%%%%%%%%%%%%%%write callback%%%%%%%%%%%%%%%%')
+                release()
+              }
             })
             beforeSendBikeId = bike_id_for_app
             // sockets[bike_id_for_app].pause()
@@ -393,8 +398,13 @@ var server = net.createServer(async function (socket) {
         }
       })
     } finally {
-      console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^release scope^^^^^^^^^^^^^^^^^^^^^^^^')
-      release()
+      if (!isSending) {
+        console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^release scope^^^^^^^^^^^^^^^^^^^^^^^^')
+        release()
+      } else {
+        console.log('isSending Is False')
+        isSending = false
+      }
     }
 
     socket.on('error', function (err) {
