@@ -96,6 +96,7 @@ let sockets = {}
 let isPending = false
 const connectedBikeSocket = new Set()
 let socketArr = []
+let beforeSendBikeId = ''
 
 // 서버 생성
 var server = net.createServer(async function (socket) {
@@ -356,8 +357,12 @@ var server = net.createServer(async function (socket) {
             //   console.log('Hi, I am the result_array[0]... There should be ONLY 1 value!!!' + result_array[0])
             //   console.timeEnd('writeStart')
             //   await new Promise(resolve => setTimeout(resolve, 500))
+            if (beforeSendBikeId === bike_id_for_app) await new Promise(resolve => setTimeout(resolve, 500))
 
-            sockets[bike_id_for_app].write(sending_codes(code))
+            sockets[bike_id_for_app].write(sending_codes(code), () =>
+              console.log('%%%%%%%%%%%%%%%%%write callback%%%%%%%%%%%%%%%%'),
+            )
+            beforeSendBikeId = bike_id_for_app
             // sockets[bike_id_for_app].pause()
             // setTimeout(() => sockets[bike_id_for_app].resume(), 1000)
 
@@ -388,6 +393,7 @@ var server = net.createServer(async function (socket) {
         }
       })
     } finally {
+      console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^release scope^^^^^^^^^^^^^^^^^^^^^^^^')
       release()
     }
 
