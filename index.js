@@ -361,7 +361,6 @@ var server = net.createServer(async function (socket) {
 
             sockets[bike_id_for_app].write(sending_codes(code), () => {
               console.log('%%%%%%%%%%%%%%%%%write callback%%%%%%%%%%%%%%%%')
-              release()
             })
             beforeSendBikeId = bike_id_for_app
             // sockets[bike_id_for_app].pause()
@@ -395,6 +394,7 @@ var server = net.createServer(async function (socket) {
       })
     } finally {
       console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^release scope^^^^^^^^^^^^^^^^^^^^^^^^')
+      release()
     }
 
     socket.on('error', function (err) {
