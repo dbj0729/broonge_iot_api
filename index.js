@@ -63,11 +63,11 @@ let gps_obj = {}
 // const distance_value = 0 @DBJ 없어도 되나?
 
 // IoT 에서 받는 Header byte size
-let size_1 = 4 // Sig.
-let size_2 = 4 // Group
+let size_1 = 2 // Sig.
+let size_2 = 2 // Group
 let size_3 = 1 // OP Code
 let size_4 = 10 // ID
-let size_5 = 5 // Version
+let size_5 = 3 // Version
 let size_6 = 2 // MSG Length
 let size_7 = 23 // GPS
 let size_8 = 1 // Signal Strength
