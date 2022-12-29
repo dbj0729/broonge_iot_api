@@ -149,7 +149,7 @@ var server = net.createServer(async function (socket) {
           // message_length == process.env.IOT_ERROR_MESSAGE_LENGTH
         ) {
           const error_report_code = data_elements.slice(sig_6, sig_error_report)
-          // console.log('ERROR_REPORT_CODE:' + error_report_code)
+          console.log('ERROR_REPORT_CODE:' + error_report_code)
         } else if (
           sig == process.env.IOT_SIG &&
           group == process.env.IOT_GROUP &&
@@ -255,9 +255,9 @@ var server = net.createServer(async function (socket) {
           } else {
             delete sockets[bike_id_from_iot]
             socket.destroy()
-            // console.log({ checksum })
-            // console.log({ manually_added_0x })
-            // console.log(`bikeSocket: Wrong type of data transaction.`) // 상기 횟수에 따라 오류가 발생할 경우, 관리자 Alert 를 띄워야 한다.
+            console.log('checksum: ' + { checksum })
+            console.log('manually_added_0x: ' + { manually_added_0x })
+            console.log(`bikeSocket: Wrong type of data transaction.`) // 상기 횟수에 따라 오류가 발생할 경우, 관리자 Alert 를 띄워야 한다.
           }
         } else {
           // console.log(`2222222222222222222222222222 start`)
