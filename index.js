@@ -108,22 +108,14 @@ var server = net.createServer(async function (socket) {
         아래 로직에서 차이가 나는 것이다.
     */
     // let bike_id_from_iot
-    console.log(socket.address().address + 'Started Broonge IoT Server on ' + getCurrentTime())
+    console.log(socket.address().address + ' Started Broonge IoT Server on ' + getCurrentTime())
     socket.setNoDelay(true)
     socket.id = socket.remoteAddress + ':' + socket.remotePort
     const [value, release] = await semaphore.acquire()
     try {
       socket.on('data', async function (data) {
-        // const release = await mutex.acquire()
-
-        // console.log('Received Data: ' + data)
-        // console.log('###################################################', getCurrentTime())
-        // let showSockArr = []
-        // for (let sock of connectedBikeSocket) showSockArr.push(sock.bikeId)
-        // console.log('연결된 자전거 ID', showSockArr)
-
         const data_elements = data.toString('utf-8').trim()
-        console.log(data)
+        console.log(data_elements)
         // IoT 로부터 받는 정보이다.
         const sig = data_elements.slice(0, sig_1)
         const group = data_elements.slice(sig_1, sig_2)
@@ -174,15 +166,11 @@ var server = net.createServer(async function (socket) {
 
           manually_added_0x = '0' + manual_codes_value_verification // 마지막 checksum 에 0이 빠져서 0을 넣음
 
-          // socket.bikeId = bike_id_from_iot
-          // connectedBikeSocket.add(socket)
-
           sockets[bike_id_from_iot] = socket
 
           console.log(Object.keys(sockets))
 
           if (checksum == manually_added_0x) {
-            // console.log(`11111111111111111 START`)
             // IoT 로 부터 받은 값이 모두 문제 없이 다 통과했을 때 실행
             try {
               //자전거가 보낸 통신일 경우
@@ -194,16 +182,6 @@ var server = net.createServer(async function (socket) {
 
               //TODO: 자전거가 bikes 와 iot 동시에 없거나 있어도 bikes is_active 가 NO 이면 소켓을 끊어야 한다.
               // `SELECT id FROM bikes AS b JOIN iot_status AS iot ON iot.bike_id = b.id WHERE b.is_active = 'YES'`
-
-              // if (
-              //   findBikeInIotStatus.length === 0 ||
-              //   findBikeInBikes.length === 0 ||
-              //   findBikeInBikes[0].is_active !== 'YES'
-              // ) {
-              // 등록된 자전거가 없을 경우 소켓을 끊는다.
-              // connectedBikeSocket.delete(socket)
-              // socket.destroy()
-              // } else {
 
               const partQuery =
                 f_4_device_status === '03'
@@ -225,8 +203,7 @@ var server = net.createServer(async function (socket) {
                 Number(f_1_lng),
                 bike_id_from_iot,
               ])
-              // console.log('update result: ', JSON.stringify(result, null, 2))
-              // console.log('bikeSocket: Update iot_status table complete!')
+
               if (f_4_device_status === '00') {
                 let gps_array = []
                 let gps_object = { lat: Number(f_1_lat), lng: Number(f_1_lng) }
