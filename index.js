@@ -255,8 +255,8 @@ var server = net.createServer(async function (socket) {
           } else {
             delete sockets[bike_id_from_iot]
             socket.destroy()
-            console.log('checksum: ' + { checksum })
-            console.log('manually_added_0x: ' + { manually_added_0x })
+            console.log('checksum: ' + checksum)
+            console.log('manually_added_0x: ' + manually_added_0x)
             console.log(`bikeSocket: Wrong type of data transaction.`) // 상기 횟수에 따라 오류가 발생할 경우, 관리자 Alert 를 띄워야 한다.
           }
         } else {
