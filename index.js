@@ -124,6 +124,9 @@ var server = net.createServer(async function (socket) {
         const version = data_elements.slice(sig_4, sig_5) // version 을 넣으니까 if 문에서 막힌다.
         const message_length = data_elements.slice(sig_5, sig_6)
 
+        console.log('version: ' + version)
+        console.log('message_length: ' + message_length)
+
         const f_1_gps = data_elements.slice(sig_6, sig_7)
         const f_2_signal_strength = data_elements.slice(sig_7, sig_8)
         const f_3_battery = data_elements.slice(sig_8, sig_9)
@@ -271,7 +274,7 @@ var server = net.createServer(async function (socket) {
           var op_code_for_app = '3' // 3번이 보내는 경우이다.
           var bike_id_for_app = app_to_iot_data[1]
           var version_for_app = 'APP'
-          var message_length_for_app = '02'
+          var message_length_for_app = '02' //IOT_ERROR_MESSAGE_LENGTH???
           var send_default_data_preparation =
             sig_for_app + group_for_app + op_code_for_app + bike_id_for_app + version_for_app + message_length_for_app
 
