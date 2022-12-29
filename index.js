@@ -10,15 +10,11 @@ var Semaphore = require('async-mutex').Semaphore
 const mutex = new Mutex()
 const semaphore = new Semaphore(1)
 
-var traffic_light = 'green'
-var result_array = []
 function getCurrentTime() {
   var adjust_time_manual = 9 * 60 * 60 * 1000
   const datetime_in_number = Number(new Date()) + adjust_time_manual
   const datetime = new Date(datetime_in_number).toLocaleString('ko-KR')
   const result = String(datetime)
-  console.log(result)
-  console.log(datetime_in_number)
   return result
 }
 // const distance = require('./functions/distance.js')
@@ -127,7 +123,7 @@ var server = net.createServer(async function (socket) {
         // console.log('연결된 자전거 ID', showSockArr)
 
         const data_elements = data.toString('utf-8').trim()
-
+        console.log(data)
         // IoT 로부터 받는 정보이다.
         const sig = data_elements.slice(0, sig_1)
         const group = data_elements.slice(sig_1, sig_2)
