@@ -296,7 +296,7 @@ var server = net.createServer(async function (socket) {
           var group_for_app = process.env.IOT_GROUP
           var op_code_for_app = '3' // 3번이 보내는 경우이다.
           var bike_id_for_app = app_to_iot_data[1]
-          var version_for_app = process.env.IOT_VERSION
+          var version_for_app = 'APP'
           var message_length_for_app = '02'
           var send_default_data_preparation =
             sig_for_app + group_for_app + op_code_for_app + bike_id_for_app + version_for_app + message_length_for_app
