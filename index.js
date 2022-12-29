@@ -141,8 +141,9 @@ var server = net.createServer(async function (socket) {
         if (
           sig == process.env.IOT_SIG &&
           group == process.env.IOT_GROUP &&
-          op_code == process.env.IOT_ERROR_OP_CODE &&
-          message_length == process.env.IOT_ERROR_MESSAGE_LENGTH
+          op_code == process.env.IOT_ERROR_OP_CODE
+          // &&
+          // message_length == process.env.IOT_ERROR_MESSAGE_LENGTH
         ) {
           const error_report_code = data_elements.slice(sig_6, sig_error_report)
           // console.log('ERROR_REPORT_CODE:' + error_report_code)
@@ -150,7 +151,7 @@ var server = net.createServer(async function (socket) {
           sig == process.env.IOT_SIG &&
           group == process.env.IOT_GROUP &&
           op_code == process.env.IOT_OP_CODE &&
-          message_length == process.env.IOT_MESSAGE_LENGTH &&
+          // message_length == process.env.IOT_MESSAGE_LENGTH &&
           manual_codes.length !== 0
         ) {
           const combined_manual_codes = manual_codes.split('') // data 에서 온 raw 값을 글자 단위로 쪼갠 결과
