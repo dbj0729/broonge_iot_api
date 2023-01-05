@@ -79,8 +79,8 @@ let sig_2 = sig_1 + size_2
 let sig_3 = sig_2 + size_3
 let sig_4 = sig_3 + size_4
 let sig_5 = sig_4 + size_5
-let sig_6 = sig_5 + size_6
-let sig_7 = sig_6 + size_7
+let sig_6 = sig_5 + size_6 //20
+let sig_7 = sig_6 + size_7 //43
 let sig_8 = sig_7 + size_8
 let sig_9 = sig_8 + size_9
 let sig_10 = sig_9 + size_10
@@ -128,13 +128,14 @@ var server = net.createServer(async function (socket) {
         console.log('message_length: ' + message_length)
 
         const f_1_gps = data_elements.slice(sig_6, sig_7)
+
         const f_2_signal_strength = data_elements.slice(sig_7, sig_8)
         const f_3_battery = data_elements.slice(sig_8, sig_9)
         const f_4_device_status = data_elements.slice(sig_9, sig_10)
         const f_5_err_info = data_elements.slice(sig_10, sig_11)
         const gps_reformatted = f_1_gps.split('N') // 이 부분이 IoT 좌표에서 넘어올 때 구분되어 지는 값이다.
-        const f_1_lat = gps_reformatted[0].slice(0, 10) // 딱 10자리만 가져온다.
-        const f_1_lng = gps_reformatted[1] ? gps_reformatted[1].slice(0, 11) : undefined
+        let f_1_lat = gps_reformatted[0].slice(0, 10) // 딱 10자리만 가져온다.
+        let f_1_lng = gps_reformatted[1] ? gps_reformatted[1].slice(0, 11) : undefined
 
         const checksum = data_elements.slice(sig_11, sig_12)
 
@@ -172,17 +173,28 @@ var server = net.createServer(async function (socket) {
 
           sockets[bike_id_from_iot] = socket
 
-          console.log(Object.keys(sockets))
-
           if (checksum == manually_added_0x) {
             // IoT 로 부터 받은 값이 모두 문제 없이 다 통과했을 때 실행
             try {
               //자전거가 보낸 통신일 경우
               //DB에 해당 자전거 ID가 등록되어 있는지 확인
               const findBikeInIotStatusQuery = `SELECT * FROM iot_status WHERE bike_id = ? limit 1`
-              var [findBikeInIotStatus] = await (await connection()).query(findBikeInIotStatusQuery, [bike_id_from_iot])
+              const [findBikeInIotStatus] = await (
+                await connection()
+              ).query(findBikeInIotStatusQuery, [bike_id_from_iot])
+
+              if (findBikeInIotStatus.length === 0) {
+                console.log('등록되지 않은 자전거입니다.')
+                return
+              }
+
+              if (gps_reformatted.length === 1 && findBikeInIotStatus) {
+                f_1_lng = findBikeInIotStatus[0].lng
+                f_1_lat = findBikeInIotStatus[0].lat
+              }
+
               const findBikeInBikesQuery = `SELECT * FROM bikes WHERE id = ? limit 1`
-              let [findBikeInBikes] = await (await connection()).query(findBikeInBikesQuery, [bike_id_from_iot])
+              const [findBikeInBikes] = await (await connection()).query(findBikeInBikesQuery, [bike_id_from_iot])
 
               //TODO: 자전거가 bikes 와 iot 동시에 없거나 있어도 bikes is_active 가 NO 이면 소켓을 끊어야 한다.
               // `SELECT id FROM bikes AS b JOIN iot_status AS iot ON iot.bike_id = b.id WHERE b.is_active = 'YES'`
@@ -237,6 +249,10 @@ var server = net.createServer(async function (socket) {
 
                 console.log({ gps_array })
               } else {
+                if (!gps_obj[bike_id_from_iot]) {
+                  console.log(bike_id_from_iot + ': 주행기록이 없는 자전거입니다.')
+                  return
+                }
                 const updateBikeStatusQuery2 = `UPDATE riding_data SET distance = ?, coordinates = ? WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
                 const ridingData = gps_obj[bike_id_from_iot]
                 const lastIdx = ridingData.length - 1
