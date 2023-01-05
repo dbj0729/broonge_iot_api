@@ -361,6 +361,10 @@ var server = net.createServer(async function (socket) {
               console.log('appSocket : data parsing error')
               socket.write('something wrong')
             } else {
+              if (!sockets[bike_id_for_app]) {
+                socket.write('no connected bike!')
+                return
+              }
               await updateBikeStatus(app_to_iot_data[2])
               // console.time('unshift')
               // console.log('Before unshift: ' + result_array)
