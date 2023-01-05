@@ -89,11 +89,7 @@ let sig_12 = sig_11 + size_12
 let sig_error_report = sig_6 + error_report_size
 
 let sockets = {}
-let isPending = false
-const connectedBikeSocket = new Set()
-let socketArr = []
 let beforeSendBikeId = ''
-let isSending = false
 
 // 서버 생성
 var server = net.createServer(async function (socket) {
@@ -109,7 +105,7 @@ var server = net.createServer(async function (socket) {
     */
     // let bike_id_from_iot
     console.log(socket.address().address + ' Started Broonge IoT Server on ' + getCurrentTime())
-    socket.setNoDelay(true)
+    socket.setNoDelay(false)
     socket.id = socket.remoteAddress + ':' + socket.remotePort
     const [value, release] = await semaphore.acquire()
     try {
@@ -276,10 +272,6 @@ var server = net.createServer(async function (socket) {
             console.log(`bikeSocket: Wrong type of data transaction.`) // 상기 횟수에 따라 오류가 발생할 경우, 관리자 Alert 를 띄워야 한다.
           }
         } else {
-          // console.log(`2222222222222222222222222222 start`)
-          // appCount++
-          // 이 부분이 IoT 로 보내기 위해 App 으로부터 받는 부분이다.
-
           // App 에서 IoT 로 보내기 위해 받는 Protocol
           // a001, 자전거 번호, unlock...
           let app_to_iot_data = data_elements.split(',')
@@ -303,73 +295,19 @@ var server = net.createServer(async function (socket) {
             return final_send_codes
           }
 
-          // function real_send (value){
-          //   const
-          // }
-
-          //TODO: 함수 값을 배열에 담아서 그 후로 뺀다.
-
-          //FIXME: 같은 바이크에 거의 동시에 같은 명령이 왔을 경우에는 하나의 명령을 block 하고 먼저 온 한 개만 수행?
-          async function CheckBikeStatus() {
-            const result = await (
-              await connection()
-            ).query(`SELECT * FROM iot_thread_data WHERE bike_id = ${bike_id_for_app} LIMIT 1`)
-
-            if (!result[0]) {
-              await (
-                await connection()
-              ).query(
-                `INSERT INTO iot_thread_data (bike_id, command) values(${bike_id_for_app}, ${app_to_iot_data[2]})`,
-              )
-
-              return
-            }
-            return result[0].command
-          }
-
           async function updateBikeStatus(order) {
-            isSending = true
             const code = order === 'unlock' ? '01' : order === 'page' ? '02' : null
             if (!code) return socket.write('not order')
-            // if (code === '00' || code === '01') {
-            //   const updateBikeStatusQuery = `UPDATE iot_status SET is_locked = ? WHERE bike_id = ?`
-            //   await (await connection()).execute(updateBikeStatusQuery, [code === '00' ? 'YES' : 'NO', bike_id_for_app])
-            // }
-            // console.log({ toBikeCode: sending_codes(code) })
-            // console.log('appSocket : order is ' + order)
 
-            // if (traffic_light == 'red') {
-            //   console.log('Nothing can come in!')
-            // } else if (traffic_light == 'green') {
-            //   result_array.push(sending_codes(code))
-
-            //   traffic_light = 'red'
-
-            //   sockets[bike_id_for_app].write(sending_codes(code))
-            //   // sock.write(result_array[0], () => console.log('socketState :' + sock.readyState))
-
-            //   console.time('writeStart')
-            //   console.log('Hi, I am the result_array[0]... There should be ONLY 1 value!!!' + result_array[0])
-            //   console.timeEnd('writeStart')
-            //   await new Promise(resolve => setTimeout(resolve, 500))
             if (beforeSendBikeId === bike_id_for_app) await new Promise(resolve => setTimeout(resolve, 1000))
 
-            sockets[bike_id_for_app].write(sending_codes(code), () => {
-              if (isSending) {
-                console.log('%%%%%%%%%%%%%%%%%write callback%%%%%%%%%%%%%%%%')
-                release()
-              }
-            })
+            sockets[bike_id_for_app].write(sending_codes(code))
             beforeSendBikeId = bike_id_for_app
-            // sockets[bike_id_for_app].pause()
-            // setTimeout(() => sockets[bike_id_for_app].resume(), 1000)
 
             socket.write(sending_codes(code))
             socket.write('   ') // App 한테 보내는 것
             socket.write(getCurrentTime())
             socket.destroy()
-            //   traffic_light = 'green'
-            // }
           }
 
           if (app_to_iot_data[0] == process.env.APP_SIG) {
@@ -379,28 +317,18 @@ var server = net.createServer(async function (socket) {
             } else {
               if (!sockets[bike_id_for_app]) {
                 socket.write('no connected bike!')
+                console.log('통신이 연결된 자전거가 아닙니다')
                 return
               }
               await updateBikeStatus(app_to_iot_data[2])
-              // console.time('unshift')
-              // console.log('Before unshift: ' + result_array)
-              // result_array.shift()
-              // console.log('After unshift: ' + result_array)
-              // console.timeEnd('unshift')
             }
           } else {
             socket.write('sorry, no bike')
           }
-          // console.log(`222222222222222222 END`)
         }
       })
     } finally {
-      if (!isSending) {
-        console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^release scope^^^^^^^^^^^^^^^^^^^^^^^^')
-      } else {
-        console.log('isSending Is False')
-        isSending = false
-      }
+      console.log('--------------------finally execute-----------------------')
       release()
     }
 
