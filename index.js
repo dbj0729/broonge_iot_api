@@ -203,8 +203,8 @@ var server = net.createServer(async function (socket) {
                 f_1_lat,
                 f_1_lng,
                 f_2_signal_strength,
-                Number(f_1_lat),
                 Number(f_1_lng),
+                Number(f_1_lat),
                 bike_id_from_iot,
               ])
 
