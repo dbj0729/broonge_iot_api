@@ -397,11 +397,11 @@ var server = net.createServer(async function (socket) {
     } finally {
       if (!isSending) {
         console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^release scope^^^^^^^^^^^^^^^^^^^^^^^^')
-        release()
       } else {
         console.log('isSending Is False')
         isSending = false
       }
+      release()
     }
 
     socket.on('error', function (err) {
