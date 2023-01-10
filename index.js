@@ -54,8 +54,6 @@ require('dotenv').config()
 const { connection } = require('./config/database')
 
 const IOT_PORT = process.env.IOT_PORT || '8000'
-
-let gps_obj = {}
 // const distance_value = 0 @DBJ 없어도 되나?
 
 // IoT 에서 받는 Header byte size
@@ -217,50 +215,31 @@ var server = net.createServer(async function (socket) {
               ])
 
               if (f_4_device_status === '00') {
-                let gps_array = []
-                let gps_object = { lat: Number(f_1_lat), lng: Number(f_1_lng) }
+                const selectBikeRiding = `SELECT * FROM riding_data WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
+                const [selectResult] = await (await connection()).query(selectBikeRiding, [bike_id_from_iot])
 
-                if (gps_obj[bike_id_from_iot]) gps_array = gps_obj[bike_id_from_iot]
+                let coordinates = []
+                let dist = 0
+                if (selectResult[0].coordinates) {
+                  coordinates = JSON.parse(selectResult[0].coordinates)
+                  dist = distance(
+                    f_1_lat,
+                    f_1_lng,
+                    coordinates[coordinates.length - 1].lat,
+                    coordinates[coordinates.length - 1].lng,
+                    'K',
+                  )
 
-                if (gps_array.length === 0) {
-                  gps_object = { ...gps_object, totalDist: 0 }
-                  gps_array.push(gps_object)
-                  gps_obj[bike_id_from_iot] = gps_array
+                  if (dist === 0) return
                 }
 
-                const last = gps_array[gps_array.length - 1]
-                console.log({ last })
-                const dist = distance(f_1_lat, f_1_lng, Number(last.lat), Number(last.lng), 'K')
+                coordinates = [...coordinates, { lat: Number(f_1_lat), lng: Number(f_1_lng) }]
 
-                if (dist === 0) {
-                  console.log('위치변화가 없습니다.')
-                  return
-                }
-
-                const totalDist = distance_sum(dist, last.totalDist)
-                gps_object = { ...gps_object, totalDist: totalDist }
-
-                gps_array.push(gps_object)
-                gps_obj[bike_id_from_iot] = gps_array
-
-                console.log({ gps_array })
-              } else {
-                if (!gps_obj[bike_id_from_iot]) {
-                  console.log(bike_id_from_iot + ': 주행기록이 없는 자전거입니다.')
-                  return
-                }
-                const updateBikeStatusQuery2 = `UPDATE riding_data SET distance = ?, coordinates = ? WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
-                const ridingData = gps_obj[bike_id_from_iot]
-                const lastIdx = ridingData.length - 1
-                const dist = ridingData[lastIdx].totalDist
-
+                const updateBikeRiding = `UPDATE riding_data set coordinates = ?, distance = ? WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
                 await (
                   await connection()
-                ).query(updateBikeStatusQuery2, [dist.toFixed(3), JSON.stringify(ridingData), bike_id_from_iot])
-                delete gps_obj[bike_id_from_iot]
-                console.log('GPS array has been reset.')
+                ).query(updateBikeRiding, [JSON.stringify(coordinates), dist, bike_id_from_iot])
               }
-              // }
             } catch (error) {
               console.log(error)
             }
@@ -329,6 +308,7 @@ var server = net.createServer(async function (socket) {
       })
     } finally {
       console.log('--------------------finally execute-----------------------')
+      await new Promise(resolve => setTimeout(resolve, 300))
       release()
     }
 
