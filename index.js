@@ -219,11 +219,11 @@ var server = net.createServer(async function (socket) {
                 const [selectResult] = await (await connection()).query(selectBikeRiding, [bike_id_from_iot])
 
                 let coordinates = []
-                let dist = 0
+                let dist = selectResult[0].distance ? selectResult[0].distance : 0
                 console.log({ selectResult })
                 if (selectResult[0].coordinates) {
                   coordinates = JSON.parse(selectResult[0].coordinates)
-                  dist = distance(
+                  const distPoints = distance(
                     Number(f_1_lat),
                     Number(f_1_lng),
                     Number(coordinates[coordinates.length - 1].lat),
@@ -239,9 +239,11 @@ var server = net.createServer(async function (socket) {
                   console.log('현재위치 : ' + f_1_lat + ' , ' + f_1_lng)
                   console.log({ dist })
 
-                  if (dist === 0) {
+                  if (distPoints === 0) {
                     console.log('위치변화가 없습니다.')
                     return
+                  } else {
+                    dist += distPoints
                   }
                 }
 
