@@ -230,7 +230,10 @@ var server = net.createServer(async function (socket) {
                     'K',
                   )
 
-                  if (dist === 0) return
+                  if (dist === 0) {
+                    console.log('위치변화가 없습니다.')
+                    return
+                  }
                 }
 
                 coordinates = [...coordinates, { lat: Number(f_1_lat), lng: Number(f_1_lng) }]
