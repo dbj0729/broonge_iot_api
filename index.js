@@ -223,10 +223,10 @@ var server = net.createServer(async function (socket) {
                 if (selectResult[0].coordinates) {
                   coordinates = JSON.parse(selectResult[0].coordinates)
                   dist = distance(
-                    f_1_lat,
-                    f_1_lng,
-                    coordinates[coordinates.length - 1].lat,
-                    coordinates[coordinates.length - 1].lng,
+                    Number(f_1_lat),
+                    Number(f_1_lng),
+                    Number(coordinates[coordinates.length - 1].lat),
+                    Number(coordinates[coordinates.length - 1].lng),
                     'K',
                   )
 
