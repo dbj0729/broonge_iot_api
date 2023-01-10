@@ -241,7 +241,7 @@ var server = net.createServer(async function (socket) {
                 const updateBikeRiding = `UPDATE riding_data set coordinates = ?, distance = ? WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
                 await (
                   await connection()
-                ).query(updateBikeRiding, [JSON.stringify(coordinates), dist, bike_id_from_iot])
+                ).query(updateBikeRiding, [JSON.stringify(coordinates), dist.toFixed(3), bike_id_from_iot])
               }
             } catch (error) {
               console.log(error)
