@@ -220,6 +220,7 @@ var server = net.createServer(async function (socket) {
 
                 let coordinates = []
                 let dist = 0
+                console.log({ selectResult })
                 if (selectResult[0].coordinates) {
                   coordinates = JSON.parse(selectResult[0].coordinates)
                   dist = distance(
@@ -229,6 +230,14 @@ var server = net.createServer(async function (socket) {
                     Number(coordinates[coordinates.length - 1].lng),
                     'K',
                   )
+                  console.log(
+                    '마지막 위치 : ' +
+                      coordinates[coordinates.length - 1].lat +
+                      ' , ' +
+                      coordinates[coordinates.length - 1].lng,
+                  )
+                  console.log('현재위치 : ' + f_1_lat + ' , ' + f_1_lng)
+                  console.log({ dist })
 
                   if (dist === 0) {
                     console.log('위치변화가 없습니다.')
