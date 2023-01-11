@@ -219,7 +219,7 @@ var server = net.createServer(async function (socket) {
                 const [selectResult] = await (await connection()).query(selectBikeRiding, [bike_id_from_iot])
 
                 let coordinates = []
-                let dist = selectResult[0].distance ? selectResult[0].distance : 0
+                let dist = selectResult[0].distance ? Number(selectResult[0].distance) : 0
                 console.log({ selectResult })
                 if (selectResult[0].coordinates) {
                   coordinates = JSON.parse(selectResult[0].coordinates)
