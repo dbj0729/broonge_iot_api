@@ -110,6 +110,7 @@ var server = net.createServer(async function (socket) {
       socket.on('data', async function (data) {
         const data_elements = data.toString('utf-8').trim()
         console.log(data_elements)
+        console.log('연결된 자전거 ' + Object.keys(sockets))
         // IoT 로부터 받는 정보이다.
         const sig = data_elements.slice(0, sig_1)
         const group = data_elements.slice(sig_1, sig_2)
