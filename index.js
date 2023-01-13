@@ -91,9 +91,6 @@ let beforeSendBikeId = ''
 
 // 서버 생성
 var server = net.createServer(async function (socket) {
-  console.log(
-    '---------------------------------------------------------------------------------------------------------------------------',
-  )
   const release1 = await mutex.acquire()
   try {
     // client로 부터 오는 data를 화면에 출력
@@ -109,8 +106,8 @@ var server = net.createServer(async function (socket) {
     try {
       socket.on('data', async function (data) {
         const data_elements = data.toString('utf-8').trim()
-        console.log(data_elements)
-        console.log('연결된 자전거 ' + Object.keys(sockets))
+        // console.log(data_elements)
+        // console.log('연결된 자전거 ' + Object.keys(sockets))
         // IoT 로부터 받는 정보이다.
         const sig = data_elements.slice(0, sig_1)
         const group = data_elements.slice(sig_1, sig_2)
@@ -119,8 +116,8 @@ var server = net.createServer(async function (socket) {
         const version = data_elements.slice(sig_4, sig_5) // version 을 넣으니까 if 문에서 막힌다.
         const message_length = data_elements.slice(sig_5, sig_6)
 
-        console.log('version: ' + version)
-        console.log('message_length: ' + message_length)
+        // console.log('version: ' + version)
+        // console.log('message_length: ' + message_length)
 
         const f_1_gps = data_elements.slice(sig_6, sig_7)
 
@@ -171,6 +168,9 @@ var server = net.createServer(async function (socket) {
           if (checksum == manually_added_0x) {
             // IoT 로 부터 받은 값이 모두 문제 없이 다 통과했을 때 실행
             try {
+              if (bike_id_from_iot == '1223135543') {
+                console.log({ bike_id_from_iot, lat: f_1_lat, lng: f_1_lng })
+              }
               //자전거가 보낸 통신일 경우
               //DB에 해당 자전거 ID가 등록되어 있는지 확인
               const findBikeInIotStatusQuery = `SELECT * FROM iot_status WHERE bike_id = ? limit 1`
@@ -221,7 +221,7 @@ var server = net.createServer(async function (socket) {
 
                 let coordinates = []
                 let dist = selectResult[0].distance ? Number(selectResult[0].distance) : 0
-                console.log({ selectResult })
+
                 if (selectResult[0].coordinates) {
                   coordinates = JSON.parse(selectResult[0].coordinates)
                   const distPoints = distance(
@@ -231,17 +231,17 @@ var server = net.createServer(async function (socket) {
                     Number(coordinates[coordinates.length - 1].lng),
                     'K',
                   )
-                  console.log(
-                    '마지막 위치 : ' +
-                      coordinates[coordinates.length - 1].lat +
-                      ' , ' +
-                      coordinates[coordinates.length - 1].lng,
-                  )
-                  console.log('현재위치 : ' + f_1_lat + ' , ' + f_1_lng)
-                  console.log({ dist })
+                  // console.log(
+                  //   '마지막 위치 : ' +
+                  //     coordinates[coordinates.length - 1].lat +
+                  //     ' , ' +
+                  //     coordinates[coordinates.length - 1].lng,
+                  // )
+                  // console.log('현재위치 : ' + f_1_lat + ' , ' + f_1_lng)
+                  // console.log({ dist })
 
                   if (distPoints === 0) {
-                    console.log('위치변화가 없습니다.')
+                    // console.log('위치변화가 없습니다.')
                     return
                   } else {
                     dist += distPoints
