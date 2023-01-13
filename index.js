@@ -1,3 +1,4 @@
+let i = 1
 const net = require('net')
 // const readlinePromises = require("node:readline");
 // const rl = readlinePromises.createInterface({
@@ -170,6 +171,8 @@ var server = net.createServer(async function (socket) {
             try {
               if (bike_id_from_iot == '1223135543' || bike_id_from_iot == '1223146045') {
                 console.log({ fullData: data_elements }, getCurrentTime())
+                i++
+                console.log(i)
               }
               //자전거가 보낸 통신일 경우
               //DB에 해당 자전거 ID가 등록되어 있는지 확인
