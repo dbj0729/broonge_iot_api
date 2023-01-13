@@ -168,7 +168,7 @@ var server = net.createServer(async function (socket) {
           if (checksum == manually_added_0x) {
             // IoT 로 부터 받은 값이 모두 문제 없이 다 통과했을 때 실행
             try {
-              if (bike_id_from_iot == '1223135543') {
+              if (bike_id_from_iot == '1223135543' || bike_id_from_iot == '1223146045') {
                 console.log({ bike_id_from_iot, lat: f_1_lat, lng: f_1_lng })
               }
               //자전거가 보낸 통신일 경우
