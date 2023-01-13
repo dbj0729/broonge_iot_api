@@ -91,7 +91,7 @@ let beforeSendBikeId = ''
 
 // 서버 생성
 var server = net.createServer(async function (socket) {
-  // const release1 = await mutex.acquire()
+  const release1 = await mutex.acquire()
   try {
     // client로 부터 오는 data를 화면에 출력
     /* 
@@ -102,11 +102,9 @@ var server = net.createServer(async function (socket) {
     console.log(socket.address().address + ' Started Broonge IoT Server on ' + getCurrentTime())
     socket.setNoDelay(false)
     socket.id = socket.remoteAddress + ':' + socket.remotePort
-    // const [value, release] = await semaphore.acquire()
+    const [value, release] = await semaphore.acquire()
     try {
-      console.log('a')
       socket.on('data', async function (data) {
-        console.log('b')
         const data_elements = data.toString('utf-8').trim()
         // console.log(data_elements)
         // console.log('연결된 자전거 ' + Object.keys(sockets))
@@ -143,7 +141,6 @@ var server = net.createServer(async function (socket) {
           // &&
           // message_length == process.env.IOT_ERROR_MESSAGE_LENGTH
         ) {
-          console.log('c')
           const error_report_code = data_elements.slice(sig_6, sig_error_report)
           console.log('ERROR_REPORT_CODE:' + error_report_code)
         } else if (
@@ -153,7 +150,6 @@ var server = net.createServer(async function (socket) {
           // message_length == process.env.IOT_MESSAGE_LENGTH &&
           manual_codes.length !== 0
         ) {
-          console.log('d')
           const combined_manual_codes = manual_codes.split('') // data 에서 온 raw 값을 글자 단위로 쪼갠 결과
           const manual_codes_value = combined_manual_codes
             .map(item => item.charCodeAt())
@@ -164,34 +160,32 @@ var server = net.createServer(async function (socket) {
           // 만약, Checksum 이 다른 경우에는 데이터를 버려버린다. IoT 에 Return 할 필요는 없다.
           // 단, 만약, 20회 이상 Checksum 오류가 나는 경우에는 관리자에게 안내를 해 줘야 한다.
           manual_codes_value_verification = manual_codes_value.toString(16) // 분배된 값을 16진수로 변경
-          console.log('e')
+
           manually_added_0x = '0' + manual_codes_value_verification // 마지막 checksum 에 0이 빠져서 0을 넣음
-          console.log('f')
+
           sockets[bike_id_from_iot] = socket
-          console.log('g')
+
           if (checksum == manually_added_0x) {
             // IoT 로 부터 받은 값이 모두 문제 없이 다 통과했을 때 실행
             try {
-              console.log('h')
-
-              console.log({ bike_id_from_iot, lat: f_1_lat, lng: f_1_lng })
-
+              if (bike_id_from_iot == '1223135543' || bike_id_from_iot == '1223146045') {
+                console.log({ fullData: data_elements }, getCurrentTime())
+              }
               //자전거가 보낸 통신일 경우
               //DB에 해당 자전거 ID가 등록되어 있는지 확인
               const findBikeInIotStatusQuery = `SELECT * FROM iot_status WHERE bike_id = ? limit 1`
               const [findBikeInIotStatus] = await (
                 await connection()
               ).query(findBikeInIotStatusQuery, [bike_id_from_iot])
-              console.log('i')
+
               if (findBikeInIotStatus.length === 0) {
                 console.log('등록되지 않은 자전거입니다.')
                 return
               }
-              console.log('j')
+
               if (gps_reformatted.length === 1 && findBikeInIotStatus) {
                 f_1_lng = findBikeInIotStatus[0].lng
                 f_1_lat = findBikeInIotStatus[0].lat
-                console.log('k')
               }
 
               const findBikeInBikesQuery = `SELECT * FROM bikes WHERE id = ? limit 1`
@@ -329,8 +323,8 @@ var server = net.createServer(async function (socket) {
       })
     } finally {
       console.log('--------------------finally execute-----------------------')
-      // await new Promise(resolve => setTimeout(resolve, 300))
-      // release()
+      await new Promise(resolve => setTimeout(resolve, 300))
+      release()
     }
 
     socket.on('error', function (err) {
@@ -353,8 +347,8 @@ var server = net.createServer(async function (socket) {
     // client가 접속하면 화면에 출력해주는 메시지
     // socket.write('Welcome')
   } finally {
-    // await new Promise(resolve => setTimeout(resolve, 300))
-    // release1()
+    await new Promise(resolve => setTimeout(resolve, 300))
+    release1()
   }
 })
 
