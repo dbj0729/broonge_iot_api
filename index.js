@@ -104,6 +104,7 @@ var server = net.createServer(async function (socket) {
     socket.id = socket.remoteAddress + ':' + socket.remotePort
     // const [value, release] = await semaphore.acquire()
     try {
+      console.log('1')
       socket.on('data', async function (data) {
         const data_elements = data.toString('utf-8').trim()
         // console.log(data_elements)
@@ -167,98 +168,97 @@ var server = net.createServer(async function (socket) {
 
           if (checksum == manually_added_0x) {
             // IoT 로 부터 받은 값이 모두 문제 없이 다 통과했을 때 실행
-            // try {
-            //   if (bike_id_from_iot == '1223135543' || bike_id_from_iot == '1223146045') {
-            //     console.log({ bike_id_from_iot, lat: f_1_lat, lng: f_1_lng })
-            //   }
-            //   //자전거가 보낸 통신일 경우
-            //   //DB에 해당 자전거 ID가 등록되어 있는지 확인
-            //   const findBikeInIotStatusQuery = `SELECT * FROM iot_status WHERE bike_id = ? limit 1`
-            //   const [findBikeInIotStatus] = await (
-            //     await connection()
-            //   ).query(findBikeInIotStatusQuery, [bike_id_from_iot])
+            try {
+              if (bike_id_from_iot == '1223135543' || bike_id_from_iot == '1223146045') {
+                console.log({ bike_id_from_iot, lat: f_1_lat, lng: f_1_lng })
+              }
+              //자전거가 보낸 통신일 경우
+              //DB에 해당 자전거 ID가 등록되어 있는지 확인
+              const findBikeInIotStatusQuery = `SELECT * FROM iot_status WHERE bike_id = ? limit 1`
+              const [findBikeInIotStatus] = await (
+                await connection()
+              ).query(findBikeInIotStatusQuery, [bike_id_from_iot])
 
-            //   if (findBikeInIotStatus.length === 0) {
-            //     console.log('등록되지 않은 자전거입니다.')
-            //     return
-            //   }
+              if (findBikeInIotStatus.length === 0) {
+                console.log('등록되지 않은 자전거입니다.')
+                return
+              }
 
-            //   if (gps_reformatted.length === 1 && findBikeInIotStatus) {
-            //     f_1_lng = findBikeInIotStatus[0].lng
-            //     f_1_lat = findBikeInIotStatus[0].lat
-            //   }
+              if (gps_reformatted.length === 1 && findBikeInIotStatus) {
+                f_1_lng = findBikeInIotStatus[0].lng
+                f_1_lat = findBikeInIotStatus[0].lat
+              }
 
-            //   const findBikeInBikesQuery = `SELECT * FROM bikes WHERE id = ? limit 1`
-            //   const [findBikeInBikes] = await (await connection()).query(findBikeInBikesQuery, [bike_id_from_iot])
+              const findBikeInBikesQuery = `SELECT * FROM bikes WHERE id = ? limit 1`
+              const [findBikeInBikes] = await (await connection()).query(findBikeInBikesQuery, [bike_id_from_iot])
 
-            //   //TODO: 자전거가 bikes 와 iot 동시에 없거나 있어도 bikes is_active 가 NO 이면 소켓을 끊어야 한다.
-            //   // `SELECT id FROM bikes AS b JOIN iot_status AS iot ON iot.bike_id = b.id WHERE b.is_active = 'YES'`
+              //TODO: 자전거가 bikes 와 iot 동시에 없거나 있어도 bikes is_active 가 NO 이면 소켓을 끊어야 한다.
+              // `SELECT id FROM bikes AS b JOIN iot_status AS iot ON iot.bike_id = b.id WHERE b.is_active = 'YES'`
 
-            //   const partQuery =
-            //     f_4_device_status === '03'
-            //       ? `status = 'malfunction', is_locked = 'malfunction'`
-            //       : f_4_device_status === '00' // 00 이 해제상태
-            //       ? `status = 'in-use', is_locked = 'NO'`
-            //       : f_4_device_status === '01' // 01 이 잠긴상태
-            //       ? `status = 'stand_by', is_locked = 'YES'`
-            //       : `status = 'stand_by', is_locked = 'NO'` // 문제가 발생했다는 의미..? @DBJ on 20221213
-            //   const updateBikeStatusQuery = `UPDATE iot_status SET battery = ?, lat = ?, lng = ?, signal_strength = ?, point = ST_GeomFromText('POINT(? ?)'), ${partQuery} WHERE bike_id = ?`
-            //   const result = await (
-            //     await connection()
-            //   ).query(updateBikeStatusQuery, [
-            //     f_3_battery,
-            //     f_1_lat,
-            //     f_1_lng,
-            //     f_2_signal_strength,
-            //     Number(f_1_lng),
-            //     Number(f_1_lat),
-            //     bike_id_from_iot,
-            //   ])
+              const partQuery =
+                f_4_device_status === '03'
+                  ? `status = 'malfunction', is_locked = 'malfunction'`
+                  : f_4_device_status === '00' // 00 이 해제상태
+                  ? `status = 'in-use', is_locked = 'NO'`
+                  : f_4_device_status === '01' // 01 이 잠긴상태
+                  ? `status = 'stand_by', is_locked = 'YES'`
+                  : `status = 'stand_by', is_locked = 'NO'` // 문제가 발생했다는 의미..? @DBJ on 20221213
+              const updateBikeStatusQuery = `UPDATE iot_status SET battery = ?, lat = ?, lng = ?, signal_strength = ?, point = ST_GeomFromText('POINT(? ?)'), ${partQuery} WHERE bike_id = ?`
+              const result = await (
+                await connection()
+              ).query(updateBikeStatusQuery, [
+                f_3_battery,
+                f_1_lat,
+                f_1_lng,
+                f_2_signal_strength,
+                Number(f_1_lng),
+                Number(f_1_lat),
+                bike_id_from_iot,
+              ])
 
-            //   if (f_4_device_status === '00') {
-            //     const selectBikeRiding = `SELECT * FROM riding_data WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
-            //     const [selectResult] = await (await connection()).query(selectBikeRiding, [bike_id_from_iot])
+              if (f_4_device_status === '00') {
+                const selectBikeRiding = `SELECT * FROM riding_data WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
+                const [selectResult] = await (await connection()).query(selectBikeRiding, [bike_id_from_iot])
 
-            //     let coordinates = []
-            //     let dist = selectResult[0].distance ? Number(selectResult[0].distance) : 0
+                let coordinates = []
+                let dist = selectResult[0].distance ? Number(selectResult[0].distance) : 0
 
-            //     if (selectResult[0].coordinates) {
-            //       coordinates = JSON.parse(selectResult[0].coordinates)
-            //       const distPoints = distance(
-            //         Number(f_1_lat),
-            //         Number(f_1_lng),
-            //         Number(coordinates[coordinates.length - 1].lat),
-            //         Number(coordinates[coordinates.length - 1].lng),
-            //         'K',
-            //       )
-            //       // console.log(
-            //       //   '마지막 위치 : ' +
-            //       //     coordinates[coordinates.length - 1].lat +
-            //       //     ' , ' +
-            //       //     coordinates[coordinates.length - 1].lng,
-            //       // )
-            //       // console.log('현재위치 : ' + f_1_lat + ' , ' + f_1_lng)
-            //       // console.log({ dist })
+                if (selectResult[0].coordinates) {
+                  coordinates = JSON.parse(selectResult[0].coordinates)
+                  const distPoints = distance(
+                    Number(f_1_lat),
+                    Number(f_1_lng),
+                    Number(coordinates[coordinates.length - 1].lat),
+                    Number(coordinates[coordinates.length - 1].lng),
+                    'K',
+                  )
+                  // console.log(
+                  //   '마지막 위치 : ' +
+                  //     coordinates[coordinates.length - 1].lat +
+                  //     ' , ' +
+                  //     coordinates[coordinates.length - 1].lng,
+                  // )
+                  // console.log('현재위치 : ' + f_1_lat + ' , ' + f_1_lng)
+                  // console.log({ dist })
 
-            //       if (distPoints === 0) {
-            //         // console.log('위치변화가 없습니다.')
-            //         return
-            //       } else {
-            //         dist += distPoints
-            //       }
-            //     }
+                  if (distPoints === 0) {
+                    // console.log('위치변화가 없습니다.')
+                    return
+                  } else {
+                    dist += distPoints
+                  }
+                }
 
-            //     coordinates = [...coordinates, { lat: Number(f_1_lat), lng: Number(f_1_lng) }]
+                coordinates = [...coordinates, { lat: Number(f_1_lat), lng: Number(f_1_lng) }]
 
-            //     const updateBikeRiding = `UPDATE riding_data set coordinates = ?, distance = ? WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
-            //     await (
-            //       await connection()
-            //     ).query(updateBikeRiding, [JSON.stringify(coordinates), dist.toFixed(3), bike_id_from_iot])
-            //   }
-            // } catch (error) {
-            //   console.log(error)
-            // }
-            console.log('1')
+                const updateBikeRiding = `UPDATE riding_data set coordinates = ?, distance = ? WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
+                await (
+                  await connection()
+                ).query(updateBikeRiding, [JSON.stringify(coordinates), dist.toFixed(3), bike_id_from_iot])
+              }
+            } catch (error) {
+              console.log(error)
+            }
           } else {
             delete sockets[bike_id_from_iot]
             // socket.destroy()
