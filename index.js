@@ -173,9 +173,9 @@ var server = net.createServer(async function (socket) {
             // IoT 로 부터 받은 값이 모두 문제 없이 다 통과했을 때 실행
             try {
               console.log('h')
-              if (bike_id_from_iot == '1223135543' || bike_id_from_iot == '1223146045') {
-                console.log({ bike_id_from_iot, lat: f_1_lat, lng: f_1_lng })
-              }
+
+              console.log({ bike_id_from_iot, lat: f_1_lat, lng: f_1_lng })
+
               //자전거가 보낸 통신일 경우
               //DB에 해당 자전거 ID가 등록되어 있는지 확인
               const findBikeInIotStatusQuery = `SELECT * FROM iot_status WHERE bike_id = ? limit 1`
