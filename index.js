@@ -91,7 +91,7 @@ let beforeSendBikeId = ''
 
 // 서버 생성
 var server = net.createServer(async function (socket) {
-  const release1 = await mutex.acquire()
+  // const release1 = await mutex.acquire()
   try {
     // client로 부터 오는 data를 화면에 출력
     /* 
@@ -102,7 +102,7 @@ var server = net.createServer(async function (socket) {
     console.log(socket.address().address + ' Started Broonge IoT Server on ' + getCurrentTime())
     socket.setNoDelay(false)
     socket.id = socket.remoteAddress + ':' + socket.remotePort
-    const [value, release] = await semaphore.acquire()
+    // const [value, release] = await semaphore.acquire()
     try {
       socket.on('data', async function (data) {
         const data_elements = data.toString('utf-8').trim()
@@ -323,8 +323,8 @@ var server = net.createServer(async function (socket) {
       })
     } finally {
       console.log('--------------------finally execute-----------------------')
-      await new Promise(resolve => setTimeout(resolve, 300))
-      release()
+      // await new Promise(resolve => setTimeout(resolve, 300))
+      // release()
     }
 
     socket.on('error', function (err) {
@@ -347,8 +347,8 @@ var server = net.createServer(async function (socket) {
     // client가 접속하면 화면에 출력해주는 메시지
     // socket.write('Welcome')
   } finally {
-    await new Promise(resolve => setTimeout(resolve, 300))
-    release1()
+    // await new Promise(resolve => setTimeout(resolve, 300))
+    // release1()
   }
 })
 
