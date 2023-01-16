@@ -202,7 +202,7 @@ var server = net.createServer(async function (socket) {
                   ? `status = 'stand_by', is_locked = 'YES'`
                   : `status = 'stand_by', is_locked = 'NO'` // 문제가 발생했다는 의미..? @DBJ on 20221213
               const updateBikeStatusQuery = `UPDATE iot_status SET battery = ?, lat = ?, lng = ?, signal_strength = ?, point = ST_GeomFromText('POINT(? ?)'), ${partQuery} WHERE bike_id = ?`
-              const result = await (
+              const [result] = await (
                 await connection()
               ).query(updateBikeStatusQuery, [
                 f_3_battery,
@@ -213,6 +213,8 @@ var server = net.createServer(async function (socket) {
                 Number(f_1_lat),
                 bike_id_from_iot,
               ])
+
+              console.log('update complete ' + bike_id_from_iot, result)
 
               if (f_4_device_status === '00') {
                 const selectBikeRiding = `SELECT * FROM riding_data WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
