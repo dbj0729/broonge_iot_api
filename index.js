@@ -100,6 +100,7 @@ var server = net.createServer(async function (socket) {
     */
     // let bike_id_from_iot
     console.log(socket.address().address + ' Started Broonge IoT Server on ' + getCurrentTime())
+    socket.setNoDelay(true)
     socket.id = socket.remoteAddress + ':' + socket.remotePort
     const [value, release] = await semaphore.acquire()
     try {
