@@ -214,8 +214,6 @@ var server = net.createServer(async function (socket) {
                 bike_id_from_iot,
               ])
 
-              console.log('update complete ' + bike_id_from_iot, result)
-
               if (f_4_device_status === '00') {
                 const selectBikeRiding = `SELECT * FROM riding_data WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
                 const [selectResult] = await (await connection()).query(selectBikeRiding, [bike_id_from_iot])
