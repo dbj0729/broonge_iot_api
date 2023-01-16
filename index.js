@@ -168,7 +168,7 @@ var server = net.createServer(async function (socket) {
           if (checksum == manually_added_0x) {
             // IoT 로 부터 받은 값이 모두 문제 없이 다 통과했을 때 실행
             try {
-              console.log({ bikeId: bike_id_from_iot }, getCurrentTime())
+              console.log({ bikeId: bike_id_from_iot, data: data_elements }, getCurrentTime())
 
               //자전거가 보낸 통신일 경우
               //DB에 해당 자전거 ID가 등록되어 있는지 확인
