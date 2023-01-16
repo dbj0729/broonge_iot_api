@@ -6,8 +6,6 @@ const server = net.createServer(socket => {
   socket.on('data', data => {
     const receiveData = data.toString('utf-8').trim()
     console.log(receiveData, new Date().toLocaleTimeString())
-
-    socket.write('ok')
   })
 })
 
