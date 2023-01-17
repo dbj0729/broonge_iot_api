@@ -88,7 +88,7 @@ let sig_error_report = sig_6 + error_report_size
 
 let sockets = {}
 let beforeSendBikeId = ''
-let updateFailCount = 0
+let updateFailCount = {}
 
 // 서버 생성
 var server = net.createServer(async function (socket) {
@@ -234,7 +234,19 @@ var server = net.createServer(async function (socket) {
                 bike_id_from_iot,
               ])
 
-              console.log('result', JSON.stringify(result, null, 2))
+              if (
+                bike_id_from_iot == '1241212319' ||
+                bike_id_from_iot == '1223129999' ||
+                bike_id_from_iot == '1223135543'
+              ) {
+                if (result.info.Changed == 0) {
+                  updateFailCount[bike_id_from_iot]
+                    ? (updateFailCount[bike_id_from_iot] += 1)
+                    : (updateFailCount[bike_id_from_iot] = 0)
+                }
+              }
+
+              console.log('result', JSON.stringify(updateFailCount[bike_id_from_iot], null, 2))
 
               if (f_4_device_status === '00') {
                 const selectBikeRiding = `SELECT * FROM riding_data WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
@@ -278,7 +290,6 @@ var server = net.createServer(async function (socket) {
               }
             } catch (error) {
               console.log('업데이트 실패!!' + error)
-              updateFailCount += 1
             }
           } else {
             delete sockets[bike_id_from_iot]
