@@ -186,7 +186,11 @@ var server = net.createServer(async function (socket) {
           if (checksum == manually_added_0x) {
             // IoT 로 부터 받은 값이 모두 문제 없이 다 통과했을 때 실행
             try {
-              if (bike_id_from_iot == '1223135543')
+              if (
+                bike_id_from_iot == '1223135543' ||
+                bike_id_from_iot == '1241212319' ||
+                bike_id_from_iot == '1223129999'
+              )
                 console.log({ bikeId: bike_id_from_iot, data: data_elements }, getCurrentTime())
 
               //자전거가 보낸 통신일 경우
