@@ -188,7 +188,6 @@ var server = net.createServer(async function (socket) {
             // IoT 로 부터 받은 값이 모두 문제 없이 다 통과했을 때 실행
             try {
               console.log({ bikeId: bike_id_from_iot, data: data_elements }, getCurrentTime())
-              console.log('업데이트 실패 횟수 : ' + updateFailCount)
 
               //자전거가 보낸 통신일 경우
               //DB에 해당 자전거 ID가 등록되어 있는지 확인
@@ -237,12 +236,13 @@ var server = net.createServer(async function (socket) {
               if (
                 bike_id_from_iot == '1241212319' ||
                 bike_id_from_iot == '1223129999' ||
-                bike_id_from_iot == '1223135543'
+                bike_id_from_iot == '1223135543' ||
+                bike_id_from_iot == '1221326819'
               ) {
                 if (result.info.Changed == 0) {
                   updateFailCount[bike_id_from_iot]
                     ? (updateFailCount[bike_id_from_iot] += 1)
-                    : (updateFailCount[bike_id_from_iot] = 0)
+                    : (updateFailCount[bike_id_from_iot] = 1)
                 }
                 console.log('result', JSON.stringify(updateFailCount[bike_id_from_iot], null, 2))
               }
