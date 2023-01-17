@@ -244,9 +244,8 @@ var server = net.createServer(async function (socket) {
                     ? (updateFailCount[bike_id_from_iot] += 1)
                     : (updateFailCount[bike_id_from_iot] = 0)
                 }
+                console.log('result', JSON.stringify(updateFailCount[bike_id_from_iot], null, 2))
               }
-
-              console.log('result', JSON.stringify(updateFailCount[bike_id_from_iot], null, 2))
 
               if (f_4_device_status === '00') {
                 const selectBikeRiding = `SELECT * FROM riding_data WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
