@@ -88,6 +88,7 @@ let sig_error_report = sig_6 + error_report_size
 
 let sockets = {}
 let beforeSendBikeId = ''
+let updateFailCount = 0
 
 // 서버 생성
 var server = net.createServer(async function (socket) {
@@ -105,7 +106,7 @@ var server = net.createServer(async function (socket) {
     const [value, release] = await semaphore.acquire()
     try {
       socket.on('error', function (err) {
-        console.log('err' + err)
+        console.log('socket error' + err)
       })
 
       // client와 접속이 끊기는 메시지 출력
@@ -186,12 +187,8 @@ var server = net.createServer(async function (socket) {
           if (checksum == manually_added_0x) {
             // IoT 로 부터 받은 값이 모두 문제 없이 다 통과했을 때 실행
             try {
-              if (
-                bike_id_from_iot == '1223135543' ||
-                bike_id_from_iot == '1241212319' ||
-                bike_id_from_iot == '1223129999'
-              )
-                console.log({ bikeId: bike_id_from_iot, data: data_elements }, getCurrentTime())
+              console.log({ bikeId: bike_id_from_iot, data: data_elements }, getCurrentTime())
+              console.log('업데이트 실패 횟수 : ' + updateFailCount)
 
               //자전거가 보낸 통신일 경우
               //DB에 해당 자전거 ID가 등록되어 있는지 확인
@@ -278,7 +275,8 @@ var server = net.createServer(async function (socket) {
                 ).query(updateBikeRiding, [JSON.stringify(coordinates), dist.toFixed(3), bike_id_from_iot])
               }
             } catch (error) {
-              console.log(error)
+              console.log('업데이트 실패!!' + error)
+              updateFailCount += 1
             }
           } else {
             delete sockets[bike_id_from_iot]
@@ -362,7 +360,7 @@ server.getConnections((err, count) => {
 // 에러가 발생할 경우 화면에 에러메시지 출력
 
 server.on('error', function (err) {
-  console.log('err' + err)
+  console.log('server err' + err)
 })
 
 // .env 의 포트값으로 진행되던가 아니면 9090 으로 진행되던가 해서 접속이 가능하도록 대기
