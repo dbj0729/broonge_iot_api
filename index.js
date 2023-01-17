@@ -104,6 +104,24 @@ var server = net.createServer(async function (socket) {
     socket.id = socket.remoteAddress + ':' + socket.remotePort
     const [value, release] = await semaphore.acquire()
     try {
+      socket.on('error', function (err) {
+        console.log('err' + err)
+      })
+
+      // client와 접속이 끊기는 메시지 출력
+      socket.on('close', function () {
+        // 연결을 끊는 socket이 sockets 안에 등록된 socket인지 판별한다.
+        // const findBikeId = Object.entries(sockets).find(s => s[0] === bike_id_from_iot)
+        // if (findBikeId) {
+        //   console.log('bikeSocket disconnected')
+        //   delete sockets[findBikeId[0]]
+        //   console.log({ sockets })
+        //   return
+        // }
+        // console.log('appSocket has left the IoT Server.')
+        console.log('socket closed')
+      })
+
       socket.on('data', async function (data) {
         const data_elements = data.toString('utf-8').trim()
         // console.log(data_elements)
@@ -326,26 +344,6 @@ var server = net.createServer(async function (socket) {
       await new Promise(resolve => setTimeout(resolve, 300))
       release()
     }
-
-    socket.on('error', function (err) {
-      console.log('err' + err)
-    })
-
-    // client와 접속이 끊기는 메시지 출력
-    socket.on('close', function () {
-      // 연결을 끊는 socket이 sockets 안에 등록된 socket인지 판별한다.
-      // const findBikeId = Object.entries(sockets).find(s => s[0] === bike_id_from_iot)
-      // if (findBikeId) {
-      //   console.log('bikeSocket disconnected')
-      //   delete sockets[findBikeId[0]]
-      //   console.log({ sockets })
-      //   return
-      // }
-      // console.log('appSocket has left the IoT Server.')
-      console.log('socket closed')
-    })
-    // client가 접속하면 화면에 출력해주는 메시지
-    // socket.write('Welcome')
   } finally {
     await new Promise(resolve => setTimeout(resolve, 300))
     release1()
