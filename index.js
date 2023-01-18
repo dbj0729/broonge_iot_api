@@ -245,7 +245,7 @@ var server = net.createServer(async function (socket) {
                     ? (duplicateGPS[bike_id_from_iot] += 1)
                     : (duplicateGPS[bike_id_from_iot] = 1)
                 }
-                console.log('같은 GPS값이 온 횟수', JSON.stringify(duplicateGPS[bike_id_from_iot], null, 2))
+                console.log('같은 값이 온 횟수', JSON.stringify(duplicateGPS[bike_id_from_iot], null, 2))
               }
 
               if (f_4_device_status === '00') {
