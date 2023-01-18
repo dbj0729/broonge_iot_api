@@ -221,7 +221,7 @@ var server = net.createServer(async function (socket) {
                   : f_4_device_status === '01' // 01 이 잠긴상태
                   ? `status = 'stand_by', is_locked = 'YES'`
                   : `status = 'stand_by', is_locked = 'NO'` // 문제가 발생했다는 의미..? @DBJ on 20221213
-              const updateBikeStatusQuery = `UPDATE iot_statuss SET battery = ?, lat = ?, lng = ?, signal_strength = ?, point = ST_GeomFromText('POINT(? ?)'), ${partQuery} WHERE bike_id = ?`
+              const updateBikeStatusQuery = `UPDATE iot_status SET battery = ?, lat = ?, lng = ?, signal_strength = ?, point = ST_GeomFromText('POINT(? ?)'), ${partQuery} WHERE bike_id = ?`
               const [result] = await (
                 await connection()
               ).query(updateBikeStatusQuery, [
