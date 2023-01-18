@@ -287,9 +287,8 @@ var server = net.createServer(async function (socket) {
                 await (
                   await connection()
                 ).query(updateBikeRiding, [JSON.stringify(coordinates), dist.toFixed(3), bike_id_from_iot])
-
-                console.log('업데이트 실패 횟수 : ' + failUpdate)
               }
+              console.log('업데이트 실패 횟수 : ' + failUpdate)
             } catch (error) {
               failUpdate += 1
               console.log('업데이트 실패!!' + error)
