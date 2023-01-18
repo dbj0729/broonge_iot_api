@@ -88,7 +88,8 @@ let sig_error_report = sig_6 + error_report_size
 
 let sockets = {}
 let beforeSendBikeId = ''
-let updateFailCount = {}
+let duplicateGPS = {}
+let failUpdate = 0
 
 // 서버 생성
 var server = net.createServer(async function (socket) {
@@ -240,11 +241,11 @@ var server = net.createServer(async function (socket) {
                 bike_id_from_iot == '1221326819'
               ) {
                 if (result.info.Changed == 0) {
-                  updateFailCount[bike_id_from_iot]
-                    ? (updateFailCount[bike_id_from_iot] += 1)
-                    : (updateFailCount[bike_id_from_iot] = 1)
+                  duplicateGPS[bike_id_from_iot]
+                    ? (duplicateGPS[bike_id_from_iot] += 1)
+                    : (duplicateGPS[bike_id_from_iot] = 1)
                 }
-                console.log('result', JSON.stringify(updateFailCount[bike_id_from_iot], null, 2))
+                console.log('같은 GPS값이 온 횟수', JSON.stringify(duplicateGPS[bike_id_from_iot], null, 2))
               }
 
               if (f_4_device_status === '00') {
@@ -286,8 +287,11 @@ var server = net.createServer(async function (socket) {
                 await (
                   await connection()
                 ).query(updateBikeRiding, [JSON.stringify(coordinates), dist.toFixed(3), bike_id_from_iot])
+
+                console.log('업데이트 실패 횟수 : ' + failUpdate)
               }
             } catch (error) {
+              failUpdate += 1
               console.log('업데이트 실패!!' + error)
             }
           } else {
