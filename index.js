@@ -234,8 +234,7 @@ var server = net.createServer(async function (socket) {
                 bike_id_from_iot,
               ])
 
-              console.log({ resultArr: result[0] })
-              console.log('result: ', JSON.stringify(result, null, 2))
+              console.log('result: ', JSON.stringify(result.changedRows, null, 2))
 
               if (
                 bike_id_from_iot == '1241212319' ||
@@ -243,7 +242,7 @@ var server = net.createServer(async function (socket) {
                 bike_id_from_iot == '1223135543' ||
                 bike_id_from_iot == '1221326819'
               ) {
-                if (result.info.Changed == 0) {
+                if (result.changedRows == 0) {
                   duplicateGPS[bike_id_from_iot]
                     ? (duplicateGPS[bike_id_from_iot] += 1)
                     : (duplicateGPS[bike_id_from_iot] = 1)
