@@ -234,6 +234,8 @@ var server = net.createServer(async function (socket) {
                 bike_id_from_iot,
               ])
 
+              console.log('result.info.Changed : ' + result.info.Changed)
+
               if (
                 bike_id_from_iot == '1241212319' ||
                 bike_id_from_iot == '1223129999' ||
