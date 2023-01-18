@@ -238,7 +238,9 @@ var server = net.createServer(async function (socket) {
                 bike_id_from_iot == '1241212319' ||
                 bike_id_from_iot == '1223129999' ||
                 bike_id_from_iot == '1223135543' ||
-                bike_id_from_iot == '1221326819'
+                bike_id_from_iot == '1221326819' ||
+                bike_id_from_iot == '1223146045' ||
+                bike_id_from_iot == '1223130861'
               ) {
                 if (result.changedRows == 0) {
                   duplicateGPS[bike_id_from_iot]
