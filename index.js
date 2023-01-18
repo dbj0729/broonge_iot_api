@@ -234,8 +234,6 @@ var server = net.createServer(async function (socket) {
                 bike_id_from_iot,
               ])
 
-              console.log('result: ', JSON.stringify(result.changedRows, null, 2))
-
               if (
                 bike_id_from_iot == '1241212319' ||
                 bike_id_from_iot == '1223129999' ||
@@ -294,6 +292,7 @@ var server = net.createServer(async function (socket) {
             } catch (error) {
               failUpdate += 1
               console.log('업데이트 실패!!' + error)
+              console.log('업데이트 실패 횟수 : ' + failUpdate)
             }
           } else {
             delete sockets[bike_id_from_iot]
