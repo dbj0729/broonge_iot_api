@@ -103,11 +103,21 @@ var server = net.createServer(async function (socket) {
     // let bike_id_from_iot
     console.log(socket.address().address + ' Started Broonge IoT Server on ' + getCurrentTime())
     socket.setNoDelay(true)
+    socket.setKeepAlive(true, 2000)
+
     socket.id = socket.remoteAddress + ':' + socket.remotePort
     const [value, release] = await semaphore.acquire()
     try {
+      socket.on('timeout', () => {
+        console.log('시간초과로 연결이 끊겼습니다. ' + bike_id_from_iot)
+      })
+
       socket.on('error', function (err) {
         console.log('socket error' + err)
+      })
+
+      socket.on('end', () => {
+        console.log('socket 연결을 상대방이 끊었습니다.')
       })
 
       // client와 접속이 끊기는 메시지 출력
@@ -126,7 +136,7 @@ var server = net.createServer(async function (socket) {
 
       socket.on('data', async function (data) {
         const data_elements = data.toString('utf-8').trim()
-        // console.log(data_elements)
+        console.log(data_elements)
         // console.log('연결된 자전거 ' + Object.keys(sockets))
         // IoT 로부터 받는 정보이다.
         const sig = data_elements.slice(0, sig_1)
