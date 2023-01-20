@@ -227,7 +227,7 @@ var server = net.createServer(async function (socket) {
                 f_4_device_status === '03'
                   ? `status = 'malfunction', is_locked = 'malfunction'`
                   : f_4_device_status === '00' // 00 이 해제상태
-                  ? `status = 'in-use', is_locked = 'NO'`
+                  ? `status = 'in_use', is_locked = 'NO'`
                   : f_4_device_status === '01' // 01 이 잠긴상태
                   ? `status = 'stand_by', is_locked = 'YES'`
                   : `status = 'stand_by', is_locked = 'NO'` // 문제가 발생했다는 의미..? @DBJ on 20221213
