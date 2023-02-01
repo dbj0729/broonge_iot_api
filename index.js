@@ -338,7 +338,7 @@ var server = net.createServer(async function (socket) {
           }
 
           async function updateBikeStatus(order) {
-            const code = order === 'unlock' ? '01' : order === 'page' ? '02' : null
+            const code = order === 'unlock' ? '01' : order === 'page' ? '02' : '03'
             if (!code) return socket.write('not order')
 
             if (beforeSendBikeId === bike_id_for_app) await new Promise(resolve => setTimeout(resolve, 1000))
