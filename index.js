@@ -425,7 +425,8 @@ var server = net.createServer(async function (socket) {
               await updateBikeStatus(app_to_iot_data[2])
             }
           } else {
-            socket.write('sorry, no bike')
+            console.log('???????', data_elements)
+            // socket.write('sorry, no bike')
           }
         }
       })
