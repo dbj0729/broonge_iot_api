@@ -235,18 +235,32 @@ var server = net.createServer(async function (socket) {
               )
             }
 
+            let sig_for_app = process.env.IOT_SIG
+            let group_for_app = process.env.IOT_GROUP
+            let op_code_for_app = '3' // 3번이 보내는 경우이다.
+
+            let version_for_app = 'APP'
+            let message_length_for_app = '02' //IOT_ERROR_MESSAGE_LENGTH???
+            let send_default_data_preparation =
+              sig_for_app +
+              group_for_app +
+              op_code_for_app +
+              bike_id_from_iot +
+              version_for_app +
+              message_length_for_app
+
             function sending_codes(send_code) {
-              var combined_send_codes = send_code.split('')
-              var send_codes_value = combined_send_codes
+              let combined_send_codes = send_code.split('')
+              let send_codes_value = combined_send_codes
                 .map(item => item.charCodeAt())
                 .reduce((acc, curr) => acc + curr)
-              var send_codes_value_verification = send_codes_value.toString(16)
-              var send_codes_manually_added_0x = '00' + send_codes_value_verification
-              var final_send_codes = send_default_data_preparation + send_code + send_codes_manually_added_0x
+              let send_codes_value_verification = send_codes_value.toString(16)
+              let send_codes_manually_added_0x = '00' + send_codes_value_verification
+              let final_send_codes = send_default_data_preparation + send_code + send_codes_manually_added_0x
               return final_send_codes
             }
 
-            sockets[bike_id_from_iot].write('11')
+            sockets[bike_id_from_iot].write(sending_codes('11'))
           }
         } else if (sig == process.env.IOT_SIG && group == process.env.IOT_GROUP && op_code == 2) {
           //response
