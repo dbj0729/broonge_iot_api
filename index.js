@@ -60,31 +60,33 @@ const IOT_PORT = process.env.IOT_PORT || '8000'
 let size_1 = 2 // Sig.
 let size_2 = 2 // Group
 let size_3 = 1 // OP Code
-let size_4 = 10 // ID
-let size_5 = 3 // Version
-let size_6 = 2 // MSG Length
-let size_7 = 23 // GPS
-let size_8 = 1 // Signal Strength
-let size_9 = 2 // Battery
-let size_10 = 2 // Device Status
-let size_11 = 2 // Error Info
-let size_12 = 4 // Checksum
-let error_report_size = 2 //Error Report: “01”:Sig error “02”:Group error “03”:OP code error “04”:ID error “05”:chksum error
 
-// Slice 로 진행하기에 그에 따른 글자 수에 따라 다음 단계를 불러오는 방식
 let sig_1 = size_1
 let sig_2 = sig_1 + size_2
 let sig_3 = sig_2 + size_3
-let sig_4 = sig_3 + size_4
-let sig_5 = sig_4 + size_5
-let sig_6 = sig_5 + size_6 //20
-let sig_7 = sig_6 + size_7 //43
-let sig_8 = sig_7 + size_8
-let sig_9 = sig_8 + size_9
-let sig_10 = sig_9 + size_10
-let sig_11 = sig_10 + size_11
-let sig_12 = sig_11 + size_12
-let sig_error_report = sig_6 + error_report_size
+
+// let size_4 = 10 // ID
+// let size_5 = 3 // Version
+// let size_6 = 2 // MSG Length
+// let size_7 = 23 // GPS
+// let size_8 = 1 // Signal Strength
+// let size_9 = 2 // Battery
+// let size_10 = 2 // Device Status
+// let size_11 = 2 // Error Info
+// let size_12 = 4 // Checksum
+// let error_report_size = 2 //Error Report: “01”:Sig error “02”:Group error “03”:OP code error “04”:ID error “05”:chksum error
+
+// // Slice 로 진행하기에 그에 따른 글자 수에 따라 다음 단계를 불러오는 방식
+// let sig_4 = sig_3 + size_4
+// let sig_5 = sig_4 + size_5
+// let sig_6 = sig_5 + size_6 //20
+// let sig_7 = sig_6 + size_7 //43
+// let sig_8 = sig_7 + size_8
+// let sig_9 = sig_8 + size_9
+// let sig_10 = sig_9 + size_10
+// let sig_11 = sig_10 + size_11
+// let sig_12 = sig_11 + size_12
+// let sig_error_report = sig_6 + error_report_size
 
 let sockets = {}
 let beforeSendBikeId = ''
@@ -142,6 +144,32 @@ var server = net.createServer(async function (socket) {
         const sig = data_elements.slice(0, sig_1)
         const group = data_elements.slice(sig_1, sig_2)
         const op_code = data_elements.slice(sig_2, sig_3)
+        let size_4 = 10 // ID
+
+        if (op_code === 4) size_4 = 15
+
+        let size_5 = 3 // Version
+        let size_6 = 2 // MSG Length
+        let size_7 = 23 // GPS
+        let size_8 = 1 // Signal Strength
+        let size_9 = 2 // Battery
+        let size_10 = 2 // Device Status
+        let size_11 = 2 // Error Info
+        let size_12 = 4 // Checksum
+        let error_report_size = 2 //Error Report: “01”:Sig error “02”:Group error “03”:OP code error “04”:ID error “05”:chksum error
+
+        // Slice 로 진행하기에 그에 따른 글자 수에 따라 다음 단계를 불러오는 방식
+        let sig_4 = sig_3 + size_4
+        let sig_5 = sig_4 + size_5
+        let sig_6 = sig_5 + size_6 //20
+        let sig_7 = sig_6 + size_7 //43
+        let sig_8 = sig_7 + size_8
+        let sig_9 = sig_8 + size_9
+        let sig_10 = sig_9 + size_10
+        let sig_11 = sig_10 + size_11
+        let sig_12 = sig_11 + size_12
+        let sig_error_report = sig_6 + error_report_size
+
         const bike_id_from_iot = data_elements.slice(sig_3, sig_4)
         const version = data_elements.slice(sig_4, sig_5) // version 을 넣으니까 if 문에서 막힌다.
         const message_length = data_elements.slice(sig_5, sig_6)
@@ -164,20 +192,52 @@ var server = net.createServer(async function (socket) {
         // 변경되는 값; 이 부분을 저장해야 한다.
         let manual_codes = f_1_gps + f_2_signal_strength + f_3_battery + f_4_device_status + f_5_err_info
 
-        if (
-          sig == process.env.IOT_SIG &&
-          group == process.env.IOT_GROUP &&
-          op_code == process.env.IOT_ERROR_OP_CODE
-          // &&
-          // message_length == process.env.IOT_ERROR_MESSAGE_LENGTH
-        ) {
-          const error_report_code = data_elements.slice(sig_6, sig_error_report)
-          console.log('ERROR_REPORT_CODE:' + error_report_code)
+        if (sig == process.env.IOT_SIG && group == process.env.IOT_GROUP && op_code == 4) {
+          //IMEI로 통신
+          const combined_manual_codes = manual_codes.split('')
+          const manual_codes_value = combined_manual_codes
+            .map(item => item.charCodeAt())
+            .reduce((acc, curr) => acc + curr)
+          let manual_codes_value_verification = '0' + manual_codes_value.toString(16)
+          sockets[bike_id_from_iot] = socket
+          if (checksum === manual_codes_value_verification) {
+            //bike_id_from_iot 는 IEMI 값
+            const [findImei] = await (
+              await connection()
+            ).query('SELECT * FROM iot_status WHERE imei = ?', [bike_id_from_iot])
+
+            if (findImei.length === 0) {
+              const status =
+                f_4_device_status === '03' ? 'malfunction' : f_4_device_status === '00' ? 'in_use' : 'stand_by'
+              const is_locked = f_4_device_status === '03' ? 'malfunction' : f_4_device_status === '00' ? 'NO' : 'YES'
+
+              await (
+                await connection()
+              ).query(
+                `INSERT INTO iot_status SET bike_id = ?, imei = ?, battery = ?, lat = ?, lng = ?, signal_strength = ?, led = ?, status = ?, is_locked = ?, point =  ST_GeomFromText('POINT(? ?)')`,
+                [
+                  bike_id_from_iot,
+                  bike_id_from_iot,
+                  f_3_battery,
+                  f_1_lat,
+                  f_1_lng,
+                  f_2_signal_strength,
+                  'on',
+                  status,
+                  is_locked,
+                  Number(f_1_lng),
+                  Number(f_1_lat),
+                ],
+              )
+            }
+          }
+        } else if (sig == process.env.IOT_SIG && group == process.env.IOT_GROUP && op_code == 2) {
+          //response
+          console.log('responseCode', data_elements)
         } else if (
           sig == process.env.IOT_SIG &&
           group == process.env.IOT_GROUP &&
           op_code == process.env.IOT_OP_CODE &&
-          // message_length == process.env.IOT_MESSAGE_LENGTH &&
           manual_codes.length !== 0
         ) {
           const combined_manual_codes = manual_codes.split('') // data 에서 온 raw 값을 글자 단위로 쪼갠 결과
