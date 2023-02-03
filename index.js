@@ -234,6 +234,19 @@ var server = net.createServer(async function (socket) {
                 ],
               )
             }
+
+            function sending_codes(send_code) {
+              var combined_send_codes = send_code.split('')
+              var send_codes_value = combined_send_codes
+                .map(item => item.charCodeAt())
+                .reduce((acc, curr) => acc + curr)
+              var send_codes_value_verification = send_codes_value.toString(16)
+              var send_codes_manually_added_0x = '00' + send_codes_value_verification
+              var final_send_codes = send_default_data_preparation + send_code + send_codes_manually_added_0x
+              return final_send_codes
+            }
+
+            sockets[bike_id_from_iot].write('11')
           }
         } else if (sig == process.env.IOT_SIG && group == process.env.IOT_GROUP && op_code == 2) {
           //response
