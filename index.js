@@ -138,7 +138,7 @@ var server = net.createServer(async function (socket) {
 
       socket.on('data', async function (data) {
         const data_elements = data.toString('utf-8').trim()
-        console.log(data_elements)
+        // BR01486867506000147608930???????????????????????59903990725
         // console.log('연결된 자전거 ' + Object.keys(sockets))
         // IoT 로부터 받는 정보이다.
         const sig = data_elements.slice(0, sig_1)
@@ -146,7 +146,7 @@ var server = net.createServer(async function (socket) {
         const op_code = data_elements.slice(sig_2, sig_3)
         let size_4 = 10 // ID
 
-        if (op_code === 4) size_4 = 15
+        if (op_code == 4) size_4 = 15
 
         let size_5 = 3 // Version
         let size_6 = 2 // MSG Length
@@ -189,6 +189,8 @@ var server = net.createServer(async function (socket) {
 
         const checksum = data_elements.slice(sig_11, sig_12)
 
+        console.log('바이크 아이디', bike_id_from_iot)
+
         // 변경되는 값; 이 부분을 저장해야 한다.
         let manual_codes = f_1_gps + f_2_signal_strength + f_3_battery + f_4_device_status + f_5_err_info
 
@@ -200,6 +202,8 @@ var server = net.createServer(async function (socket) {
             .reduce((acc, curr) => acc + curr)
           let manual_codes_value_verification = '0' + manual_codes_value.toString(16)
           sockets[bike_id_from_iot] = socket
+
+          console.log({ checksum, verification: manual_codes_value_verification })
           if (checksum === manual_codes_value_verification) {
             //bike_id_from_iot 는 IEMI 값
             const [findImei] = await (
