@@ -385,9 +385,9 @@ var server = net.createServer(async function (socket) {
               version_for_app +
               message_length_for_app
 
-            //   const headerBuf = Buffer.from(send_default_data_preparation)
+            const headerBuf = Buffer.from(send_default_data_preparation)
             //   for (let i = 0; i < max; i++) {
-            //     const sendBuf = data.slice(i * 1025, (i + 1) * 1025)
+            //     const sendBuf = fileBuf.slice(i * 1024, (i + 1) * 1024)
             //     let checksum = 0
 
             //     for (let j = 0; j < sendBuf.length; j++) {
@@ -405,23 +405,23 @@ var server = net.createServer(async function (socket) {
             //     sockets[bike_id_from_iot].write(concatBuf)
             //   }
 
-            let lastBuffer = fileBuf.slice(max * 1025, data.length)
-            // let lastCheckSum = 0
-            // for (let i = 0; lastBuffer.length; i++) {
-            //   lastCheckSum += lastBuffer[i]
-            // }
+            let lastBuffer = fileBuf.slice(max * 1024, data.length)
+            let lastCheckSum = 0
+            for (let i = 0; lastBuffer.length; i++) {
+              lastCheckSum += lastBuffer[i]
+            }
 
-            // if (lastCheckSum.toString(16).length > 4) lastCheckSum = lastCheckSum.toString(16).slice(-4)
-            // else lastCheckSum = lastCheckSum.toString(16)
+            if (lastCheckSum.toString(16).length > 4) lastCheckSum = lastCheckSum.toString(16).slice(-4)
+            else lastCheckSum = lastCheckSum.toString(16)
 
-            // const lastCheckSumBuf = Buffer.from(lastCheckSum)
+            const lastCheckSumBuf = Buffer.from(lastCheckSum)
 
-            // const lastLen = headerBuf.length + lastBuffer.length + lastCheckSumBuf.length
-            // const lastArr = [headerBuf, lastBuffer, lastCheckSumBuf]
-            // const lastConcatBuf = Buffer.concat(lastArr, lastLen)
+            const lastLen = headerBuf.length + lastBuffer.length + lastCheckSumBuf.length
+            const lastArr = [headerBuf, lastBuffer, lastCheckSumBuf]
+            const lastConcatBuf = Buffer.concat(lastArr, lastLen)
             console.log(lastBuffer)
 
-            // sockets[bike_id_from_iot].write(lastConcatBuf)
+            sockets[bike_id_from_iot].write(lastConcatBuf)
             return
           }
 
