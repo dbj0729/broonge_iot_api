@@ -58,6 +58,9 @@ const IOT_PORT = process.env.IOT_PORT || '8000'
 // const distance_value = 0 @DBJ 없어도 되나?
 
 const DATA = fs.readFileSync('CH32V203C8T6.bin')
+const fileBuf = Buffer.from(DATA)
+const max = Math.floor(fileBuf.length / 1024)
+let lastBuffer = fileBuf.slice(max * 1024, fileBuf.length)
 
 // IoT 에서 받는 Header byte size
 let size_1 = 2 // Sig.
@@ -369,8 +372,7 @@ var server = net.createServer(async function (socket) {
 
           //TODO: 펌웨어 업그레이드 test
           if (bike_id_from_iot === '1223129999') {
-            const fileBuf = Buffer.from(DATA)
-            const max = Math.floor(fileBuf.length / 1024)
+            console.log('fileBufLength', fileBuf.length)
 
             var sig_for_app = process.env.IOT_SIG
             var group_for_app = process.env.IOT_GROUP
@@ -387,6 +389,7 @@ var server = net.createServer(async function (socket) {
               message_length_for_app
 
             const headerBuf = Buffer.from(send_default_data_preparation)
+            console.log({ headerBuf })
             //   for (let i = 0; i < max; i++) {
             //     const sendBuf = fileBuf.slice(i * 1024, (i + 1) * 1024)
             //     let checksum = 0
@@ -406,7 +409,6 @@ var server = net.createServer(async function (socket) {
             //     sockets[bike_id_from_iot].write(concatBuf)
             //   }
 
-            let lastBuffer = fileBuf.slice(max * 1024, fileBuf.length)
             let lastCheckSum = 0
             for (let i = 0; lastBuffer.length; i++) {
               lastCheckSum += lastBuffer[i]
@@ -420,9 +422,9 @@ var server = net.createServer(async function (socket) {
             const lastLen = headerBuf.length + lastBuffer.length + lastCheckSumBuf.length
             const lastArr = [headerBuf, lastBuffer, lastCheckSumBuf]
             const lastConcatBuf = Buffer.concat(lastArr, lastLen)
-            console.log(lastBuffer)
+            console.log(headerBuf)
 
-            // sockets[bike_id_from_iot].write(lastConcatBuf)
+            sockets[bike_id_from_iot].write(lastConcatBuf)
             return
           }
 
