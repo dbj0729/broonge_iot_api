@@ -417,8 +417,8 @@ var server = net.createServer(async function (socket) {
 
             const lastLen = headerBuf.length + lastBuffer.length + lastCheckSumBuf.length
             const lastArr = [headerBuf, lastBuffer, lastCheckSumBuf]
-            const lastConcatBuf = Buffer.concat(lastArr, lastLen)
-            console.log(lastConcatBuf)
+            // const lastConcatBuf = Buffer.concat(lastArr, lastLen)
+            console.log(lastLen, lastArr)
 
             // sockets[bike_id_from_iot].write(lastConcatBuf)
             return
