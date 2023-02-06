@@ -404,21 +404,21 @@ var server = net.createServer(async function (socket) {
             //     sockets[bike_id_from_iot].write(concatBuf)
             //   }
 
-            let lastBuffer = data.slice(max * 1025, data.length)
-            let lastCheckSum = 0
-            for (let i = 0; lastBuffer.length; i++) {
-              lastCheckSum += lastBuffer[i]
-            }
+            // let lastBuffer = data.slice(max * 1025, data.length)
+            // let lastCheckSum = 0
+            // for (let i = 0; lastBuffer.length; i++) {
+            //   lastCheckSum += lastBuffer[i]
+            // }
 
-            if (lastCheckSum.toString(16).length > 4) lastCheckSum = lastCheckSum.toString(16).slice(-4)
-            else lastCheckSum = lastCheckSum.toString(16)
+            // if (lastCheckSum.toString(16).length > 4) lastCheckSum = lastCheckSum.toString(16).slice(-4)
+            // else lastCheckSum = lastCheckSum.toString(16)
 
             // const lastCheckSumBuf = Buffer.from(lastCheckSum)
 
             // const lastLen = headerBuf.length + lastBuffer.length + lastCheckSumBuf.length
             // const lastArr = [headerBuf, lastBuffer, lastCheckSumBuf]
             // const lastConcatBuf = Buffer.concat(lastArr, lastLen)
-            console.log(lastBuffer)
+            console.log(data)
 
             // sockets[bike_id_from_iot].write(lastConcatBuf)
             return
