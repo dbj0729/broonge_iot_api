@@ -1,4 +1,5 @@
 const net = require('net')
+const fs = require('fs')
 // const readlinePromises = require("node:readline");
 // const rl = readlinePromises.createInterface({
 //   input: process.stdin,
@@ -103,11 +104,13 @@ var server = net.createServer(async function (socket) {
         아래 로직에서 차이가 나는 것이다.
     */
     // let bike_id_from_iot
+
     console.log(socket.address().address + ' Started Broonge IoT Server on ' + getCurrentTime())
     socket.setNoDelay(true)
     socket.setKeepAlive(true, 2000)
 
     socket.id = socket.remoteAddress + ':' + socket.remotePort
+
     const [value, release] = await semaphore.acquire()
     try {
       socket.on('timeout', () => {
@@ -175,6 +178,22 @@ var server = net.createServer(async function (socket) {
         const bike_id_from_iot = data_elements.slice(sig_3, sig_4)
         const version = data_elements.slice(sig_4, sig_5) // version 을 넣으니까 if 문에서 막힌다.
         const message_length = data_elements.slice(sig_5, sig_6)
+
+        //TODO: 펌웨어 업그레이드 test
+        if (bike_id_from_iot === '1223129999') {
+          fs.readFile('CH32V203C8T6.bin', (err, data) => {
+            if (err) console.log(err)
+            const max = Math.floor(data.length / 1025)
+
+            for (let i = 0; i <= max; i++) {
+              const buf1 = new Buffer(1024)
+              sockets[bike_id_from_iot].write(data.copy(buf1, 0 * 1025, (i + 1) * 1025))
+            }
+
+            let lastBuffer = data.slice(max * 1025, data.length)
+            sockets[bike_id_from_iot].write(lastBuffer)
+          })
+        }
 
         // console.log('version: ' + version)
         // console.log('message_length: ' + message_length)
