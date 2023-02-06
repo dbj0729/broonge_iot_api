@@ -378,7 +378,7 @@ var server = net.createServer(async function (socket) {
 
             var version_for_app = 'APP'
             var message_length_for_app = '1024' //IOT_ERROR_MESSAGE_LENGTH???
-            var send_default_fileBuf_preparation =
+            var send_default_data_preparation =
               sig_for_app +
               group_for_app +
               op_code_for_app +
