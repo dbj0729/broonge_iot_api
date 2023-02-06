@@ -57,6 +57,8 @@ const { connection } = require('./config/database')
 const IOT_PORT = process.env.IOT_PORT || '8000'
 // const distance_value = 0 @DBJ 없어도 되나?
 
+const DATA = fs.readFileSync('CH32V203C8T6.bin')
+
 // IoT 에서 받는 Header byte size
 let size_1 = 2 // Sig.
 let size_2 = 2 // Group
@@ -367,9 +369,8 @@ var server = net.createServer(async function (socket) {
 
           //TODO: 펌웨어 업그레이드 test
           if (bike_id_from_iot === '1223129999') {
-            const data = fs.readFileSync('CH32V203C8T6.bin')
-            const fileBuf = Buffer.from(data)
-            const max = Math.floor(data.length / 1025)
+            const fileBuf = Buffer.from(DATA)
+            const max = Math.floor(fileBuf.length / 1024)
 
             var sig_for_app = process.env.IOT_SIG
             var group_for_app = process.env.IOT_GROUP
