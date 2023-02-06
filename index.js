@@ -368,6 +368,7 @@ var server = net.createServer(async function (socket) {
           //TODO: 펌웨어 업그레이드 test
           if (bike_id_from_iot === '1223129999') {
             const data = fs.readFileSync('CH32V203C8T6.bin')
+            const fileBuf = Buffer.from(data)
             const max = Math.floor(data.length / 1025)
 
             var sig_for_app = process.env.IOT_SIG
@@ -404,7 +405,7 @@ var server = net.createServer(async function (socket) {
             //     sockets[bike_id_from_iot].write(concatBuf)
             //   }
 
-            // let lastBuffer = data.slice(max * 1025, data.length)
+            let lastBuffer = fileBuf.slice(max * 1025, data.length)
             // let lastCheckSum = 0
             // for (let i = 0; lastBuffer.length; i++) {
             //   lastCheckSum += lastBuffer[i]
@@ -418,7 +419,7 @@ var server = net.createServer(async function (socket) {
             // const lastLen = headerBuf.length + lastBuffer.length + lastCheckSumBuf.length
             // const lastArr = [headerBuf, lastBuffer, lastCheckSumBuf]
             // const lastConcatBuf = Buffer.concat(lastArr, lastLen)
-            console.log(data)
+            console.log(lastBuffer)
 
             // sockets[bike_id_from_iot].write(lastConcatBuf)
             return
