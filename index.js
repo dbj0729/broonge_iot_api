@@ -107,7 +107,7 @@ var server = net.createServer(async function (socket) {
 
     console.log(socket.address().address + ' Started Broonge IoT Server on ' + getCurrentTime())
     socket.setNoDelay(true)
-    socket.setKeepAlive(true, 2000)
+    // socket.setKeepAlive(true, 2000)
 
     socket.id = socket.remoteAddress + ':' + socket.remotePort
 
