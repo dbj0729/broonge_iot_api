@@ -140,8 +140,7 @@ var server = net.createServer(async function (socket) {
         const data_elements = data.toString('utf-8').trim()
         console.log(data_elements)
         // BR01486867506000147608930???????????????????????59903990725
-        // BR0128686750600014761223129999/090/02/00/0060 응답코드
-        // ver/msgl/msg/checksum
+
         // console.log('연결된 자전거 ' + Object.keys(sockets))
         // IoT 로부터 받는 정보이다.
         const sig = data_elements.slice(0, sig_1)
@@ -263,11 +262,34 @@ var server = net.createServer(async function (socket) {
               return final_send_codes
             }
 
-            sockets[bike_id_from_iot].write(sending_codes('11'))
+            sockets[bike_id_from_iot].write(sending_codes('11')) //toUsim
           }
         } else if (sig == process.env.IOT_SIG && group == process.env.IOT_GROUP && op_code == 2) {
           //response
-          console.log('responseCode', data_elements)
+          //BR0128686750600014761223129999/090/02/00/0060 응답코드
+          // ver/msgl/msg/checksum
+          const imei = data_elements.slice(5, 20)
+          const usim = data_elements.slice(20, 30)
+          const message = data_elements.slice(35, 37)
+          const checksum = data_elements.slice(37)
+          const verification =
+            '00' +
+            message
+              .split('')
+              .reduce((acc, curr) => acc + curr.charCodeAt(), 0)
+              .toString(16)
+
+          if (checksum !== verification) return console.log('checksum diffrent')
+
+          const [findIMEI] = await (await connection()).query('SELECT * FROM iot_status WHERE imei = ? LIMIT 1', [imei])
+
+          if (findIMEI.length !== 0) {
+            await (
+              await connection()
+            ).query('UPDATE iot_status SET bike_id = ? WHERE bike_id = ? LIMIT 1', [12345, imei])
+          }
+
+          console.log('responseCode', { data_elements, imei, usim, message, checksum, verification })
         } else if (
           sig == process.env.IOT_SIG &&
           group == process.env.IOT_GROUP &&
