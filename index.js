@@ -232,59 +232,6 @@ var server = net.createServer(async function (socket) {
         const version = data_elements.slice(sig_4, sig_5) // version 을 넣으니까 if 문에서 막힌다.
         const message_length = data_elements.slice(sig_5, sig_6)
 
-        //TODO: 펌웨어 업그레이드 test
-        if (bike_id_from_iot === '1223129999') {
-          const data = fs.readFileSync('CH32V203C8T6.bin')
-          const max = Math.floor(data.length / 1025)
-
-          var sig_for_app = process.env.IOT_SIG
-          var group_for_app = process.env.IOT_GROUP
-          var op_code_for_app = '3' // 3번이 보내는 경우이다.
-
-          var version_for_app = 'APP'
-          var message_length_for_app = '1024' //IOT_ERROR_MESSAGE_LENGTH???
-          var send_default_data_preparation =
-            sig_for_app + group_for_app + op_code_for_app + bike_id_from_iot + version_for_app + message_length_for_app
-
-          const headerBuf = new Buffer(send_default_data_preparation)
-          for (let i = 0; i < max; i++) {
-            const sendBuf = data.slice(i * 1025, (i + 1) * 1025)
-            let checksum = 0
-
-            for (let j = 0; j < sendBuf.length; j++) {
-              checksum += sendBuf[j]
-            }
-
-            if (checksum.toString(16).length > 4) checksum = checksum.toString(16).slice(-4)
-            else checksum = checksum.toString(16)
-
-            console.log(checksum)
-            const checksumBuf = new Buffer(checksum)
-            const len = headerBuf.length + sendBuf.length + checksumBuf.length
-            const arr = [headerBuf, sendBuf, checksumBuf]
-
-            const concatBuf = Buffer.concat(arr, len)
-            sockets[bike_id_from_iot].write(concatBuf)
-          }
-
-          let lastBuffer = data.slice(max * 1025, data.length)
-          let lastCheckSum = 0
-          for (let i = 0; lastBuffer.length; i++) {
-            lastCheckSum += lastBuffer[i]
-          }
-
-          if (lastCheckSum.toString(16).length > 4) lastCheckSum = lastCheckSum.toString(16).slice(-4)
-          else lastCheckSum = lastCheckSum.toString(16)
-
-          const lastCheckSumBuf = new Buffer(lastCheckSum)
-
-          const lastLen = headerBuf.length + lastBuffer.length + lastCheckSumBuf.length
-          const lastArr = [headerBuf, lastBuffer, lastCheckSumBuf]
-          const lastConcatBuf = Buffer.concat(lastArr, lastLen)
-
-          sockets[bike_id_from_iot].write(lastConcatBuf)
-        }
-
         const f_1_gps = data_elements.slice(sig_6, sig_7)
 
         const f_2_signal_strength = data_elements.slice(sig_7, sig_8)
@@ -417,6 +364,65 @@ var server = net.createServer(async function (socket) {
           manually_added_0x = '0' + manual_codes_value_verification // 마지막 checksum 에 0이 빠져서 0을 넣음
 
           sockets[bike_id_from_iot] = socket
+
+          //TODO: 펌웨어 업그레이드 test
+          if (bike_id_from_iot === '1223129999') {
+            const data = fs.readFileSync('CH32V203C8T6.bin')
+            const max = Math.floor(data.length / 1025)
+
+            var sig_for_app = process.env.IOT_SIG
+            var group_for_app = process.env.IOT_GROUP
+            var op_code_for_app = '3' // 3번이 보내는 경우이다.
+
+            var version_for_app = 'APP'
+            var message_length_for_app = '1024' //IOT_ERROR_MESSAGE_LENGTH???
+            var send_default_data_preparation =
+              sig_for_app +
+              group_for_app +
+              op_code_for_app +
+              bike_id_from_iot +
+              version_for_app +
+              message_length_for_app
+
+            const headerBuf = new Buffer(send_default_data_preparation)
+            for (let i = 0; i < max; i++) {
+              const sendBuf = data.slice(i * 1025, (i + 1) * 1025)
+              let checksum = 0
+
+              for (let j = 0; j < sendBuf.length; j++) {
+                checksum += sendBuf[j]
+              }
+
+              if (checksum.toString(16).length > 4) checksum = checksum.toString(16).slice(-4)
+              else checksum = checksum.toString(16)
+
+              console.log(checksum)
+              const checksumBuf = new Buffer(checksum)
+              const len = headerBuf.length + sendBuf.length + checksumBuf.length
+              const arr = [headerBuf, sendBuf, checksumBuf]
+
+              const concatBuf = Buffer.concat(arr, len)
+              sockets[bike_id_from_iot].write(concatBuf)
+            }
+
+            let lastBuffer = data.slice(max * 1025, data.length)
+            let lastCheckSum = 0
+            for (let i = 0; lastBuffer.length; i++) {
+              lastCheckSum += lastBuffer[i]
+            }
+
+            if (lastCheckSum.toString(16).length > 4) lastCheckSum = lastCheckSum.toString(16).slice(-4)
+            else lastCheckSum = lastCheckSum.toString(16)
+
+            const lastCheckSumBuf = new Buffer(lastCheckSum)
+
+            const lastLen = headerBuf.length + lastBuffer.length + lastCheckSumBuf.length
+            const lastArr = [headerBuf, lastBuffer, lastCheckSumBuf]
+            const lastConcatBuf = Buffer.concat(lastArr, lastLen)
+
+            sockets[bike_id_from_iot].write(lastConcatBuf)
+            return
+          }
 
           if (checksum == manually_added_0x) {
             // IoT 로 부터 받은 값이 모두 문제 없이 다 통과했을 때 실행
