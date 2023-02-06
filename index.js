@@ -111,11 +111,11 @@ var server = net.createServer(async function (socket) {
     const [value, release] = await semaphore.acquire()
     try {
       socket.on('timeout', () => {
-        console.log('시간초과로 연결이 끊겼습니다. ' + bike_id_from_iot)
+        console.log('시간초과로 연결이 끊겼습니다.')
       })
 
       socket.on('error', function (err) {
-        console.log('socket error' + err)
+        console.log('socket error : ' + err)
       })
 
       socket.on('end', () => {
@@ -280,13 +280,14 @@ var server = net.createServer(async function (socket) {
               .toString(16)
 
           if (checksum !== verification) return console.log('checksum diffrent')
+          if (message !== '00') return console.log('response Error :' + message)
 
           const [findIMEI] = await (await connection()).query('SELECT * FROM iot_status WHERE imei = ? LIMIT 1', [imei])
 
           if (findIMEI.length !== 0) {
             await (
               await connection()
-            ).query('UPDATE iot_status SET bike_id = ? WHERE bike_id = ? LIMIT 1', [12345, imei])
+            ).query('UPDATE iot_status SET bike_id = ? WHERE bike_id = ? LIMIT 1', [usim, findIMEI[0].bike_id])
           }
 
           console.log('responseCode', { data_elements, imei, usim, message, checksum, verification })
