@@ -413,7 +413,7 @@ var server = net.createServer(async function (socket) {
             if (lastCheckSum.toString(16).length > 4) lastCheckSum = lastCheckSum.toString(16).slice(-4)
             else lastCheckSum = lastCheckSum.toString(16)
 
-            const lastCheckSumBuf = Buffer(lastCheckSum)
+            const lastCheckSumBuf = Buffer.from(lastCheckSum)
 
             const lastLen = headerBuf.length + lastBuffer.length + lastCheckSumBuf.length
             const lastArr = [headerBuf, lastBuffer, lastCheckSumBuf]
