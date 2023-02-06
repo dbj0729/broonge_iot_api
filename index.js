@@ -57,10 +57,11 @@ const { connection } = require('./config/database')
 const IOT_PORT = process.env.IOT_PORT || '8000'
 // const distance_value = 0 @DBJ 없어도 되나?
 
-const DATA = fs.readFileSync('CH32V203C8T6.bin')
-const fileBuf = Buffer.from(DATA)
-const max = Math.floor(fileBuf.length / 1024)
-let lastBuffer = fileBuf.slice(max * 1024, fileBuf.length)
+//TODO: firmware upgrade
+// const DATA = fs.readFileSync('CH32V203C8T6.bin')
+// const fileBuf = Buffer.from(DATA)
+// const max = Math.floor(fileBuf.length / 1024)
+// let lastBuffer = fileBuf.slice(max * 1024, fileBuf.length)
 
 // IoT 에서 받는 Header byte size
 let size_1 = 2 // Sig.
@@ -371,62 +372,62 @@ var server = net.createServer(async function (socket) {
           sockets[bike_id_from_iot] = socket
 
           //TODO: 펌웨어 업그레이드 test
-          if (bike_id_from_iot === '1223129999') {
-            console.log('fileBufLength', fileBuf.length)
+          // if (bike_id_from_iot === '1223129999') {
+          //   console.log('fileBufLength', fileBuf.length)
 
-            var sig_for_app = process.env.IOT_SIG
-            var group_for_app = process.env.IOT_GROUP
-            var op_code_for_app = '3' // 3번이 보내는 경우이다.
+          //   var sig_for_app = process.env.IOT_SIG
+          //   var group_for_app = process.env.IOT_GROUP
+          //   var op_code_for_app = '3' // 3번이 보내는 경우이다.
 
-            var version_for_app = 'APP'
-            var message_length_for_app = '1024' //IOT_ERROR_MESSAGE_LENGTH???
-            var send_default_data_preparation =
-              sig_for_app +
-              group_for_app +
-              op_code_for_app +
-              bike_id_from_iot +
-              version_for_app +
-              message_length_for_app
+          //   var version_for_app = 'APP'
+          //   var message_length_for_app = '1024' //IOT_ERROR_MESSAGE_LENGTH???
+          //   var send_default_data_preparation =
+          //     sig_for_app +
+          //     group_for_app +
+          //     op_code_for_app +
+          //     bike_id_from_iot +
+          //     version_for_app +
+          //     message_length_for_app
 
-            const headerBuf = Buffer.from(send_default_data_preparation)
-            console.log({ headerBuf })
-            //   for (let i = 0; i < max; i++) {
-            //     const sendBuf = fileBuf.slice(i * 1024, (i + 1) * 1024)
-            //     let checksum = 0
+          //   const headerBuf = Buffer.from(send_default_data_preparation)
+          //   console.log({ headerBuf })
+          //   for (let i = 0; i < max; i++) {
+          //     const sendBuf = fileBuf.slice(i * 1024, (i + 1) * 1024)
+          //     let checksum = 0
 
-            //     for (let j = 0; j < sendBuf.length; j++) {
-            //       checksum += sendBuf[j]
-            //     }
+          //     for (let j = 0; j < sendBuf.length; j++) {
+          //       checksum += sendBuf[j]
+          //     }
 
-            //     if (checksum.toString(16).length > 4) checksum = checksum.toString(16).slice(-4)
-            //     else checksum = checksum.toString(16)
+          //     if (checksum.toString(16).length > 4) checksum = checksum.toString(16).slice(-4)
+          //     else checksum = checksum.toString(16)
 
-            //     const checksumBuf = Buffer.from(checksum)
-            //     const len = headerBuf.length + sendBuf.length + checksumBuf.length
-            //     const arr = [headerBuf, sendBuf, checksumBuf]
+          //     const checksumBuf = Buffer.from(checksum)
+          //     const len = headerBuf.length + sendBuf.length + checksumBuf.length
+          //     const arr = [headerBuf, sendBuf, checksumBuf]
 
-            //     const concatBuf = Buffer.concat(arr, len)
-            //     sockets[bike_id_from_iot].write(concatBuf)
-            //   }
+          //     const concatBuf = Buffer.concat(arr, len)
+          //     sockets[bike_id_from_iot].write(concatBuf)
+          //   }
 
-            let lastCheckSum = 0
-            for (let i = 0; lastBuffer.length; i++) {
-              lastCheckSum += lastBuffer[i]
-            }
+          //   let lastCheckSum = 0
+          //   for (let i = 0; lastBuffer.length; i++) {
+          //     lastCheckSum += lastBuffer[i]
+          //   }
 
-            if (lastCheckSum.toString(16).length > 4) lastCheckSum = lastCheckSum.toString(16).slice(-4)
-            else lastCheckSum = lastCheckSum.toString(16)
+          //   if (lastCheckSum.toString(16).length > 4) lastCheckSum = lastCheckSum.toString(16).slice(-4)
+          //   else lastCheckSum = lastCheckSum.toString(16)
 
-            const lastCheckSumBuf = Buffer.from(lastCheckSum)
+          //   const lastCheckSumBuf = Buffer.from(lastCheckSum)
 
-            const lastLen = headerBuf.length + lastBuffer.length + lastCheckSumBuf.length
-            const lastArr = [headerBuf, lastBuffer, lastCheckSumBuf]
-            const lastConcatBuf = Buffer.concat(lastArr, lastLen)
-            console.log(headerBuf)
+          //   const lastLen = headerBuf.length + lastBuffer.length + lastCheckSumBuf.length
+          //   const lastArr = [headerBuf, lastBuffer, lastCheckSumBuf]
+          //   const lastConcatBuf = Buffer.concat(lastArr, lastLen)
+          //   console.log(headerBuf)
 
-            sockets[bike_id_from_iot].write(lastConcatBuf)
-            return
-          }
+          //   sockets[bike_id_from_iot].write(lastConcatBuf)
+          //   return
+          // }
 
           if (checksum == manually_added_0x) {
             // IoT 로 부터 받은 값이 모두 문제 없이 다 통과했을 때 실행
