@@ -406,7 +406,7 @@ var server = net.createServer(async function (socket) {
             //     sockets[bike_id_from_iot].write(concatBuf)
             //   }
 
-            let lastBuffer = fileBuf.slice(max * 1024, fileBuf.length)
+            let lastBuffer = fileBuf.slice(max * 1024)
             let lastCheckSum = 0
             for (let i = 0; lastBuffer.length; i++) {
               lastCheckSum += lastBuffer[i]
