@@ -235,8 +235,6 @@ var server = net.createServer(async function (socket) {
         //TODO: 펌웨어 업그레이드 test
         if (bike_id_from_iot === '1223129999') {
           const data = fs.readFileSync('CH32V203C8T6.bin')
-
-          if (err) return console.log(err)
           const max = Math.floor(data.length / 1025)
 
           var sig_for_app = process.env.IOT_SIG
