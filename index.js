@@ -369,8 +369,8 @@ var server = net.createServer(async function (socket) {
 
           //TODO: 펌웨어 업그레이드 test
           if (bike_id_from_iot === '1223129999') {
-            // const fileBuf = Buffer.from(DATA)
-            const max = Math.floor(DATA.length / 1024)
+            const fileBuf = Buffer.from(DATA)
+            const max = Math.floor(fileBuf.length / 1024)
 
             var sig_for_app = process.env.IOT_SIG
             var group_for_app = process.env.IOT_GROUP
@@ -378,7 +378,7 @@ var server = net.createServer(async function (socket) {
 
             var version_for_app = 'APP'
             var message_length_for_app = '1024' //IOT_ERROR_MESSAGE_LENGTH???
-            var send_default_data_preparation =
+            var send_default_fileBuf_preparation =
               sig_for_app +
               group_for_app +
               op_code_for_app +
@@ -406,7 +406,7 @@ var server = net.createServer(async function (socket) {
             //     sockets[bike_id_from_iot].write(concatBuf)
             //   }
 
-            let lastBuffer = DATA.slice(max * 1024, DATA.length)
+            let lastBuffer = fileBuf.slice(max * 1024, fileBuf.length)
             let lastCheckSum = 0
             for (let i = 0; lastBuffer.length; i++) {
               lastCheckSum += lastBuffer[i]
@@ -422,7 +422,7 @@ var server = net.createServer(async function (socket) {
             const lastConcatBuf = Buffer.concat(lastArr, lastLen)
             console.log(lastBuffer)
 
-            sockets[bike_id_from_iot].write(lastConcatBuf)
+            // sockets[bike_id_from_iot].write(lastConcatBuf)
             return
           }
 
