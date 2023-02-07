@@ -60,9 +60,9 @@ const IOT_PORT = process.env.IOT_PORT || '8000'
 //TODO: firmware upgrade
 const FILE = fs.readFileSync('CH32V203C8T6.bin')
 // const fileBuf = Buffer.from(DATA)
-const max = Math.floor(FILE.length / 1024)
-let lastBuffer = FILE.slice(max * 1024, FILE.length)
-console.log(lastBuffer.length)
+// const max = Math.floor(FILE.length / 1024)
+// let lastBuffer = FILE.slice(max * 1024, FILE.length)
+// console.log(lastBuffer.length)
 
 // IoT 에서 받는 Header byte size
 let size_1 = 2 // Sig.
@@ -374,7 +374,10 @@ var server = net.createServer(async function (socket) {
 
           //TODO: 펌웨어 업그레이드 test
           if (bike_id_from_iot === '1223129999') {
-            //   console.log('fileBufLength', fileBuf.length)
+            const max = Math.floor(FILE.length / 1024)
+            let lastBuffer = FILE.slice(max * 1024, FILE.length)
+            console.log({ messageLength: lastBuffer.length })
+
             var sig_for_app = process.env.IOT_SIG
             var group_for_app = process.env.IOT_GROUP
             var op_code_for_app = '9' // 3번이 보내는 경우이다.
