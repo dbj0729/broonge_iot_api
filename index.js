@@ -60,9 +60,9 @@ const IOT_PORT = process.env.IOT_PORT || '8000'
 
 //TODO: firmware upgrade
 const FILE = fs.readFileSync('CH32V203C8T6.bin')
-let lastBuffer = Buffer.alloc(210)
+let lastBuffer = Buffer.alloc(128)
 let char = 2
-for (let i = 0; i < 210; i++) {
+for (let i = 0; i < 128; i++) {
   lastBuffer[i] = i
 }
 // const fileBuf = Buffer.from(DATA)
