@@ -61,7 +61,7 @@ const IOT_PORT = process.env.IOT_PORT || '8000'
 const FILE = fs.readFileSync('CH32V203C8T6.bin')
 // const fileBuf = Buffer.from(DATA)
 const max = Math.floor(FILE.length / 1024)
-let lastBuffer = FILE.slice(max * 1024, fileBuf.length)
+let lastBuffer = FILE.slice(max * 1024, FILE.length)
 
 // IoT 에서 받는 Header byte size
 let size_1 = 2 // Sig.
