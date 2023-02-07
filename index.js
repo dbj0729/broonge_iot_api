@@ -418,8 +418,9 @@ var server = net.createServer(async function (socket) {
             }
             if (lastCheckSum.toString(16).length > 4) lastCheckSum = lastCheckSum.toString(16).slice(-4)
             else lastCheckSum = lastCheckSum.toString(16)
-
+            console.log({ lastCheckSum })
             const lastCheckSumBuf = Buffer.from(lastCheckSum)
+            console.log({ lastCheckSumBuf, length: lastCheckSumBuf.length })
 
             const lastLen = spareHeader.length + lastBuffer.length + lastCheckSumBuf.length
 
