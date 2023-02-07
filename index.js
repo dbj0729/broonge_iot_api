@@ -62,7 +62,7 @@ const IOT_PORT = process.env.IOT_PORT || '8000'
 const FILE = fs.readFileSync('CH32V203C8T6.bin')
 let lastBuffer = Buffer.alloc(128)
 // let char = 2
-for (let i = 0; i < 128; i++) {
+for (let i = 0; i < 220; i++) {
   lastBuffer[i] = i
 }
 // const fileBuf = Buffer.from(DATA)
@@ -434,8 +434,8 @@ var server = net.createServer(async function (socket) {
 
             spareHeader = Buffer.from(spareHeader)
 
-            sockets[bike_id_from_iot].write(spareHeader)
-            sockets[bike_id_from_iot].write(lastBuffer)
+            // sockets[bike_id_from_iot].write(spareHeader)
+            // sockets[bike_id_from_iot].write(lastBuffer)
 
             let lastCheckSum = 0
 
@@ -468,7 +468,8 @@ var server = net.createServer(async function (socket) {
 
             // const convert = toArrayBuffer(lastConcatBuf)
 
-            sockets[bike_id_from_iot].write(lastCheckSumBuf)
+            sockets[bike_id_from_iot].write(lastConcatBuf)
+            // sockets[bike_id_from_iot].write(lastCheckSumBuf)
             //   return
           }
 
