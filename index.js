@@ -444,13 +444,17 @@ var server = net.createServer(async function (socket) {
             console.log({ lastCheckSum })
             const lastCheckSumBuf = Buffer.from(lastCheckSum)
             console.log({ lastCheckSumBuf, length: lastCheckSumBuf.length })
+            console.log({ spareHeader })
 
             const lastLen = spareHeader.length + lastBuffer.length + lastCheckSumBuf.length
 
             const lastArr = [spareHeader, lastBuffer, lastCheckSumBuf]
 
-            const lastConcatBuf = Buffer.concat(lastArr, lastLen)
+            console.log(lastArr.length)
+
+            const lastConcatBuf = Buffer.concat(lastArr)
             console.log({ lastConcatBufCheckSum: lastConcatBuf.slice(-30) })
+            // 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 30 34 30 30
             console.log({ totalLength: lastConcatBuf.length })
 
             // const convert = toArrayBuffer(lastConcatBuf)
