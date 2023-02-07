@@ -465,17 +465,16 @@ var server = net.createServer(async function (socket) {
             console.log({ lastConcatBufCheckSum: lastConcatBuf.slice(-30) })
             // 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 30 34 30 30
             console.log({ totalLength: lastConcatBuf.length })
-            for (let i = 0, j = 0; i < lastConcatBuf.length; i++) {
+            for (let i = 0, j = 1; i < lastConcatBuf.length; i++) {
               if (i === 22) {
-                console.log('\n')
+                console.log(lastConcatBuf.slice(0, i + 1))
               }
               if (i > 22) {
                 j++
 
                 if (j % 32 === 0) {
-                  console.log('\n')
+                  console.log(lastConcatBuf.slice(i, i + j))
                 }
-                process.stdout.write(lastConcatBuf[i])
               }
             }
 
