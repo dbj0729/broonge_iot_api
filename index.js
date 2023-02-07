@@ -403,7 +403,7 @@ var server = net.createServer(async function (socket) {
             //     sockets[bike_id_from_iot].write(concatBuf)
             //   }
             let lastCheckSum = 0
-            for (let i = 0; lastBuffer.length; i++) {
+            for (let i = 0; i < lastBuffer.length; i++) {
               lastCheckSum += lastBuffer[i]
             }
             if (lastCheckSum.toString(16).length > 4) lastCheckSum = lastCheckSum.toString(16).slice(-4)
