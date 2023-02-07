@@ -378,7 +378,7 @@ var server = net.createServer(async function (socket) {
             let lastBuffer = Buffer.alloc(1024)
             let char = 1
             for (let i = 0; i < FILE.length; i++) {
-              lastBuffer[i] = char.charCodeAt()
+              lastBuffer[i] = char
             }
             // const max = Math.floor(FILE.length / 1024)
             // let lastBuffer = FILE.slice(max * 1024, FILE.length)
