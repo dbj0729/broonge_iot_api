@@ -62,6 +62,7 @@ const FILE = fs.readFileSync('CH32V203C8T6.bin')
 // const fileBuf = Buffer.from(DATA)
 const max = Math.floor(FILE.length / 1024)
 let lastBuffer = FILE.slice(max * 1024, FILE.length)
+console.log(lastBuffer.length)
 
 // IoT 에서 받는 Header byte size
 let size_1 = 2 // Sig.
@@ -403,8 +404,12 @@ var server = net.createServer(async function (socket) {
             //     sockets[bike_id_from_iot].write(concatBuf)
             //   }
 
+            let spareMessageLength = ''
+            if (lastBuffer.length < 1000) spareMessageLength = '0' + lastBuffer
+            else spareMessageLength += lastBuffer.length
+
             let spareHeader =
-              sig_for_app + group_for_app + op_code_for_app + bike_id_from_iot + version_for_app + lastBuffer.length
+              sig_for_app + group_for_app + op_code_for_app + bike_id_from_iot + version_for_app + spareMessageLength
 
             spareHeader = Buffer.from(spareHeader)
             let lastCheckSum = 0
