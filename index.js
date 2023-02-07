@@ -405,8 +405,8 @@ var server = net.createServer(async function (socket) {
             //   }
 
             let spareMessageLength = ''
-            if (lastBuffer.length < 1000) spareMessageLength = '0' + lastBuffer
-            else spareMessageLength += lastBuffer.length
+            if (lastBuffer.length < 1000) spareMessageLength = '0' + lastBuffer.length
+            else spareMessageLength = lastBuffer.length
 
             let spareHeader =
               sig_for_app + group_for_app + op_code_for_app + bike_id_from_iot + version_for_app + spareMessageLength
