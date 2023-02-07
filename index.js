@@ -63,7 +63,7 @@ const FILE = fs.readFileSync('CH32V203C8T6.bin')
 let lastBuffer = Buffer.alloc(128)
 // let char = 2
 for (let i = 0; i < 128; i++) {
-  lastBuffer[i] = 2
+  lastBuffer[i] = i
 }
 // const fileBuf = Buffer.from(DATA)
 // const max = Math.floor(FILE.length / 1024)
