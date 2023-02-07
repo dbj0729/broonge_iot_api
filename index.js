@@ -375,9 +375,9 @@ var server = net.createServer(async function (socket) {
 
           //TODO: 펌웨어 업그레이드 test
           if (bike_id_from_iot === '1223129999') {
-            let lastBuffer = Buffer.alloc(250)
+            let lastBuffer = Buffer.alloc(220)
             let char = 1
-            for (let i = 0; i < 250; i++) {
+            for (let i = 0; i < 220; i++) {
               lastBuffer[i] = char
             }
             // const max = Math.floor(FILE.length / 1024)
