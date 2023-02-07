@@ -375,9 +375,13 @@ var server = net.createServer(async function (socket) {
 
           //TODO: 펌웨어 업그레이드 test
           if (bike_id_from_iot === '1223129999') {
-            const max = Math.floor(FILE.length / 1024)
+            let lastBuffer = Buffer.alloc(1024)
+            for (let i = 0; i < FILE.length; i++) {
+              lastBuffer[i] = FILE[i]
+            }
+            // const max = Math.floor(FILE.length / 1024)
             // let lastBuffer = FILE.slice(max * 1024, FILE.length)
-            let lastBuffer = FILE.slice(0, 1024) // 처음 1kb
+            // let lastBuffer = FILE.slice(0, 1024) // 처음 1kb
             console.log({ messageLength: lastBuffer.length })
 
             var sig_for_app = process.env.IOT_SIG
