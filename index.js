@@ -413,7 +413,6 @@ var server = net.createServer(async function (socket) {
 
             spareHeader = Buffer.from(spareHeader)
             let lastCheckSum = 0
-            const toConvert = lastBuffer.toString('utf-8').trim()
 
             for (let i = 0; i < lastBuffer.length; i++) {
               lastCheckSum += lastBuffer[i]
