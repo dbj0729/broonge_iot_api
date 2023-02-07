@@ -7,6 +7,7 @@ const fs = require('fs')
 // });
 var Mutex = require('async-mutex').Mutex
 var Semaphore = require('async-mutex').Semaphore
+const { toArrayBuffer } = require('./functions/toArrayBuffer')
 
 const mutex = new Mutex()
 const semaphore = new Semaphore(1)
