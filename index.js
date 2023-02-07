@@ -475,7 +475,7 @@ var server = net.createServer(async function (socket) {
                 if (j % 32 === 0) {
                   console.log('\n')
                 }
-                console.log(lastConcatBuf[i])
+                process.stdout.write(lastConcatBuf[i])
               }
             }
 
