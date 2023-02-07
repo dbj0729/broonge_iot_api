@@ -376,7 +376,7 @@ var server = net.createServer(async function (socket) {
             //   console.log('fileBufLength', fileBuf.length)
             var sig_for_app = process.env.IOT_SIG
             var group_for_app = process.env.IOT_GROUP
-            var op_code_for_app = '3' // 3번이 보내는 경우이다.
+            var op_code_for_app = '9' // 3번이 보내는 경우이다.
             var version_for_app = 'APP'
             var message_length_for_app = '1024' //IOT_ERROR_MESSAGE_LENGTH???
             var send_default_data_preparation =
@@ -402,21 +402,26 @@ var server = net.createServer(async function (socket) {
             //     const concatBuf = Buffer.concat(arr, len)
             //     sockets[bike_id_from_iot].write(concatBuf)
             //   }
+
+            let spareHeader =
+              sig_for_app + group_for_app + op_code_for_app + bike_id_from_iot + version_for_app + lastBuffer.length
+
+            spareHeader = Buffer.from(spareHeader)
             let lastCheckSum = 0
             for (let i = 0; i < lastBuffer.length; i++) {
               lastCheckSum += lastBuffer[i]
             }
             if (lastCheckSum.toString(16).length > 4) lastCheckSum = lastCheckSum.toString(16).slice(-4)
             else lastCheckSum = lastCheckSum.toString(16)
-            console.log({ lastCheckSum })
+
             const lastCheckSumBuf = Buffer.from(lastCheckSum)
-            console.log({ lastCheckSumBuf })
-            const lastLen = headerBuf.length + lastBuffer.length + lastCheckSumBuf.length
-            console.log({ lastLen })
-            const lastArr = [headerBuf, lastBuffer, lastCheckSumBuf]
-            console.log({ lastArr })
+
+            const lastLen = spareHeader.length + lastBuffer.length + lastCheckSumBuf.length
+
+            const lastArr = [spareHeader, lastBuffer, lastCheckSumBuf]
+
             const lastConcatBuf = Buffer.concat(lastArr, lastLen)
-            console.log({ lastConcatBuf })
+
             sockets[bike_id_from_iot].write(lastConcatBuf)
             //   return
           }
