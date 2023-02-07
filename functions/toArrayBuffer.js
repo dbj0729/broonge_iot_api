@@ -2,7 +2,7 @@ module.exports.toArrayBuffer = function (buffer) {
   const ab = new ArrayBuffer(buffer.length)
   const view = new Uint8Array(ab)
   for (let i = 0; i < buffer.length; i++) {
-    view[i] = buf[i]
+    view[i] = buffer[i]
   }
   return view
 }
