@@ -406,6 +406,7 @@ var server = net.createServer(async function (socket) {
             //     const concatBuf = Buffer.concat(arr, len)
             //     sockets[bike_id_from_iot].write(concatBuf)
             //   }
+            // 00 00 00 44 95 08 02 04 06 08 54 15 00 20 10 00 00 20 10 00 00 20 00 00 00 00 61 64 39 34>
 
             let spareMessageLength = ''
             if (lastBuffer.length < 1000) spareMessageLength = '0' + lastBuffer.length
@@ -440,7 +441,11 @@ var server = net.createServer(async function (socket) {
             console.log({ lastConcatBufCheckSum: lastConcatBuf.slice(-30) })
             console.log({ totalLength: lastConcatBuf.length })
 
-            sockets[bike_id_from_iot].write(lastConcatBuf)
+            const convert = toArrayBuffer(lastConcatBuf)
+
+            console.log({ unit8Array: convert.slice(-30) })
+
+            sockets[bike_id_from_iot].write(convert)
             //   return
           }
 
