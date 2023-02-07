@@ -60,6 +60,11 @@ const IOT_PORT = process.env.IOT_PORT || '8000'
 
 //TODO: firmware upgrade
 const FILE = fs.readFileSync('CH32V203C8T6.bin')
+let lastBuffer = Buffer.alloc(512)
+let char = 1
+for (let i = 0; i < 512; i++) {
+  lastBuffer[i] = char
+}
 // const fileBuf = Buffer.from(DATA)
 // const max = Math.floor(FILE.length / 1024)
 // let lastBuffer = FILE.slice(max * 1024, FILE.length)
@@ -375,11 +380,11 @@ var server = net.createServer(async function (socket) {
 
           //TODO: 펌웨어 업그레이드 test
           if (bike_id_from_iot === '1223129999') {
-            let lastBuffer = Buffer.alloc(210)
-            let char = 1
-            for (let i = 0; i < 210; i++) {
-              lastBuffer[i] = char
-            }
+            // let lastBuffer = Buffer.alloc(210)
+            // let char = 1
+            // for (let i = 0; i < 210; i++) {
+            //   lastBuffer[i] = char
+            // }
             // const max = Math.floor(FILE.length / 1024)
             // let lastBuffer = FILE.slice(max * 1024, FILE.length)
             // let lastBuffer = FILE.slice(0, 1024) // 처음 1kb
