@@ -376,7 +376,8 @@ var server = net.createServer(async function (socket) {
           //TODO: 펌웨어 업그레이드 test
           if (bike_id_from_iot === '1223129999') {
             const max = Math.floor(FILE.length / 1024)
-            let lastBuffer = FILE.slice(max * 1024, FILE.length)
+            // let lastBuffer = FILE.slice(max * 1024, FILE.length)
+            let lastBuffer = FILE.slice(0, 1024) // 처음 1kb
             console.log({ messageLength: lastBuffer.length })
 
             var sig_for_app = process.env.IOT_SIG
@@ -409,12 +410,17 @@ var server = net.createServer(async function (socket) {
             //   }
             // 00 00 00 44 95 08 02 04 06 08 54 15 00 20 10 00 00 20 10 00 00 20 00 00 00 00 61 64 39 34>
 
-            let spareMessageLength = ''
-            if (lastBuffer.length < 1000) spareMessageLength = '0' + lastBuffer.length
-            else spareMessageLength = lastBuffer.length
+            // let spareMessageLength = ''
+            // if (lastBuffer.length < 1000) spareMessageLength = '0' + lastBuffer.length
+            // else spareMessageLength = lastBuffer.length
 
             let spareHeader =
-              sig_for_app + group_for_app + op_code_for_app + bike_id_from_iot + version_for_app + spareMessageLength
+              sig_for_app +
+              group_for_app +
+              op_code_for_app +
+              bike_id_from_iot +
+              version_for_app +
+              message_length_for_app // message length 동적 변경 필요
 
             spareHeader = Buffer.from(spareHeader)
             let lastCheckSum = 0
@@ -442,11 +448,9 @@ var server = net.createServer(async function (socket) {
             console.log({ lastConcatBufCheckSum: lastConcatBuf.slice(-30) })
             console.log({ totalLength: lastConcatBuf.length })
 
-            const convert = toArrayBuffer(lastConcatBuf)
+            // const convert = toArrayBuffer(lastConcatBuf)
 
-            console.log({ unit8Array: convert.slice(-30) })
-
-            sockets[bike_id_from_iot].write(convert)
+            sockets[bike_id_from_iot].write(lastConcatBuf)
             //   return
           }
 
