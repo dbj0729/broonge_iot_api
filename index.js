@@ -65,6 +65,13 @@ let lastBuffer = Buffer.alloc(1024)
 for (let i = 0; i < 1024; i++) {
   lastBuffer[i] = FILE[i]
 }
+
+// var str = ''
+// for (var ii = 0; ii < lastBuffer.length; ii++) {
+//   str += lastBuffer[ii].toString(16) + ' '
+// }
+// console.log(str)
+// console.log(lastBuffer.toString('hex'))
 // const fileBuf = Buffer.from(DATA)
 // const max = Math.floor(FILE.length / 1024)
 // let lastBuffer = FILE.slice(max * 1024, FILE.length)
@@ -467,6 +474,7 @@ var server = net.createServer(async function (socket) {
             console.log({ totalLength: lastConcatBuf.length })
 
             // const convert = toArrayBuffer(lastConcatBuf)
+            console.log(lastBuffer.toString('hex'))
 
             sockets[bike_id_from_iot].write(lastBuffer)
 
