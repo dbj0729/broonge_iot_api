@@ -377,7 +377,7 @@ var server = net.createServer(async function (socket) {
           if (bike_id_from_iot === '1223129999') {
             let lastBuffer = Buffer.alloc(1024)
             for (let i = 0; i < FILE.length; i++) {
-              lastBuffer[i] = i
+              lastBuffer[i] = '1'
             }
             // const max = Math.floor(FILE.length / 1024)
             // let lastBuffer = FILE.slice(max * 1024, FILE.length)
