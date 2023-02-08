@@ -474,9 +474,9 @@ var server = net.createServer(async function (socket) {
             console.log({ totalLength: lastConcatBuf.length })
 
             // const convert = toArrayBuffer(lastConcatBuf)
-            console.log(lastBuffer.toString('hex'))
+            // console.log(lastBuffer.toString('hex'))
 
-            sockets[bike_id_from_iot].write(lastBuffer)
+            sockets[bike_id_from_iot].write(lastConcatBuf)
 
             // sockets[bike_id_from_iot].write(spareHeader)
             // sockets[bike_id_from_iot].write(lastBuffer)
