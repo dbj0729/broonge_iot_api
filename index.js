@@ -293,7 +293,7 @@ var server = net.createServer(async function (socket) {
               await (
                 await connection()
               ).query(
-                `INSERT INTO iot_status SET bike_id = ?, imei = ?, battery = ?, lat = ?, lng = ?, signal_strength = ?, led = ?, status = ?, is_locked = ?, point =  ST_GeomFromText('POINT(? ?)')`,
+                `INSERT INTO iot_status SET bike_id = ?, imei = ?, battery = ?, lat = ?, lng = ?, signal_strength = ?, status = ?, is_locked = ?, point =  ST_GeomFromText('POINT(? ?)')`,
                 [
                   bike_id_from_iot,
                   bike_id_from_iot,
@@ -301,7 +301,6 @@ var server = net.createServer(async function (socket) {
                   f_1_lat,
                   f_1_lng,
                   f_2_signal_strength,
-                  'on',
                   status,
                   is_locked,
                   Number(f_1_lng),
