@@ -696,7 +696,7 @@ var server = net.createServer(async function (socket) {
         }
       })
     } finally {
-      console.log('--------------------finally execute-----------------------')
+      console.log('------ finally 부분 수행 ------')
       console.log('\n')
       await new Promise(resolve => setTimeout(resolve, 300))
       release()
