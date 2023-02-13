@@ -215,7 +215,7 @@ var server = net.createServer(async function (socket) {
       socket.on('data', async function (data) {
         const data_elements = data.toString('utf-8').trim()
         console.log('\n')
-        console.log(data_elements)
+        console.log('받은 값 : ' + data_elements)
         // BR01486867506000147608930???????????????????????59903990725
 
         // console.log('연결된 자전거 ' + Object.keys(sockets))
@@ -697,6 +697,7 @@ var server = net.createServer(async function (socket) {
       })
     } finally {
       console.log('--------------------finally execute-----------------------')
+      console.log('\n')
       await new Promise(resolve => setTimeout(resolve, 300))
       release()
     }
