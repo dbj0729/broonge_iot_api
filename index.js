@@ -264,6 +264,7 @@ var server = net.createServer(async function (socket) {
 
         const checksum = data_elements.slice(sig_11, sig_12)
 
+        console.log('\n')
         console.log('바이크 아이디', bike_id_from_iot)
 
         // 변경되는 값; 이 부분을 저장해야 한다.
@@ -283,7 +284,7 @@ var server = net.createServer(async function (socket) {
             //bike_id_from_iot 는 IEMI 값
             const [findImei] = await (
               await connection()
-            ).query('SELECT * FROM iot_status WHERE imei = ?', [bike_id_from_iot])
+            ).query('SELECT * FROM iot_status WHERE imei = ?', [bike_id_from_iot]) //IMEI 컬럼값만 가져오면 되지않을까요?? @PJY
 
             if (findImei.length === 0) {
               const status =
@@ -323,6 +324,7 @@ var server = net.createServer(async function (socket) {
               version_for_app +
               message_length_for_app
 
+            //점검 한번 같이 해보기
             function sending_codes(send_code) {
               let combined_send_codes = send_code.split('')
               let send_codes_value = combined_send_codes
@@ -385,103 +387,103 @@ var server = net.createServer(async function (socket) {
           sockets[bike_id_from_iot] = socket
 
           //TODO: 펌웨어 업그레이드 test
-          if (bike_id_from_iot === '1223129999') {
-            // let lastBuffer = Buffer.alloc(210)
-            // let char = 1
-            // for (let i = 0; i < 210; i++) {
-            //   lastBuffer[i] = char
-            // }
-            // const max = Math.floor(FILE.length / 1024)
-            // let lastBuffer = FILE.slice(max * 1024, FILE.length)
-            // let lastBuffer = FILE.slice(0, 1024) // 처음 1kb
-            console.log({ messageLength: lastBuffer.length })
+          // if (bike_id_from_iot === '1223129999') {
+          //   // let lastBuffer = Buffer.alloc(210)
+          //   // let char = 1
+          //   // for (let i = 0; i < 210; i++) {
+          //   //   lastBuffer[i] = char
+          //   // }
+          //   // const max = Math.floor(FILE.length / 1024)
+          //   // let lastBuffer = FILE.slice(max * 1024, FILE.length)
+          //   // let lastBuffer = FILE.slice(0, 1024) // 처음 1kb
+          //   console.log({ messageLength: lastBuffer.length })
 
-            var sig_for_app = process.env.IOT_SIG
-            var group_for_app = process.env.IOT_GROUP
-            var op_code_for_app = '9' // 3번이 보내는 경우이다.
-            var version_for_app = 'APP'
-            var message_length_for_app = '1024' //IOT_ERROR_MESSAGE_LENGTH???
-            var send_default_data_preparation =
-              sig_for_app +
-              group_for_app +
-              op_code_for_app +
-              bike_id_from_iot +
-              version_for_app +
-              message_length_for_app
-            const headerBuf = Buffer.from(send_default_data_preparation)
-            console.log({ headerBuf })
-            //   for (let i = 0; i < max; i++) {
-            //     const sendBuf = fileBuf.slice(i * 1024, (i + 1) * 1024)
-            //     let checksum = 0
-            //     for (let j = 0; j < sendBuf.length; j++) {
-            //       checksum += sendBuf[j]
-            //     }
-            //     if (checksum.toString(16).length > 4) checksum = checksum.toString(16).slice(-4)
-            //     else checksum = checksum.toString(16)
-            //     const checksumBuf = Buffer.from(checksum)
-            //     const len = headerBuf.length + sendBuf.length + checksumBuf.length
-            //     const arr = [headerBuf, sendBuf, checksumBuf]
-            //     const concatBuf = Buffer.concat(arr, len)
-            //     sockets[bike_id_from_iot].write(concatBuf)
-            //   }
-            // 00 00 00 44 95 08 02 04 06 08 54 15 00 20 10 00 00 20 10 00 00 20 00 00 00 00 61 64 39 34>
+          //   var sig_for_app = process.env.IOT_SIG
+          //   var group_for_app = process.env.IOT_GROUP
+          //   var op_code_for_app = '9' // 3번이 보내는 경우이다.
+          //   var version_for_app = 'APP'
+          //   var message_length_for_app = '1024' //IOT_ERROR_MESSAGE_LENGTH???
+          //   var send_default_data_preparation =
+          //     sig_for_app +
+          //     group_for_app +
+          //     op_code_for_app +
+          //     bike_id_from_iot +
+          //     version_for_app +
+          //     message_length_for_app
+          //   const headerBuf = Buffer.from(send_default_data_preparation)
+          //   console.log({ headerBuf })
+          //   //   for (let i = 0; i < max; i++) {
+          //   //     const sendBuf = fileBuf.slice(i * 1024, (i + 1) * 1024)
+          //   //     let checksum = 0
+          //   //     for (let j = 0; j < sendBuf.length; j++) {
+          //   //       checksum += sendBuf[j]
+          //   //     }
+          //   //     if (checksum.toString(16).length > 4) checksum = checksum.toString(16).slice(-4)
+          //   //     else checksum = checksum.toString(16)
+          //   //     const checksumBuf = Buffer.from(checksum)
+          //   //     const len = headerBuf.length + sendBuf.length + checksumBuf.length
+          //   //     const arr = [headerBuf, sendBuf, checksumBuf]
+          //   //     const concatBuf = Buffer.concat(arr, len)
+          //   //     sockets[bike_id_from_iot].write(concatBuf)
+          //   //   }
+          //   // 00 00 00 44 95 08 02 04 06 08 54 15 00 20 10 00 00 20 10 00 00 20 00 00 00 00 61 64 39 34>
 
-            // let spareMessageLength = ''
-            // if (lastBuffer.length < 1000) spareMessageLength = '0' + lastBuffer.length
-            // else spareMessageLength = lastBuffer.length
+          //   // let spareMessageLength = ''
+          //   // if (lastBuffer.length < 1000) spareMessageLength = '0' + lastBuffer.length
+          //   // else spareMessageLength = lastBuffer.length
 
-            let spareHeader =
-              sig_for_app +
-              group_for_app +
-              op_code_for_app +
-              bike_id_from_iot +
-              version_for_app +
-              message_length_for_app // message length 동적 변경 필요
+          //   let spareHeader =
+          //     sig_for_app +
+          //     group_for_app +
+          //     op_code_for_app +
+          //     bike_id_from_iot +
+          //     version_for_app +
+          //     message_length_for_app // message length 동적 변경 필요
 
-            spareHeader = Buffer.from(spareHeader)
+          //   spareHeader = Buffer.from(spareHeader)
 
-            // sockets[bike_id_from_iot].write(spareHeader)
-            // sockets[bike_id_from_iot].write(lastBuffer)
+          //   // sockets[bike_id_from_iot].write(spareHeader)
+          //   // sockets[bike_id_from_iot].write(lastBuffer)
 
-            let lastCheckSum = 0
+          //   let lastCheckSum = 0
 
-            for (let i = 0; i < lastBuffer.length; i++) {
-              lastCheckSum += lastBuffer[i]
-            }
-            console.log({ lastCheckSum })
-            lastCheckSum = lastCheckSum.toString(16)
-            if (lastCheckSum.length >= 4) lastCheckSum = lastCheckSum.slice(-4)
-            else {
-              while (lastCheckSum.length < 4) {
-                lastCheckSum = '0' + lastCheckSum
-              }
-            }
-            console.log({ lastCheckSum })
-            const lastCheckSumBuf = Buffer.from(lastCheckSum)
-            console.log({ lastCheckSumBuf, length: lastCheckSumBuf.length })
-            console.log({ spareHeader })
+          //   for (let i = 0; i < lastBuffer.length; i++) {
+          //     lastCheckSum += lastBuffer[i]
+          //   }
+          //   console.log({ lastCheckSum })
+          //   lastCheckSum = lastCheckSum.toString(16)
+          //   if (lastCheckSum.length >= 4) lastCheckSum = lastCheckSum.slice(-4)
+          //   else {
+          //     while (lastCheckSum.length < 4) {
+          //       lastCheckSum = '0' + lastCheckSum
+          //     }
+          //   }
+          //   console.log({ lastCheckSum })
+          //   const lastCheckSumBuf = Buffer.from(lastCheckSum)
+          //   console.log({ lastCheckSumBuf, length: lastCheckSumBuf.length })
+          //   console.log({ spareHeader })
 
-            const lastLen = spareHeader.length + lastBuffer.length + lastCheckSumBuf.length
+          //   const lastLen = spareHeader.length + lastBuffer.length + lastCheckSumBuf.length
 
-            const lastArr = [spareHeader, lastBuffer, lastCheckSumBuf]
+          //   const lastArr = [spareHeader, lastBuffer, lastCheckSumBuf]
 
-            console.log(lastArr.length)
+          //   console.log(lastArr.length)
 
-            const lastConcatBuf = Buffer.concat(lastArr)
-            console.log({ lastConcatBufCheckSum: lastConcatBuf.slice(-30) })
-            // 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 30 34 30 30
-            console.log({ totalLength: lastConcatBuf.length })
+          //   const lastConcatBuf = Buffer.concat(lastArr)
+          //   console.log({ lastConcatBufCheckSum: lastConcatBuf.slice(-30) })
+          //   // 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 30 34 30 30
+          //   console.log({ totalLength: lastConcatBuf.length })
 
-            // const convert = toArrayBuffer(lastConcatBuf)
-            // console.log(lastBuffer.toString('hex'))
+          //   // const convert = toArrayBuffer(lastConcatBuf)
+          //   // console.log(lastBuffer.toString('hex'))
 
-            sockets[bike_id_from_iot].write(lastConcatBuf)
+          //   sockets[bike_id_from_iot].write(lastConcatBuf)
 
-            // sockets[bike_id_from_iot].write(spareHeader)
-            // sockets[bike_id_from_iot].write(lastBuffer)
-            // sockets[bike_id_from_iot].write(lastCheckSumBuf)
-            return
-          }
+          //   // sockets[bike_id_from_iot].write(spareHeader)
+          //   // sockets[bike_id_from_iot].write(lastBuffer)
+          //   // sockets[bike_id_from_iot].write(lastCheckSumBuf)
+          //   return
+          // }
 
           if (checksum == manually_added_0x) {
             // IoT 로 부터 받은 값이 모두 문제 없이 다 통과했을 때 실행
@@ -663,6 +665,7 @@ var server = net.createServer(async function (socket) {
             if (beforeSendBikeId === bike_id_for_app) await new Promise(resolve => setTimeout(resolve, 1000))
 
             sockets[bike_id_for_app].write(sending_codes(code))
+            console.log('apptoIOT : ' + sockets[bike_id_for_app].write(sending_codes(code)))
             beforeSendBikeId = bike_id_for_app
 
             socket.write(sending_codes(code))
