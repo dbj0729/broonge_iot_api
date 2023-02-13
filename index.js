@@ -584,6 +584,7 @@ var server = net.createServer(async function (socket) {
               }
 
               if (f_4_device_status === '00') {
+                // 여기를 파일로 저장했다가 보내는 방식으로 진행하는 것이 좋을 것 같다 @DBJ 230213
                 const selectBikeRiding = `SELECT distance FROM riding_data WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
                 const [selectResult] = await (await connection()).query(selectBikeRiding, [bike_id_from_iot])
 
@@ -647,7 +648,7 @@ var server = net.createServer(async function (socket) {
           var op_code_for_app = '3' // 3번이 보내는 경우이다.
           var bike_id_for_app = app_to_iot_data[1]
           var version_for_app = 'APP'
-          var message_length_for_app = '02' //IOT_ERROR_MESSAGE_LENGTH???
+          var message_length_for_app = '02'
           var send_default_data_preparation =
             sig_for_app + group_for_app + op_code_for_app + bike_id_for_app + version_for_app + message_length_for_app
 
@@ -667,7 +668,7 @@ var server = net.createServer(async function (socket) {
             if (beforeSendBikeId === bike_id_for_app) await new Promise(resolve => setTimeout(resolve, 1000))
 
             sockets[bike_id_for_app].write(sending_codes(code))
-            console.log('apptoIOT : ' + sockets[bike_id_for_app].write(sending_codes(code)))
+            console.log('apptoIOT : ' + sending_codes(code))
             beforeSendBikeId = bike_id_for_app
 
             socket.write(sending_codes(code))
