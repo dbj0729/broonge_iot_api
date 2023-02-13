@@ -177,7 +177,7 @@ var server = net.createServer(async function (socket) {
         아래 로직에서 차이가 나는 것이다.
     */
     // let bike_id_from_iot
-
+    console.log('\n')
     console.log(socket.address().address + ' Started Broonge IoT Server on ' + getCurrentTime())
     socket.setNoDelay(true)
     // socket.setKeepAlive(true, 2000)
@@ -214,6 +214,7 @@ var server = net.createServer(async function (socket) {
 
       socket.on('data', async function (data) {
         const data_elements = data.toString('utf-8').trim()
+        console.log('\n')
         console.log(data_elements)
         // BR01486867506000147608930???????????????????????59903990725
 
@@ -264,7 +265,6 @@ var server = net.createServer(async function (socket) {
 
         const checksum = data_elements.slice(sig_11, sig_12)
 
-        console.log('\n')
         console.log('바이크 아이디', bike_id_from_iot)
 
         // 변경되는 값; 이 부분을 저장해야 한다.
@@ -324,7 +324,7 @@ var server = net.createServer(async function (socket) {
               version_for_app +
               message_length_for_app
 
-            //점검 한번 같이 해보기
+            //점검 한번 같이 해보기 @PJY
             function sending_codes(send_code) {
               let combined_send_codes = send_code.split('')
               let send_codes_value = combined_send_codes
@@ -386,6 +386,7 @@ var server = net.createServer(async function (socket) {
 
           sockets[bike_id_from_iot] = socket
 
+          // 이게 IoT 연결을 막는 건가 싶어 주석 @PJY+DBJ
           //TODO: 펌웨어 업그레이드 test
           // if (bike_id_from_iot === '1223129999') {
           //   // let lastBuffer = Buffer.alloc(210)
@@ -523,7 +524,8 @@ var server = net.createServer(async function (socket) {
 
               //자전거가 보낸 통신일 경우
               //DB에 해당 자전거 ID가 등록되어 있는지 확인
-              const findBikeInIotStatusQuery = `SELECT * FROM iot_status WHERE bike_id = ? limit 1`
+              //FIXME: 기존에 SELECT * FROM iot_status 였는데, 이건 생각해 보니 위도경도 모두를 불러오는 격인데, delay 가 생겨서 IoT 가 밀린 것은 아닌가? @DBJ on 230213
+              const findBikeInIotStatusQuery = `SELECT lng, lat FROM iot_status WHERE bike_id = ? limit 1`
               const [findBikeInIotStatus] = await (
                 await connection()
               ).query(findBikeInIotStatusQuery, [bike_id_from_iot])
@@ -538,7 +540,7 @@ var server = net.createServer(async function (socket) {
                 f_1_lat = findBikeInIotStatus[0].lat
               }
 
-              const findBikeInBikesQuery = `SELECT * FROM bikes WHERE id = ? limit 1`
+              const findBikeInBikesQuery = `SELECT id FROM bikes WHERE id = ? limit 1`
               const [findBikeInBikes] = await (await connection()).query(findBikeInBikesQuery, [bike_id_from_iot])
 
               //TODO: 자전거가 bikes 와 iot 동시에 없거나 있어도 bikes is_active 가 NO 이면 소켓을 끊어야 한다.
@@ -582,7 +584,7 @@ var server = net.createServer(async function (socket) {
               }
 
               if (f_4_device_status === '00') {
-                const selectBikeRiding = `SELECT * FROM riding_data WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
+                const selectBikeRiding = `SELECT distance FROM riding_data WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
                 const [selectResult] = await (await connection()).query(selectBikeRiding, [bike_id_from_iot])
 
                 let coordinates = []
