@@ -489,7 +489,7 @@ var server = net.createServer(async function (socket) {
           if (checksum == manually_added_0x) {
             // IoT 로 부터 받은 값이 모두 문제 없이 다 통과했을 때 실행
             try {
-              console.log({ bikeId: bike_id_from_iot, data: data_elements }, getCurrentTime())
+              console.log('IoT 로 부터 받은 값이 모두 문제 없이 다 통과한 시간 : ' + getCurrentTime())
 
               //to IMEI test
               // if (bike_id_from_iot === '1223129999') {
