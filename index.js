@@ -309,12 +309,7 @@ var server = net.createServer(async function (socket) {
                 ],
               )
 
-              await (
-                await connection()
-              ).query(`INSERT INTO bikes SET id = ?, is_active = 'YES', reg_date = ?`, [
-                bike_id_from_iot,
-                getCurrentTime(),
-              ])
+              await (await connection()).query(`INSERT INTO bikes SET id = ?, is_active = 'YES'`, [bike_id_from_iot])
             }
 
             let sig_for_app = process.env.IOT_SIG
