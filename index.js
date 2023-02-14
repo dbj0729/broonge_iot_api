@@ -308,6 +308,13 @@ var server = net.createServer(async function (socket) {
                   Number(f_1_lat),
                 ],
               )
+
+              await (
+                await connection()
+              ).query(`INSERT INTO bikes SET id = ?, is_active = 'YES', reg_date = ?`, [
+                bike_id_from_iot,
+                getCurrentTime(),
+              ])
             }
 
             let sig_for_app = process.env.IOT_SIG
@@ -353,15 +360,36 @@ var server = net.createServer(async function (socket) {
               .reduce((acc, curr) => acc + curr.charCodeAt(), 0)
               .toString(16)
 
-          if (checksum !== verification) return console.log('checksum diffrent')
+          if (checksum !== verification) return console.log('checksum different')
           if (message !== '00') return console.log('response Error :' + message)
 
-          const [findIMEI] = await (await connection()).query('SELECT * FROM iot_status WHERE imei = ? LIMIT 1', [imei])
+          const [findIMEI] = await (
+            await connection()
+          ).query('SELECT bike_id FROM iot_status WHERE imei = ? LIMIT 1', [imei])
 
           if (findIMEI.length !== 0) {
-            await (
+            const [checkDuplicate] = await (
               await connection()
-            ).query('UPDATE iot_status SET bike_id = ? WHERE bike_id = ? LIMIT 1', [usim, findIMEI[0].bike_id])
+            ).query('SELECT imei, bike_id FROM iot_status WHERE bike_id = ?', [usim])
+
+            if (checkDuplicate.length === 0) {
+              await (
+                await connection()
+              ).query('UPDATE iot_status SET bike_id = ? WHERE bike_id = ? LIMIT 1', [usim, findIMEI[0].bike_id])
+            } else {
+              if (checkDuplicate[0].imei !== imei) {
+                // 222, 234
+                await (
+                  await connection()
+                ).query('UPDATE iot_status SET bike_id = ? WHERE bike_id = ?', [
+                  checkDuplicate[0].imei, //222
+                  checkDuplicate[0].bike_id, //123
+                ])
+                await (
+                  await connection()
+                ).query('UPDATE iot_status SET bike_id = ? WHERE bike_id = ?', [usim, findIMEI[0].bike_id])
+              }
+            }
           }
 
           console.log('responseCode', { data_elements, imei, usim, message, checksum, verification })
@@ -712,23 +740,10 @@ server.getConnections((err, count) => {
   console.log(count)
 })
 
-// 에러가 발생할 경우 화면에 에러메시지 출력
-
 server.on('error', function (err) {
   console.log('server err' + err)
 })
 
-// .env 의 포트값으로 진행되던가 아니면 9090 으로 진행되던가 해서 접속이 가능하도록 대기
-// @DBJ 여기 안나오는데?
 server.listen(IOT_PORT, function () {
   console.log(`Listening for requests on port ${IOT_PORT}`)
 })
-
-/*
-3자리이면 앞에 0 한개 붙이시고,,,,,2자리 나오면 앞에 0 2개 이렇게
-
-checksum length 를 count 하고,
-실제 계산된 값의 length 를 구한다음,
-그 length 에 있어서 자리수가 부족한 경우에는 0으로 매꾼다???
-
-*/
