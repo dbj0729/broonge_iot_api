@@ -183,6 +183,7 @@ var server = net.createServer(async function (socket) {
     // socket.setKeepAlive(true, 2000)
 
     socket.id = socket.remoteAddress + ':' + socket.remotePort
+    console.log({ socketAddress: socket.id })
 
     const [value, release] = await semaphore.acquire()
     try {
