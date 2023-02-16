@@ -183,7 +183,6 @@ var server = net.createServer(async function (socket) {
     // socket.setKeepAlive(true, 2000)
 
     socket.id = socket.remoteAddress + ':' + socket.remotePort
-    console.log({ socketAddress: socket.id })
 
     const [value, release] = await semaphore.acquire()
     try {
@@ -409,6 +408,10 @@ var server = net.createServer(async function (socket) {
           manually_added_0x = '0' + manual_codes_value_verification // 마지막 checksum 에 0이 빠져서 0을 넣음
 
           sockets[bike_id_from_iot] = socket
+          console.log(
+            'socketAddress',
+            sockets[bike_id_from_iot].remoteAddress + ':' + sockets[bike_id_from_iot].remotePort,
+          )
 
           // 이게 IoT 연결을 막는 건가 싶어 주석 @PJY+DBJ
           //TODO: 펌웨어 업그레이드 test
