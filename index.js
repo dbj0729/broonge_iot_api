@@ -180,7 +180,7 @@ var server = net.createServer(async function (socket) {
     console.log('\n')
     console.log(socket.address().address + ' Started Broonge IoT Server on ' + getCurrentTime())
     socket.setNoDelay(true)
-    // socket.setKeepAlive(true, 2000)
+    socket.setKeepAlive(true, 2000)
 
     socket.id = socket.remoteAddress + ':' + socket.remotePort
 
@@ -218,7 +218,7 @@ var server = net.createServer(async function (socket) {
         console.log('받은 값 : ' + data_elements)
         // BR01486867506000147608930???????????????????????59903990725
 
-        // console.log('연결된 자전거 ' + Object.keys(sockets))
+        console.log('연결된 자전거 ' + Object.keys(sockets))
         // IoT 로부터 받는 정보이다.
         const sig = data_elements.slice(0, sig_1)
         const group = data_elements.slice(sig_1, sig_2)
@@ -266,6 +266,7 @@ var server = net.createServer(async function (socket) {
         const checksum = data_elements.slice(sig_11, sig_12)
 
         console.log('바이크 아이디', bike_id_from_iot)
+        sockets[bike_id_from_iot] = socket
 
         // 변경되는 값; 이 부분을 저장해야 한다.
         let manual_codes = f_1_gps + f_2_signal_strength + f_3_battery + f_4_device_status + f_5_err_info
