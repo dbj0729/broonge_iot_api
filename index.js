@@ -5,6 +5,7 @@ const fs = require('fs')
 //   input: process.stdin,
 //   output: process.stdout,
 // });
+const moment = require('moment')
 var Mutex = require('async-mutex').Mutex
 var Semaphore = require('async-mutex').Semaphore
 const { toArrayBuffer } = require('./functions/toArrayBuffer')
@@ -314,7 +315,7 @@ var server = net.createServer(async function (socket) {
                 await connection()
               ).query(`INSERT INTO bikes SET id = ?, is_active = 'YES', reg_date = ?`, [
                 bike_id_from_iot,
-                getCurrentTime(),
+                moment().format('YYYY-MM-DD HH:mm:ss'),
               ])
             }
 
