@@ -360,8 +360,30 @@ var server = net.createServer(async function (socket) {
               .reduce((acc, curr) => acc + curr.charCodeAt(), 0)
               .toString(16)
 
-          if (checksum !== verification) return console.log('checksum different')
-          if (message !== '00') return console.log('response Error :' + message)
+          let sig_for_app = process.env.IOT_SIG
+          let group_for_app = process.env.IOT_GROUP
+          let op_code_for_app = '3' // 3번이 보내는 경우이다.
+
+          let version_for_app = 'APP'
+          let message_length_for_app = '02'
+          let send_default_data_preparation =
+            sig_for_app + group_for_app + op_code_for_app + imei + version_for_app + message_length_for_app
+
+          if (checksum !== verification || message !== '00') {
+            function sending_codes(send_code) {
+              let combined_send_codes = send_code.split('')
+              let send_codes_value = combined_send_codes
+                .map(item => item.charCodeAt())
+                .reduce((acc, curr) => acc + curr)
+              let send_codes_value_verification = send_codes_value.toString(16)
+              let send_codes_manually_added_0x = '00' + send_codes_value_verification
+              let final_send_codes = send_default_data_preparation + send_code + send_codes_manually_added_0x
+              return final_send_codes
+            }
+
+            return socket.write(sending_codes('11')) //toUsim
+          }
+
           sockets[usim] = socket
 
           const [findIMEI] = await (
