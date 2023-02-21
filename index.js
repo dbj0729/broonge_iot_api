@@ -288,8 +288,9 @@ var server = net.createServer(async function (socket) {
 
             if (findImei.length === 0) {
               const status =
-                f_4_device_status === '03' ? 'malfunction' : f_4_device_status === '00' ? 'in_use' : 'stand_by'
-              const is_locked = f_4_device_status === '03' ? 'malfunction' : f_4_device_status === '00' ? 'NO' : 'YES'
+                f_4_device_status === '03' ? 'malfunctioning' : f_4_device_status === '00' ? 'in_use' : 'stand_by'
+              const is_locked =
+                f_4_device_status === '03' ? 'malfunctioning' : f_4_device_status === '00' ? 'NO' : 'YES'
 
               await (
                 await connection()
