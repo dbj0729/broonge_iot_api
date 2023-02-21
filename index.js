@@ -267,7 +267,6 @@ var server = net.createServer(async function (socket) {
         const checksum = data_elements.slice(sig_11, sig_12)
 
         console.log('바이크 아이디', bike_id_from_iot)
-        sockets[bike_id_from_iot] = socket
 
         // 변경되는 값; 이 부분을 저장해야 한다.
         let manual_codes = f_1_gps + f_2_signal_strength + f_3_battery + f_4_device_status + f_5_err_info
@@ -279,7 +278,6 @@ var server = net.createServer(async function (socket) {
             .map(item => item.charCodeAt())
             .reduce((acc, curr) => acc + curr)
           let manual_codes_value_verification = '0' + manual_codes_value.toString(16)
-          sockets[bike_id_from_iot] = socket
 
           console.log({ checksum, verification: manual_codes_value_verification })
           if (checksum === manual_codes_value_verification) {
@@ -345,7 +343,7 @@ var server = net.createServer(async function (socket) {
               return final_send_codes
             }
 
-            sockets[bike_id_from_iot].write(sending_codes('11')) //toUsim
+            socket.write(sending_codes('11')) //toUsim
           }
         } else if (sig == process.env.IOT_SIG && group == process.env.IOT_GROUP && op_code == 2) {
           //response
@@ -364,6 +362,7 @@ var server = net.createServer(async function (socket) {
 
           if (checksum !== verification) return console.log('checksum different')
           if (message !== '00') return console.log('response Error :' + message)
+          sockets[usim] = socket
 
           const [findIMEI] = await (
             await connection()
