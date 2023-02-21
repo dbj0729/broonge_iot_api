@@ -360,28 +360,32 @@ var server = net.createServer(async function (socket) {
               .reduce((acc, curr) => acc + curr.charCodeAt(), 0)
               .toString(16)
 
-          let sig_for_app = process.env.IOT_SIG
-          let group_for_app = process.env.IOT_GROUP
-          let op_code_for_app = '3' // 3번이 보내는 경우이다.
+          // let sig_for_app = process.env.IOT_SIG
+          // let group_for_app = process.env.IOT_GROUP
+          // let op_code_for_app = '3' // 3번이 보내는 경우이다.
 
-          let version_for_app = 'APP'
-          let message_length_for_app = '02'
-          let send_default_data_preparation =
-            sig_for_app + group_for_app + op_code_for_app + imei + version_for_app + message_length_for_app
+          // let version_for_app = 'APP'
+          // let message_length_for_app = '02'
+          // let send_default_data_preparation =
+          //   sig_for_app + group_for_app + op_code_for_app + imei + version_for_app + message_length_for_app
+
+          // if (checksum !== verification || message !== '00') {
+          //   function sending_codes(send_code) {
+          //     let combined_send_codes = send_code.split('')
+          //     let send_codes_value = combined_send_codes
+          //       .map(item => item.charCodeAt())
+          //       .reduce((acc, curr) => acc + curr)
+          //     let send_codes_value_verification = send_codes_value.toString(16)
+          //     let send_codes_manually_added_0x = '00' + send_codes_value_verification
+          //     let final_send_codes = send_default_data_preparation + send_code + send_codes_manually_added_0x
+          //     return final_send_codes
+          //   }
+
+          //   return socket.write(sending_codes('11')) //toUsim
+          // }
 
           if (checksum !== verification || message !== '00') {
-            function sending_codes(send_code) {
-              let combined_send_codes = send_code.split('')
-              let send_codes_value = combined_send_codes
-                .map(item => item.charCodeAt())
-                .reduce((acc, curr) => acc + curr)
-              let send_codes_value_verification = send_codes_value.toString(16)
-              let send_codes_manually_added_0x = '00' + send_codes_value_verification
-              let final_send_codes = send_default_data_preparation + send_code + send_codes_manually_added_0x
-              return final_send_codes
-            }
-
-            return socket.write(sending_codes('11')) //toUsim
+            return console.log('req error')
           }
 
           sockets[usim] = socket
@@ -603,7 +607,7 @@ var server = net.createServer(async function (socket) {
 
               const partQuery =
                 f_4_device_status === '03'
-                  ? `status = 'malfunction', is_locked = 'malfunction'`
+                  ? `status = 'malfunctioning', is_locked = 'malfunctioning'`
                   : f_4_device_status === '00' // 00 이 해제상태
                   ? `status = 'in_use', is_locked = 'NO'`
                   : f_4_device_status === '01' // 01 이 잠긴상태
