@@ -591,13 +591,14 @@ var server = net.createServer(async function (socket) {
           let bike_id_for_app = app_to_iot_data[1] //imei 15자리
           var version_for_app = 'APP'
           var message_length_for_app = '02'
-          var send_default_data_preparation =
-            sig_for_app + group_for_app + op_code_for_app + bike_id_for_app + version_for_app + message_length_for_app
 
           const [result] = await (
             await connection()
           ).query(`SELECT usim FROM iot_status WHERE bike_id = ?`, [bike_id_for_app])
           const bike_id_usim = result[0].usim
+
+          var send_default_data_preparation =
+            sig_for_app + group_for_app + op_code_for_app + bike_id_usim + version_for_app + message_length_for_app
 
           function sending_codes(send_code) {
             var combined_send_codes = send_code.split('')
