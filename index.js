@@ -9,8 +9,8 @@ var Semaphore = require('async-mutex').Semaphore
 const mutex = new Mutex()
 const semaphore = new Semaphore(1)
 
-const distance = require('./functions/distance.js')
-const getCurrentTime = require('./functions/getCurrentTime.js')
+const { distance } = require('./functions/distance')
+const { getCurrentTime } = require('./functions/getCurrentTime')
 const { connection } = require('./config/database')
 const IOT_PORT = process.env.IOT_PORT || '8000'
 
