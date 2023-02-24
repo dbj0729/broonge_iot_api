@@ -505,9 +505,14 @@ var server = net.createServer(async function (socket) {
                 return
               }
 
-              if (gps_reformatted.length === 1 && findBikeInIotStatus.length > 0) {
+              if (gps_reformatted.length === 1) {
                 f_1_lng = findBikeInIotStatus[0].lng
                 f_1_lat = findBikeInIotStatus[0].lat
+              }
+
+              if (!f_1_lng && f_1_lat === '??????????') {
+                f_1_lng = 127.0895133
+                f_1_lat = 37.2115683
               }
 
               // const findBikeInBikesQuery = `SELECT id FROM bikes WHERE id = ? limit 1`
