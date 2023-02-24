@@ -544,7 +544,7 @@ var server = net.createServer(async function (socket) {
 
               if (f_4_device_status === '00') {
                 // 여기를 파일로 저장했다가 보내는 방식으로 진행하는 것이 좋을 것 같다 @DBJ 230213
-                const selectBikeRiding = `SELECT distance FROM riding_data WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
+                const selectBikeRiding = `SELECT distance, coordinates FROM riding_data WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
                 const [selectResult] = await (await connection()).query(selectBikeRiding, [bike_id_imei])
 
                 let coordinates = []
