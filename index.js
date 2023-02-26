@@ -571,7 +571,7 @@ var server = net.createServer(async function (socket) {
                 const updateBikeRiding = `UPDATE riding_data set coordinates = ?, distance = ? WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
                 await (
                   await connection()
-                ).query(updateBikeRiding, [JSON.stringify(coordinates), dist.toFixed(3), bike_id_imei])
+                ).query(updateBikeRiding, [JSON.stringify(coordinates), dist.toFixed(1), bike_id_imei])
               }
               console.log('업데이트 실패 횟수 : ' + failUpdate)
             } catch (error) {
