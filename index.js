@@ -163,7 +163,7 @@ var server = net.createServer(async function (socket) {
         const readFile = result[0].file_body
         let readFile30 = Buffer.alloc(30)
         for (let i = 0; i < 30; i++) {
-          readFile1024[i] = readFile[i]
+          readFile30[i] = readFile[i]
         }
 
         console.log('front에서 넘긴 파일', { readFile30 })
