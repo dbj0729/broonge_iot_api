@@ -16,9 +16,9 @@ const IOT_PORT = process.env.IOT_PORT || '8000'
 
 //TODO: firmware upgrade
 const FILE = fs.readFileSync('CH32V203C8T6.bin')
-let lastBuffer = Buffer.alloc(1024)
+let lastBuffer = Buffer.alloc(30)
 // let char = 2
-for (let i = 0; i < 1024; i++) {
+for (let i = 0; i < 30; i++) {
   lastBuffer[i] = FILE[i]
 }
 
@@ -157,6 +157,16 @@ var server = net.createServer(async function (socket) {
         const data_elements = data.toString('utf-8').trim()
         console.log('\n')
         console.log('받은 값 : ' + data_elements)
+        console.log('server에 올라가 있는 파일', { lastBuffer })
+
+        const [result] = await (await connection()).query(`SELECT * FROM update_mgmt LIMIT 1`)
+        const readFile = result[0].file_body
+        let readFile30 = Buffer.alloc(30)
+        for (let i = 0; i < 30; i++) {
+          readFile1024[i] = readFile[i]
+        }
+
+        console.log('front에서 넘긴 파일', { readFile30 })
         // BR01486867506000147608930???????????????????????59903990725
 
         console.log('연결된 자전거 ' + Object.keys(sockets))
