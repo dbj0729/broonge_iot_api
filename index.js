@@ -19,11 +19,11 @@ let testLength = 50
 //TODO: firmware upgrade
 const FILE = fs.readFileSync('CH32V203C8T6.bin')
 let max = Math.ceil(FILE.length / 1024)
-let lastBuffer = Buffer.alloc(testLength)
-// let char = 2
-for (let i = 0; i < testLength; i++) {
-  lastBuffer[i] = FILE[i]
-}
+// let lastBuffer = Buffer.alloc(testLength)
+
+// for (let i = 0; i < testLength; i++) {
+//   lastBuffer[i] = FILE[i]
+// }
 
 // var str = ''
 // for (var ii = 0; ii < lastBuffer.length; ii++) {
@@ -459,6 +459,11 @@ var server = net.createServer(async function (socket) {
 
               //TODO: firmware test server
               if (bike_id_from_iot === '1223129999' && process.env.IOT === 'dev') {
+                let lastBuffer = Buffer.alloc(testLength)
+                for (let i = 0; i < testLength; i++) {
+                  lastBuffer[i] = FILE[i]
+                }
+
                 //header
                 var sig_for_app = process.env.IOT_SIG
                 var group_for_app = process.env.IOT_GROUP
