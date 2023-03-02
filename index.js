@@ -16,9 +16,9 @@ const IOT_PORT = process.env.IOT_PORT || '8000'
 
 //TODO: firmware upgrade
 const FILE = fs.readFileSync('CH32V203C8T6.bin')
-let lastBuffer = Buffer.alloc(1024)
+let lastBuffer = Buffer.alloc(200)
 // let char = 2
-for (let i = 0; i < 1024; i++) {
+for (let i = 0; i < 200; i++) {
   lastBuffer[i] = FILE[i]
 }
 
@@ -509,7 +509,7 @@ var server = net.createServer(async function (socket) {
                 for (let i = 0; i < lastBuffer.length; i++) {
                   lastCheckSum += lastBuffer[i]
                 }
-                console.log({ lastCheckSum })
+
                 lastCheckSum = lastCheckSum.toString(16)
                 if (lastCheckSum.length >= 4) lastCheckSum = lastCheckSum.slice(-4)
                 else {
@@ -521,8 +521,8 @@ var server = net.createServer(async function (socket) {
                 const lastCheckSumBuf = Buffer.from(lastCheckSum)
                 const lastArr = [headerBuf, lastBuffer, lastCheckSumBuf]
                 const lastConcatBuf = Buffer.concat(lastArr)
-                console.log({ headerBuf })
-                console.log({ lastCheckSumBuf })
+
+                console.log(lastBuffer)
                 sockets[bike_id_from_iot].write(lastConcatBuf)
                 return
               }
