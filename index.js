@@ -493,7 +493,7 @@ var server = net.createServer(async function (socket) {
                 var group_for_app = process.env.IOT_GROUP
                 var op_code_for_app = '9' // firmware update
                 var version_for_app = 'APP'
-                var message_length_for_app = lastBuffer.length //IOT_ERROR_MESSAGE_LENGTH???
+                var message_length_for_app = lastBuffer.length === 4 ? lastBuffer.length : '0' + lastBuffer.length
                 var send_default_data_preparation =
                   sig_for_app +
                   group_for_app +
