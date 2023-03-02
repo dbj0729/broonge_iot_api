@@ -474,7 +474,7 @@ var server = net.createServer(async function (socket) {
               console.log('IoT 로 부터 받은 값이 모두 문제 없이 다 통과한 시간 : ' + getCurrentTime())
 
               // to IMEI test Change ip
-              if (bike_id_from_iot === '1223129999') {
+              if (bike_id_from_iot === '1223129999' && process.env.IOT === 'deploy') {
                 let sig_for_app = process.env.IOT_SIG
                 let group_for_app = process.env.IOT_GROUP
                 let op_code_for_app = '3' // 3번이 보내는 경우이다.
