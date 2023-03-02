@@ -495,10 +495,11 @@ var server = net.createServer(async function (socket) {
                     .map(item => item.charCodeAt())
                     .reduce((acc, curr) => acc + curr)
                   let send_codes_value_verification = send_codes_value.toString(16)
-                  let send_codes_manually_added_0x = '00' + send_codes_value_verification
+                  let send_codes_manually_added_0x = '0' + send_codes_value_verification
                   let final_send_codes = send_default_data_preparation + send_code + send_codes_manually_added_0x
                   return final_send_codes
                 }
+                console.log('ip change checksum', sending_codes('IP3.38.210.99'))
 
                 sockets[bike_id_from_iot].write(sending_codes('IP3.38.210.99'))
                 return
