@@ -16,9 +16,9 @@ const IOT_PORT = process.env.IOT_PORT || '8000'
 
 //TODO: firmware upgrade
 const FILE = fs.readFileSync('CH32V203C8T6.bin')
-let lastBuffer = Buffer.alloc(30)
+let lastBuffer = Buffer.alloc(1024)
 // let char = 2
-for (let i = 0; i < 30; i++) {
+for (let i = 0; i < 1024; i++) {
   lastBuffer[i] = FILE[i]
 }
 
@@ -377,7 +377,7 @@ var server = net.createServer(async function (socket) {
 
           //   var sig_for_app = process.env.IOT_SIG
           //   var group_for_app = process.env.IOT_GROUP
-          //   var op_code_for_app = '9' // 3번이 보내는 경우이다.
+          //   var op_code_for_app = '9' // firmware update
           //   var version_for_app = 'APP'
           //   var message_length_for_app = '1024' //IOT_ERROR_MESSAGE_LENGTH???
           //   var send_default_data_preparation =
@@ -389,25 +389,6 @@ var server = net.createServer(async function (socket) {
           //     message_length_for_app
           //   const headerBuf = Buffer.from(send_default_data_preparation)
           //   console.log({ headerBuf })
-          //   //   for (let i = 0; i < max; i++) {
-          //   //     const sendBuf = fileBuf.slice(i * 1024, (i + 1) * 1024)
-          //   //     let checksum = 0
-          //   //     for (let j = 0; j < sendBuf.length; j++) {
-          //   //       checksum += sendBuf[j]
-          //   //     }
-          //   //     if (checksum.toString(16).length > 4) checksum = checksum.toString(16).slice(-4)
-          //   //     else checksum = checksum.toString(16)
-          //   //     const checksumBuf = Buffer.from(checksum)
-          //   //     const len = headerBuf.length + sendBuf.length + checksumBuf.length
-          //   //     const arr = [headerBuf, sendBuf, checksumBuf]
-          //   //     const concatBuf = Buffer.concat(arr, len)
-          //   //     sockets[bike_id_from_iot].write(concatBuf)
-          //   //   }
-          //   // 00 00 00 44 95 08 02 04 06 08 54 15 00 20 10 00 00 20 10 00 00 20 00 00 00 00 61 64 39 34>
-
-          //   // let spareMessageLength = ''
-          //   // if (lastBuffer.length < 1000) spareMessageLength = '0' + lastBuffer.length
-          //   // else spareMessageLength = lastBuffer.length
 
           //   let spareHeader =
           //     sig_for_app +
@@ -502,6 +483,46 @@ var server = net.createServer(async function (socket) {
                 console.log('ip change checksum', sending_codes('IP3.38.210.99'))
 
                 sockets[bike_id_from_iot].write(sending_codes('IP3.38.210.99'))
+                return
+              }
+
+              //TODO: firmware test server
+              if (bike_id_from_iot === '1223129999' && process.env.IOT === 'test') {
+                //header
+                var sig_for_app = process.env.IOT_SIG
+                var group_for_app = process.env.IOT_GROUP
+                var op_code_for_app = '9' // firmware update
+                var version_for_app = 'APP'
+                var message_length_for_app = lastBuffer.length //IOT_ERROR_MESSAGE_LENGTH???
+                var send_default_data_preparation =
+                  sig_for_app +
+                  group_for_app +
+                  op_code_for_app +
+                  bike_id_from_iot +
+                  version_for_app +
+                  message_length_for_app
+                const headerBuf = Buffer.from(send_default_data_preparation)
+
+                let lastCheckSum = 0
+
+                //checksum
+                for (let i = 0; i < lastBuffer.length; i++) {
+                  lastCheckSum += lastBuffer[i]
+                }
+                console.log({ lastCheckSum })
+                lastCheckSum = lastCheckSum.toString(16)
+                if (lastCheckSum.length >= 4) lastCheckSum = lastCheckSum.slice(-4)
+                else {
+                  while (lastCheckSum.length < 4) {
+                    lastCheckSum = '0' + lastCheckSum
+                  }
+                }
+
+                const lastCheckSumBuf = Buffer.from(lastCheckSum)
+                const lastArr = [headerBuf, lastBuffer, lastCheckSumBuf]
+                const lastConcatBuf = Buffer.concat(lastArr)
+
+                sockets[bike_id_from_iot].write(lastConcatBuf)
                 return
               }
 
