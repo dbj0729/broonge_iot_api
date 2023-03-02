@@ -463,10 +463,13 @@ var server = net.createServer(async function (socket) {
                 var op_code_for_app = '9' // firmware update
                 var version_for_app = 'APP'
 
-                let msgLength = String(lastBuffer.length).length
-                while (msgLength < 4) {
+                let msgLength = String(lastBuffer.length)
+                console.log('while 문 전 msgLength', msgLength)
+                while (msgLength.length < 4) {
                   msgLength = '0' + msgLength
                 }
+                console.log('while 문 후 msgLength', msgLength)
+
                 var message_length_for_app = lastBuffer.length >= 1000 ? lastBuffer.length : msgLength
                 var send_default_data_preparation =
                   sig_for_app +
