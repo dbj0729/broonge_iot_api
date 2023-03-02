@@ -16,6 +16,7 @@ const IOT_PORT = process.env.IOT_PORT || '8000'
 
 //TODO: firmware upgrade
 const FILE = fs.readFileSync('CH32V203C8T6.bin')
+let max = Math.ceil(FILE.length / 1024)
 let lastBuffer = Buffer.alloc(1024)
 // let char = 2
 for (let i = 0; i < 1024; i++) {
@@ -296,6 +297,55 @@ var server = net.createServer(async function (socket) {
 
             socket.write(sending_codes('11')) //toUsim
           }
+        } else if (sig == process.env.IOT_SIG && group == process.env.IOT_GROUP && op_code === 'B') {
+          // firmware upgrade ack opcode = 'B'
+          //BR01B / 1223129999 / ver / 02 / 00 / csum
+          const message = data_elements.slice(20, 22)
+          const checksum = data_elements.slice(-4)
+          const verification =
+            '00' +
+            message
+              .split('')
+              .reduce((acc, curr) => acc + curr.charCodeAt(), 0)
+              .toString(16)
+
+          if (checksum !== verification) return console.log('firmware checksum error')
+          if (message == '99') return console.log('this bike is not ready to be updated')
+          if (message == '88') return console.log('update completed')
+
+          const currentNum = Number(message)
+
+          const sendData = FILE.slice(currentNum * 1024, (currentNum + 1) * 1024)
+          //header
+          var sig_for_app = process.env.IOT_SIG
+          var group_for_app = process.env.IOT_GROUP
+          var op_code_for_app = '9' // firmware update
+          var version_for_app = 'APP'
+          var message_length_for_app = sendData.length >= 1000 ? sendData.length : '0' + sendData.length
+          var send_default_data_preparation =
+            sig_for_app + group_for_app + op_code_for_app + bike_id_from_iot + version_for_app + message_length_for_app
+          const headerBuf = Buffer.from(send_default_data_preparation)
+
+          //checksum
+          let checkSum = 0
+          for (let i = 0; i < sendData.length; i++) {
+            checkSum += sendData[i]
+          }
+
+          checkSum = checkSum.toString(16)
+          if (checkSum.length >= 4) checkSum = checkSum.slice(-4)
+          else {
+            while (checkSum.length < 4) {
+              checkSum = '0' + checkSum
+            }
+          }
+
+          const checkSumBuf = Buffer.from(checkSum)
+          const lastArr = [headerBuf, sendData, checkSumBuf]
+          const lastConcatBuf = Buffer.concat(lastArr)
+
+          sockets[bike_id_from_iot].write(lastConcatBuf)
+          return
         } else if (sig == process.env.IOT_SIG && group == process.env.IOT_GROUP && (op_code == '2' || op_code == 'A')) {
           //response
           //BR0128686750600014761223129999/090/02/00/0060 응답코드
@@ -362,87 +412,6 @@ var server = net.createServer(async function (socket) {
             sockets[bike_id_from_iot].remoteAddress + ':' + sockets[bike_id_from_iot].remotePort,
           )
 
-          // 이게 IoT 연결을 막는 건가 싶어 주석 @PJY+DBJ
-          //TODO: 펌웨어 업그레이드 test
-          // if (bike_id_from_iot === '1223129999') {
-          //   // let lastBuffer = Buffer.alloc(210)
-          //   // let char = 1
-          //   // for (let i = 0; i < 210; i++) {
-          //   //   lastBuffer[i] = char
-          //   // }
-          //   // const max = Math.floor(FILE.length / 1024)
-          //   // let lastBuffer = FILE.slice(max * 1024, FILE.length)
-          //   // let lastBuffer = FILE.slice(0, 1024) // 처음 1kb
-          //   console.log({ messageLength: lastBuffer.length })
-
-          //   var sig_for_app = process.env.IOT_SIG
-          //   var group_for_app = process.env.IOT_GROUP
-          //   var op_code_for_app = '9' // firmware update
-          //   var version_for_app = 'APP'
-          //   var message_length_for_app = '1024' //IOT_ERROR_MESSAGE_LENGTH???
-          //   var send_default_data_preparation =
-          //     sig_for_app +
-          //     group_for_app +
-          //     op_code_for_app +
-          //     bike_id_from_iot +
-          //     version_for_app +
-          //     message_length_for_app
-          //   const headerBuf = Buffer.from(send_default_data_preparation)
-          //   console.log({ headerBuf })
-
-          //   let spareHeader =
-          //     sig_for_app +
-          //     group_for_app +
-          //     op_code_for_app +
-          //     bike_id_from_iot +
-          //     version_for_app +
-          //     message_length_for_app // message length 동적 변경 필요
-
-          //   spareHeader = Buffer.from(spareHeader)
-
-          //   // sockets[bike_id_from_iot].write(spareHeader)
-          //   // sockets[bike_id_from_iot].write(lastBuffer)
-
-          //   let lastCheckSum = 0
-
-          //   for (let i = 0; i < lastBuffer.length; i++) {
-          //     lastCheckSum += lastBuffer[i]
-          //   }
-          //   console.log({ lastCheckSum })
-          //   lastCheckSum = lastCheckSum.toString(16)
-          //   if (lastCheckSum.length >= 4) lastCheckSum = lastCheckSum.slice(-4)
-          //   else {
-          //     while (lastCheckSum.length < 4) {
-          //       lastCheckSum = '0' + lastCheckSum
-          //     }
-          //   }
-          //   console.log({ lastCheckSum })
-          //   const lastCheckSumBuf = Buffer.from(lastCheckSum)
-          //   console.log({ lastCheckSumBuf, length: lastCheckSumBuf.length })
-          //   console.log({ spareHeader })
-
-          //   const lastLen = spareHeader.length + lastBuffer.length + lastCheckSumBuf.length
-
-          //   const lastArr = [spareHeader, lastBuffer, lastCheckSumBuf]
-
-          //   console.log(lastArr.length)
-
-          //   const lastConcatBuf = Buffer.concat(lastArr)
-          //   console.log({ lastConcatBufCheckSum: lastConcatBuf.slice(-30) })
-          //   // 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 30 34 30 30
-          //   console.log({ totalLength: lastConcatBuf.length })
-
-          //   // const convert = toArrayBuffer(lastConcatBuf)
-          //   // console.log(lastBuffer.toString('hex'))
-
-          //   sockets[bike_id_from_iot].write(lastConcatBuf)
-
-          //   // sockets[bike_id_from_iot].write(spareHeader)
-          //   // sockets[bike_id_from_iot].write(lastBuffer)
-          //   // sockets[bike_id_from_iot].write(lastCheckSumBuf)
-          //   return
-          // }
-
           if (checksum == manually_added_0x) {
             // IoT 로 부터 받은 값이 모두 문제 없이 다 통과했을 때 실행
             // bike_id_from_iot = usim 10자리
@@ -493,7 +462,7 @@ var server = net.createServer(async function (socket) {
                 var group_for_app = process.env.IOT_GROUP
                 var op_code_for_app = '9' // firmware update
                 var version_for_app = 'APP'
-                var message_length_for_app = lastBuffer.length === 4 ? lastBuffer.length : '0' + lastBuffer.length
+                var message_length_for_app = lastBuffer.length >= 1000 ? lastBuffer.length : '0' + lastBuffer.length
                 var send_default_data_preparation =
                   sig_for_app +
                   group_for_app +
@@ -522,7 +491,6 @@ var server = net.createServer(async function (socket) {
                 const lastArr = [headerBuf, lastBuffer, lastCheckSumBuf]
                 const lastConcatBuf = Buffer.concat(lastArr)
 
-                console.log(lastBuffer)
                 sockets[bike_id_from_iot].write(lastConcatBuf)
                 return
               }
