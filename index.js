@@ -157,16 +157,16 @@ var server = net.createServer(async function (socket) {
         const data_elements = data.toString('utf-8').trim()
         console.log('\n')
         console.log('받은 값 : ' + data_elements)
-        console.log('server에 올라가 있는 파일', { lastBuffer })
+        // console.log('server에 올라가 있는 파일', { lastBuffer })
 
-        const [result] = await (await connection()).query(`SELECT * FROM update_mgmt LIMIT 1`)
-        const readFile = result[0].file_body
-        let readFile30 = Buffer.alloc(30)
-        for (let i = 0; i < 30; i++) {
-          readFile30[i] = readFile[i]
-        }
+        // const [result] = await (await connection()).query(`SELECT * FROM update_mgmt LIMIT 1`)
+        // const readFile = result[0].file_body
+        // let readFile30 = Buffer.alloc(30)
+        // for (let i = 0; i < 30; i++) {
+        //   readFile30[i] = readFile[i]
+        // }
 
-        console.log('front에서 넘긴 파일', { readFile30 })
+        // console.log('front에서 넘긴 파일', { readFile30 })
         // BR01486867506000147608930???????????????????????59903990725
 
         console.log('연결된 자전거 ' + Object.keys(sockets))
