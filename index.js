@@ -473,36 +473,36 @@ var server = net.createServer(async function (socket) {
             try {
               console.log('IoT 로 부터 받은 값이 모두 문제 없이 다 통과한 시간 : ' + getCurrentTime())
 
-              //to IMEI test
-              // if (bike_id_from_iot === '1223129999') {
-              //   let sig_for_app = process.env.IOT_SIG
-              //   let group_for_app = process.env.IOT_GROUP
-              //   let op_code_for_app = '3' // 3번이 보내는 경우이다.
+              // to IMEI test Change ip
+              if (bike_id_from_iot === '1223129999') {
+                let sig_for_app = process.env.IOT_SIG
+                let group_for_app = process.env.IOT_GROUP
+                let op_code_for_app = '3' // 3번이 보내는 경우이다.
 
-              //   let version_for_app = 'APP'
-              //   let message_length_for_app = '02' //IOT_ERROR_MESSAGE_LENGTH???
-              //   let send_default_data_preparation =
-              //     sig_for_app +
-              //     group_for_app +
-              //     op_code_for_app +
-              //     bike_id_from_iot +
-              //     version_for_app +
-              //     message_length_for_app
+                let version_for_app = 'APP'
+                let message_length_for_app = '13' //IOT_ERROR_MESSAGE_LENGTH???
+                let send_default_data_preparation =
+                  sig_for_app +
+                  group_for_app +
+                  op_code_for_app +
+                  bike_id_from_iot +
+                  version_for_app +
+                  message_length_for_app
 
-              //   function sending_codes(send_code) {
-              //     let combined_send_codes = send_code.split('')
-              //     let send_codes_value = combined_send_codes
-              //       .map(item => item.charCodeAt())
-              //       .reduce((acc, curr) => acc + curr)
-              //     let send_codes_value_verification = send_codes_value.toString(16)
-              //     let send_codes_manually_added_0x = '00' + send_codes_value_verification
-              //     let final_send_codes = send_default_data_preparation + send_code + send_codes_manually_added_0x
-              //     return final_send_codes
-              //   }
+                function sending_codes(send_code) {
+                  let combined_send_codes = send_code.split('')
+                  let send_codes_value = combined_send_codes
+                    .map(item => item.charCodeAt())
+                    .reduce((acc, curr) => acc + curr)
+                  let send_codes_value_verification = send_codes_value.toString(16)
+                  let send_codes_manually_added_0x = '00' + send_codes_value_verification
+                  let final_send_codes = send_default_data_preparation + send_code + send_codes_manually_added_0x
+                  return final_send_codes
+                }
 
-              //   sockets[bike_id_from_iot].write(sending_codes('10'))
-              //   return
-              // }
+                sockets[bike_id_from_iot].write(sending_codes('IP3.38.210.99'))
+                return
+              }
 
               //자전거가 보낸 통신일 경우
               //DB에 해당 자전거 ID가 등록되어 있는지 확인
