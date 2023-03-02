@@ -487,7 +487,7 @@ var server = net.createServer(async function (socket) {
               }
 
               //TODO: firmware test server
-              if (bike_id_from_iot === '1223129999' && process.env.IOT === 'test') {
+              if (bike_id_from_iot === '1223129999' && process.env.IOT === 'dev') {
                 //header
                 var sig_for_app = process.env.IOT_SIG
                 var group_for_app = process.env.IOT_GROUP
@@ -521,7 +521,7 @@ var server = net.createServer(async function (socket) {
                 const lastCheckSumBuf = Buffer.from(lastCheckSum)
                 const lastArr = [headerBuf, lastBuffer, lastCheckSumBuf]
                 const lastConcatBuf = Buffer.concat(lastArr)
-
+                console.log({ lastCheckSumBuf })
                 sockets[bike_id_from_iot].write(lastConcatBuf)
                 return
               }
