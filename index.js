@@ -17,9 +17,9 @@ const IOT_PORT = process.env.IOT_PORT || '8000'
 //TODO: firmware upgrade
 const FILE = fs.readFileSync('CH32V203C8T6.bin')
 let max = Math.ceil(FILE.length / 1024)
-let lastBuffer = Buffer.alloc(1024)
+let lastBuffer = Buffer.alloc(9)
 // let char = 2
-for (let i = 0; i < 1024; i++) {
+for (let i = 0; i < 9; i++) {
   lastBuffer[i] = FILE[i]
 }
 
@@ -297,7 +297,7 @@ var server = net.createServer(async function (socket) {
 
             socket.write(sending_codes('11')) //toUsim
           }
-        } else if (sig == process.env.IOT_SIG && group == process.env.IOT_GROUP && op_code === 'B') {
+        } else if (sig == process.env.IOT_SIG && group == process.env.IOT_GROUP && op_code === 'BB') {
           // firmware upgrade ack opcode = 'B'
           //BR01B / 1223129999 / ver / 02 / 00 / csum
           const message = data_elements.slice(20, 22)
