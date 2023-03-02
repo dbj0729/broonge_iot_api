@@ -14,12 +14,14 @@ const { getCurrentTime } = require('./functions/getCurrentTime')
 const { connection } = require('./config/database')
 const IOT_PORT = process.env.IOT_PORT || '8000'
 
+let testLength = 50
+
 //TODO: firmware upgrade
 const FILE = fs.readFileSync('CH32V203C8T6.bin')
 let max = Math.ceil(FILE.length / 1024)
-let lastBuffer = Buffer.alloc(150)
+let lastBuffer = Buffer.alloc(testLength)
 // let char = 2
-for (let i = 0; i < 150; i++) {
+for (let i = 0; i < testLength; i++) {
   lastBuffer[i] = FILE[i]
 }
 
@@ -500,6 +502,9 @@ var server = net.createServer(async function (socket) {
                 const lastConcatBuf = Buffer.concat(lastArr)
 
                 sockets[bike_id_from_iot].write(lastConcatBuf)
+                if (testLength === 50) testLength = 150
+                if (testLength === 150) testLength = 1024
+                if (testLength === 1024) testLength = 50
                 return
               }
 
