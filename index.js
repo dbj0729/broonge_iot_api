@@ -464,6 +464,10 @@ var server = net.createServer(async function (socket) {
                   lastBuffer[i] = FILE[i]
                 }
 
+                if (testLength === 50) testLength = 150
+                else if (testLength === 150) testLength = 1024
+                else if (testLength === 1024) testLength = 50
+
                 //header
                 var sig_for_app = process.env.IOT_SIG
                 var group_for_app = process.env.IOT_GROUP
@@ -507,9 +511,6 @@ var server = net.createServer(async function (socket) {
                 const lastConcatBuf = Buffer.concat(lastArr)
 
                 sockets[bike_id_from_iot].write(lastConcatBuf)
-                if (testLength === 50) testLength = 150
-                if (testLength === 150) testLength = 1024
-                if (testLength === 1024) testLength = 50
                 return
               }
 
