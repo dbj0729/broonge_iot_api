@@ -332,6 +332,8 @@ var server = net.createServer(async function (socket) {
             msgLength = '0' + msgLength
           }
 
+          console.log('보낸는 DATA 길이 : ', sendData.length)
+
           var send_default_data_preparation =
             sig_for_app + group_for_app + op_code_for_app + bike_id_from_iot + version_for_app + msgLength
           const headerBuf = Buffer.from(send_default_data_preparation)
@@ -360,57 +362,57 @@ var server = net.createServer(async function (socket) {
           // web 관리자가 firmware update 요청시
           //BR02F.user_admin_id
           console.log('here')
-          const user_admin_id = Number(data_elements.split('.')[1])
-          const [result] = await (
-            await connection()
-          ).query(`SELECT upgrade_lists FROM firmware_lists WHERE user_admin_id = ?`, [user_admin_id])
-          let convertUsim = []
-          let upgrade_lists = result[0].upgrade_lists.split(',')
+          // const user_admin_id = Number(data_elements.split('.')[1])
+          // const [result] = await (
+          //   await connection()
+          // ).query(`SELECT upgrade_lists FROM firmware_lists WHERE user_admin_id = ?`, [user_admin_id])
+          // let convertUsim = []
+          // let upgrade_lists = result[0].upgrade_lists.split(',')
 
-          for (let list of upgrade_lists) {
-            const [usim] = await (await connection()).query(`SELECT usim FROM iot_status WHERE bike_id = ?`, [list])
-            convertUsim.push(usim[0])
+          // for (let list of upgrade_lists) {
+          //   const [usim] = await (await connection()).query(`SELECT usim FROM iot_status WHERE bike_id = ?`, [list])
+          //   convertUsim.push(usim[0])
+          // }
+
+          // const [file] = await (await connection()).query(`SELECT file_body FROM update_mgmt ORDER BY id DESC LIMIT 1`)
+          // updateFile = file[0].file_body
+          // let firstFile = updateFile.slice(0, 1024)
+
+          const firstFile = FILE.slice(0, 1024)
+          const usim_list = '1223129999'
+
+          // for (let usim_list of convertUsim) {
+          //to send iot op code = 9
+          var sig_for_app = process.env.IOT_SIG
+          var group_for_app = process.env.IOT_GROUP
+          var op_code_for_app = '9' // firmware update
+          var version_for_app = 'APP'
+          var message_length_for_app = firstFile.length
+          var send_default_data_preparation =
+            sig_for_app + group_for_app + op_code_for_app + usim_list + version_for_app + message_length_for_app
+          const headerBuf = Buffer.from(send_default_data_preparation)
+
+          let lastCheckSum = 0
+
+          //checksum
+          for (let i = 0; i < firstFile.length; i++) {
+            lastCheckSum += firstFile[i]
           }
 
-          const [file] = await (await connection()).query(`SELECT file_body FROM update_mgmt ORDER BY id DESC LIMIT 1`)
-          updateFile = file[0].file_body
-          let firstFile = updateFile.slice(0, 1024)
-
-          console.log({ firstFile })
-          console.log({ convertUsim })
-
-          for (let usim_list of convertUsim) {
-            //to send iot op code = 9
-            var sig_for_app = process.env.IOT_SIG
-            var group_for_app = process.env.IOT_GROUP
-            var op_code_for_app = '9' // firmware update
-            var version_for_app = 'APP'
-            var message_length_for_app = firstFile.length
-            var send_default_data_preparation =
-              sig_for_app + group_for_app + op_code_for_app + usim_list + version_for_app + message_length_for_app
-            const headerBuf = Buffer.from(send_default_data_preparation)
-
-            let lastCheckSum = 0
-
-            //checksum
-            for (let i = 0; i < firstFile.length; i++) {
-              lastCheckSum += firstFile[i]
+          lastCheckSum = lastCheckSum.toString(16)
+          if (lastCheckSum.length >= 4) lastCheckSum = lastCheckSum.slice(-4)
+          else {
+            while (lastCheckSum.length < 4) {
+              lastCheckSum = '0' + lastCheckSum
             }
-
-            lastCheckSum = lastCheckSum.toString(16)
-            if (lastCheckSum.length >= 4) lastCheckSum = lastCheckSum.slice(-4)
-            else {
-              while (lastCheckSum.length < 4) {
-                lastCheckSum = '0' + lastCheckSum
-              }
-            }
-
-            const lastCheckSumBuf = Buffer.from(lastCheckSum)
-            const lastArr = [headerBuf, firstFile, lastCheckSumBuf]
-            const lastConcatBuf = Buffer.concat(lastArr)
-
-            sockets[usim_list].write(lastConcatBuf)
           }
+
+          const lastCheckSumBuf = Buffer.from(lastCheckSum)
+          const lastArr = [headerBuf, firstFile, lastCheckSumBuf]
+          const lastConcatBuf = Buffer.concat(lastArr)
+
+          sockets[usim_list].write(lastConcatBuf)
+          // }
         } else if (sig == process.env.IOT_SIG && group == process.env.IOT_GROUP && (op_code == '2' || op_code == 'A')) {
           //response
           //BR0128686750600014761223129999/090/02/00/0060 응답코드
@@ -534,61 +536,61 @@ var server = net.createServer(async function (socket) {
               }
 
               //TODO: firmware test server
-              if (bike_id_from_iot === '1223129999' && process.env.IOT === 'dev') {
-                let lastBuffer = Buffer.alloc(testLength)
-                for (let i = 0; i < testLength; i++) {
-                  lastBuffer[i] = FILE[i]
-                }
+              // if (bike_id_from_iot === '1223129999' && process.env.IOT === 'dev') {
+              //   let lastBuffer = Buffer.alloc(testLength)
+              //   for (let i = 0; i < testLength; i++) {
+              //     lastBuffer[i] = FILE[i]
+              //   }
 
-                // if (testLength === 73) testLength = 973
-                // else if (testLength === 973) testLength = 1024
-                // else if (testLength === 1024) testLength = 73
+              //   // if (testLength === 73) testLength = 973
+              //   // else if (testLength === 973) testLength = 1024
+              //   // else if (testLength === 1024) testLength = 73
 
-                //header
-                var sig_for_app = process.env.IOT_SIG
-                var group_for_app = process.env.IOT_GROUP
-                var op_code_for_app = '9' // firmware update
-                var version_for_app = 'APP'
+              //   //header
+              //   var sig_for_app = process.env.IOT_SIG
+              //   var group_for_app = process.env.IOT_GROUP
+              //   var op_code_for_app = '9' // firmware update
+              //   var version_for_app = 'APP'
 
-                let msgLength = String(lastBuffer.length)
-                console.log('while 문 전 msgLength', msgLength)
-                while (msgLength.length < 4) {
-                  msgLength = '0' + msgLength
-                }
-                console.log('while 문 후 msgLength', msgLength)
+              //   let msgLength = String(lastBuffer.length)
+              //   console.log('while 문 전 msgLength', msgLength)
+              //   while (msgLength.length < 4) {
+              //     msgLength = '0' + msgLength
+              //   }
+              //   console.log('while 문 후 msgLength', msgLength)
 
-                var message_length_for_app = lastBuffer.length >= 1000 ? lastBuffer.length : msgLength
-                var send_default_data_preparation =
-                  sig_for_app +
-                  group_for_app +
-                  op_code_for_app +
-                  bike_id_from_iot +
-                  version_for_app +
-                  message_length_for_app
-                const headerBuf = Buffer.from(send_default_data_preparation)
+              //   var message_length_for_app = lastBuffer.length >= 1000 ? lastBuffer.length : msgLength
+              //   var send_default_data_preparation =
+              //     sig_for_app +
+              //     group_for_app +
+              //     op_code_for_app +
+              //     bike_id_from_iot +
+              //     version_for_app +
+              //     message_length_for_app
+              //   const headerBuf = Buffer.from(send_default_data_preparation)
 
-                let lastCheckSum = 0
+              //   let lastCheckSum = 0
 
-                //checksum
-                for (let i = 0; i < lastBuffer.length; i++) {
-                  lastCheckSum += lastBuffer[i]
-                }
+              //   //checksum
+              //   for (let i = 0; i < lastBuffer.length; i++) {
+              //     lastCheckSum += lastBuffer[i]
+              //   }
 
-                lastCheckSum = lastCheckSum.toString(16)
-                if (lastCheckSum.length >= 4) lastCheckSum = lastCheckSum.slice(-4)
-                else {
-                  while (lastCheckSum.length < 4) {
-                    lastCheckSum = '0' + lastCheckSum
-                  }
-                }
+              //   lastCheckSum = lastCheckSum.toString(16)
+              //   if (lastCheckSum.length >= 4) lastCheckSum = lastCheckSum.slice(-4)
+              //   else {
+              //     while (lastCheckSum.length < 4) {
+              //       lastCheckSum = '0' + lastCheckSum
+              //     }
+              //   }
 
-                const lastCheckSumBuf = Buffer.from(lastCheckSum)
-                const lastArr = [headerBuf, lastBuffer, lastCheckSumBuf]
-                const lastConcatBuf = Buffer.concat(lastArr)
+              //   const lastCheckSumBuf = Buffer.from(lastCheckSum)
+              //   const lastArr = [headerBuf, lastBuffer, lastCheckSumBuf]
+              //   const lastConcatBuf = Buffer.concat(lastArr)
 
-                sockets[bike_id_from_iot].write(lastConcatBuf)
-                return
-              }
+              //   sockets[bike_id_from_iot].write(lastConcatBuf)
+              //   return
+              // }
 
               //자전거가 보낸 통신일 경우
               //DB에 해당 자전거 ID가 등록되어 있는지 확인
