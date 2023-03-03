@@ -356,7 +356,7 @@ var server = net.createServer(async function (socket) {
           const lastArr = [headerBuf, sendData, checkSumBuf]
           const lastConcatBuf = Buffer.concat(lastArr)
 
-          await new Promise(resolve => setTimeout(resolve, 300))
+          await new Promise(resolve => setTimeout(resolve, 500))
           sockets[bike_id_from_iot].write(lastConcatBuf)
           return
         } else if (sig == process.env.IOT_SIG && group == 'FF' && op_code == 'F') {
@@ -412,7 +412,7 @@ var server = net.createServer(async function (socket) {
           const lastArr = [headerBuf, firstFile, lastCheckSumBuf]
           const lastConcatBuf = Buffer.concat(lastArr)
 
-          await new Promise(resolve => setTimeout(resolve, 300))
+          await new Promise(resolve => setTimeout(resolve, 500))
           sockets[usim_list].write(lastConcatBuf)
           // }
         } else if (sig == process.env.IOT_SIG && group == process.env.IOT_GROUP && (op_code == '2' || op_code == 'A')) {
