@@ -14,9 +14,10 @@ const { getCurrentTime } = require('./functions/getCurrentTime')
 const { connection } = require('./config/database')
 const IOT_PORT = process.env.IOT_PORT || '8000'
 
-let testLength = 50
+let testLength = 99
 
 //TODO: firmware upgrade
+let updateFile
 const FILE = fs.readFileSync('CH32V203C8T6.bin')
 let max = Math.ceil(FILE.length / 1024)
 // let lastBuffer = Buffer.alloc(testLength)
@@ -174,9 +175,11 @@ var server = net.createServer(async function (socket) {
 
         console.log('연결된 자전거 ' + Object.keys(sockets))
         // IoT 로부터 받는 정보이다.
+
         const sig = data_elements.slice(0, sig_1)
         const group = data_elements.slice(sig_1, sig_2)
         const op_code = data_elements.slice(sig_2, sig_3)
+
         let size_4 = 10 // USIM
 
         if (op_code == 4) size_4 = 15 // IMEI
@@ -323,9 +326,14 @@ var server = net.createServer(async function (socket) {
           var group_for_app = process.env.IOT_GROUP
           var op_code_for_app = '9' // firmware update
           var version_for_app = 'APP'
-          var message_length_for_app = sendData.length >= 1000 ? sendData.length : '0' + sendData.length
+
+          let msgLength = String(sendData.length)
+          while (msgLength.length < 4) {
+            msgLength = '0' + msgLength
+          }
+
           var send_default_data_preparation =
-            sig_for_app + group_for_app + op_code_for_app + bike_id_from_iot + version_for_app + message_length_for_app
+            sig_for_app + group_for_app + op_code_for_app + bike_id_from_iot + version_for_app + msgLength
           const headerBuf = Buffer.from(send_default_data_preparation)
 
           //checksum
@@ -348,6 +356,61 @@ var server = net.createServer(async function (socket) {
 
           sockets[bike_id_from_iot].write(lastConcatBuf)
           return
+        } else if (sig == process.env.IOT_SIG && group == 'FF' && op_code == 'F') {
+          // web 관리자가 firmware update 요청시
+          //BR02F.user_admin_id
+          console.log('here')
+          const user_admin_id = Number(data_elements.split('.')[1])
+          const [result] = await (
+            await connection()
+          ).query(`SELECT upgrade_lists FROM firmware_lists WHERE user_admin_id = ?`, [user_admin_id])
+          let convertUsim = []
+          let upgrade_lists = result[0].upgrade_lists.split(',')
+
+          for (let list of upgrade_lists) {
+            const [usim] = await (await connection()).query(`SELECT usim FROM iot_status WHERE bike_id = ?`, [list])
+            convertUsim.push(usim[0])
+          }
+
+          const [file] = await (await connection()).query(`SELECT file_body FROM update_mgmt ORDER BY id DESC LIMIT 1`)
+          updateFile = file[0].file_body
+          let firstFile = updateFile.slice(0, 1024)
+
+          console.log({ firstFile })
+          console.log({ convertUsim })
+
+          for (let usim_list of convertUsim) {
+            //to send iot op code = 9
+            var sig_for_app = process.env.IOT_SIG
+            var group_for_app = process.env.IOT_GROUP
+            var op_code_for_app = '9' // firmware update
+            var version_for_app = 'APP'
+            var message_length_for_app = firstFile.length
+            var send_default_data_preparation =
+              sig_for_app + group_for_app + op_code_for_app + usim_list + version_for_app + message_length_for_app
+            const headerBuf = Buffer.from(send_default_data_preparation)
+
+            let lastCheckSum = 0
+
+            //checksum
+            for (let i = 0; i < firstFile.length; i++) {
+              lastCheckSum += firstFile[i]
+            }
+
+            lastCheckSum = lastCheckSum.toString(16)
+            if (lastCheckSum.length >= 4) lastCheckSum = lastCheckSum.slice(-4)
+            else {
+              while (lastCheckSum.length < 4) {
+                lastCheckSum = '0' + lastCheckSum
+              }
+            }
+
+            const lastCheckSumBuf = Buffer.from(lastCheckSum)
+            const lastArr = [headerBuf, firstFile, lastCheckSumBuf]
+            const lastConcatBuf = Buffer.concat(lastArr)
+
+            sockets[usim_list].write(lastConcatBuf)
+          }
         } else if (sig == process.env.IOT_SIG && group == process.env.IOT_GROUP && (op_code == '2' || op_code == 'A')) {
           //response
           //BR0128686750600014761223129999/090/02/00/0060 응답코드
@@ -424,6 +487,19 @@ var server = net.createServer(async function (socket) {
 
             try {
               console.log('IoT 로 부터 받은 값이 모두 문제 없이 다 통과한 시간 : ' + getCurrentTime())
+              // version check
+              const [bike_version] = await (
+                await connection()
+              ).query(`SELECT iot_version FROM bikes WHERE id = ?`, [bike_id_imei])
+
+              if (!bike_version[0].iot_version || bike_version[0].iot_version !== version) {
+                await (
+                  await connection()
+                ).query(`UPDATE bikes SET iot_version = ?, is_updated_to_the_latest = 'YES' WHERE id = ?`, [
+                  version,
+                  bike_id_imei,
+                ])
+              }
 
               // to IMEI test Change ip
               if (bike_id_from_iot === '1223129999' && process.env.IOT === 'deploy') {
@@ -464,9 +540,9 @@ var server = net.createServer(async function (socket) {
                   lastBuffer[i] = FILE[i]
                 }
 
-                if (testLength === 50) testLength = 150
-                else if (testLength === 150) testLength = 1024
-                else if (testLength === 1024) testLength = 50
+                if (testLength === 99) testLength = 999
+                else if (testLength === 999) testLength = 1024
+                else if (testLength === 1024) testLength = 99
 
                 //header
                 var sig_for_app = process.env.IOT_SIG
