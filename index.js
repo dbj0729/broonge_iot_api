@@ -304,8 +304,8 @@ var server = net.createServer(async function (socket) {
           }
         } else if (sig == process.env.IOT_SIG && group == process.env.IOT_GROUP && op_code === 'B') {
           // firmware upgrade ack opcode = 'B'
-          //BR01B / 1223129999 / ver / 02 / 00 / csum
-          const message = data_elements.slice(20, 22)
+          //BR01B / 1223129999 / ver / 03 / 000 / csum
+          const message = data_elements.slice(20, 23)
           const checksum = data_elements.slice(-4)
           const verification =
             '00' +
@@ -315,12 +315,12 @@ var server = net.createServer(async function (socket) {
               .toString(16)
           //message 99 = fail / 88 = success
           if (checksum !== verification) return console.log('firmware checksum error')
-          if (message == '99') return console.log('this bike is not ready to be updated')
-          if (message == '88') return console.log('update completed')
+          if (message == '999') return console.log('this bike is not ready to be updated')
+          if (message == '888') return console.log('update completed')
 
           const currentNum = Number(message)
 
-          const sendData = FILE.slice(currentNum * 1024, (currentNum + 1) * 1024)
+          const sendData = FILE.slice(currentNum * 128, (currentNum + 1) * 128)
           //header
           var sig_for_app = process.env.IOT_SIG
           var group_for_app = process.env.IOT_GROUP
@@ -379,7 +379,7 @@ var server = net.createServer(async function (socket) {
           // updateFile = file[0].file_body
           // let firstFile = updateFile.slice(0, 1024)
 
-          const firstFile = FILE.slice(0, 1024)
+          const firstFile = FILE.slice(0, 128)
           const usim_list = '1223129999'
 
           // for (let usim_list of convertUsim) {
