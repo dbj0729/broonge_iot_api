@@ -320,7 +320,7 @@ var server = net.createServer(async function (socket) {
 
           const currentNum = Number(message)
 
-          const sendData = FILE.slice(currentNum * 512, (currentNum + 1) * 512)
+          const sendData = FILE.slice(currentNum * 1024, (currentNum + 1) * 1024)
           //header
           var sig_for_app = process.env.IOT_SIG
           var group_for_app = process.env.IOT_GROUP
@@ -379,7 +379,7 @@ var server = net.createServer(async function (socket) {
           // updateFile = file[0].file_body
           // let firstFile = updateFile.slice(0, 1024)
 
-          const firstFile = FILE.slice(0, 512)
+          const firstFile = FILE.slice(0, 1024)
           const usim_list = '1223129999'
 
           // for (let usim_list of convertUsim) {
