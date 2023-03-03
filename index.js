@@ -14,7 +14,7 @@ const { getCurrentTime } = require('./functions/getCurrentTime')
 const { connection } = require('./config/database')
 const IOT_PORT = process.env.IOT_PORT || '8000'
 
-let testLength = 47
+let testLength = 73
 
 //TODO: firmware upgrade
 let updateFile
@@ -540,9 +540,9 @@ var server = net.createServer(async function (socket) {
                   lastBuffer[i] = FILE[i]
                 }
 
-                if (testLength === 47) testLength = 947
-                else if (testLength === 947) testLength = 1024
-                else if (testLength === 1024) testLength = 47
+                if (testLength === 73) testLength = 973
+                else if (testLength === 973) testLength = 1024
+                else if (testLength === 1024) testLength = 73
 
                 //header
                 var sig_for_app = process.env.IOT_SIG
