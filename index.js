@@ -14,7 +14,7 @@ const { getCurrentTime } = require('./functions/getCurrentTime')
 const { connection } = require('./config/database')
 const IOT_PORT = process.env.IOT_PORT || '8000'
 
-let testLength = 73
+let testLength = 1024
 
 //TODO: firmware upgrade
 let updateFile
@@ -302,7 +302,7 @@ var server = net.createServer(async function (socket) {
 
             socket.write(sending_codes('11')) //toUsim
           }
-        } else if (sig == process.env.IOT_SIG && group == process.env.IOT_GROUP && op_code === 'BB') {
+        } else if (sig == process.env.IOT_SIG && group == process.env.IOT_GROUP && op_code === 'B') {
           // firmware upgrade ack opcode = 'B'
           //BR01B / 1223129999 / ver / 02 / 00 / csum
           const message = data_elements.slice(20, 22)
@@ -313,7 +313,7 @@ var server = net.createServer(async function (socket) {
               .split('')
               .reduce((acc, curr) => acc + curr.charCodeAt(), 0)
               .toString(16)
-
+          //message 99 = fail / 88 = success
           if (checksum !== verification) return console.log('firmware checksum error')
           if (message == '99') return console.log('this bike is not ready to be updated')
           if (message == '88') return console.log('update completed')
@@ -540,9 +540,9 @@ var server = net.createServer(async function (socket) {
                   lastBuffer[i] = FILE[i]
                 }
 
-                if (testLength === 73) testLength = 973
-                else if (testLength === 973) testLength = 1024
-                else if (testLength === 1024) testLength = 73
+                // if (testLength === 73) testLength = 973
+                // else if (testLength === 973) testLength = 1024
+                // else if (testLength === 1024) testLength = 73
 
                 //header
                 var sig_for_app = process.env.IOT_SIG
