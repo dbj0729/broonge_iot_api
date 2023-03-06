@@ -299,7 +299,7 @@ var server = net.createServer(async function (socket) {
               let final_send_codes = send_default_data_preparation + send_code + send_codes_manually_added_0x
               return final_send_codes
             }
-
+            await new Promise(resolve => setTimeout(resolve, 200))
             socket.write(sending_codes('11')) //toUsim
           }
         } else if (sig == process.env.IOT_SIG && group == process.env.IOT_GROUP && op_code === 'B') {
@@ -532,7 +532,7 @@ var server = net.createServer(async function (socket) {
                   return final_send_codes
                 }
                 console.log('ip change checksum', sending_codes('IP3.38.210.99'))
-
+                await new Promise(resolve => setTimeout(resolve, 200))
                 sockets[bike_id_from_iot].write(sending_codes('IP3.38.210.99'))
                 return
               }
@@ -719,14 +719,17 @@ var server = net.createServer(async function (socket) {
 
           async function updateBikeStatus(order) {
             const code = order === 'unlock' ? '01' : order === 'page' ? '02' : '03'
+            await new Promise(resolve => setTimeout(resolve, 200))
             if (!code) return socket.write('not order')
 
             if (beforeSendBikeId === bike_id_usim) await new Promise(resolve => setTimeout(resolve, 1000))
 
+            await new Promise(resolve => setTimeout(resolve, 200))
             sockets[bike_id_usim].write(sending_codes(code))
             console.log('apptoIOT : ' + sending_codes(code))
             beforeSendBikeId = bike_id_usim
 
+            await new Promise(resolve => setTimeout(resolve, 200))
             socket.write(sending_codes(code))
             socket.write('   ') // App 한테 보내는 것
             socket.write(getCurrentTime())
@@ -735,10 +738,12 @@ var server = net.createServer(async function (socket) {
 
           if (app_to_iot_data[0] == process.env.APP_SIG) {
             if (!app_to_iot_data[2]) {
+              await new Promise(resolve => setTimeout(resolve, 200))
               console.log('appSocket : data parsing error')
               socket.write('something wrong')
             } else {
               if (!sockets[bike_id_usim]) {
+                await new Promise(resolve => setTimeout(resolve, 200))
                 socket.write('no connected bike!')
                 console.log('통신이 연결된 자전거가 아닙니다')
                 return
