@@ -20,7 +20,24 @@ let testLength = 1024
 let updateFile
 const FILE = fs.readFileSync('CH32V203C8T6.bin')
 let max = Math.ceil(FILE.length / 1024)
+// let lastBuffer = Buffer.alloc(testLength)
 
+// for (let i = 0; i < testLength; i++) {
+//   lastBuffer[i] = FILE[i]
+// }
+
+// var str = ''
+// for (var ii = 0; ii < lastBuffer.length; ii++) {
+//   str += lastBuffer[ii].toString(16) + ' '
+// }
+// console.log(str)
+// console.log(lastBuffer.toString('hex'))
+// const fileBuf = Buffer.from(DATA)
+// const max = Math.floor(FILE.length / 1024)
+// let lastBuffer = FILE.slice(max * 1024, FILE.length)
+// console.log(lastBuffer.length)
+
+// IoT 에서 받는 Header byte size
 let size_1 = 2 // Sig.
 let size_2 = 2 // Group
 let size_3 = 1 // OP Code
@@ -29,10 +46,86 @@ let sig_1 = size_1
 let sig_2 = sig_1 + size_2
 let sig_3 = sig_2 + size_3
 
+// let size_4 = 10 // ID
+// let size_5 = 3 // Version
+// let size_6 = 2 // MSG Length
+// let size_7 = 23 // GPS
+// let size_8 = 1 // Signal Strength
+// let size_9 = 2 // Battery
+// let size_10 = 2 // Device Status
+// let size_11 = 2 // Error Info
+// let size_12 = 4 // Checksum
+// let error_report_size = 2 //Error Report: “01”:Sig error “02”:Group error “03”:OP code error “04”:ID error “05”:chksum error
+
+// // Slice 로 진행하기에 그에 따른 글자 수에 따라 다음 단계를 불러오는 방식
+// let sig_4 = sig_3 + size_4
+// let sig_5 = sig_4 + size_5
+// let sig_6 = sig_5 + size_6 //20
+// let sig_7 = sig_6 + size_7 //43
+// let sig_8 = sig_7 + size_8
+// let sig_9 = sig_8 + size_9
+// let sig_10 = sig_9 + size_10
+// let sig_11 = sig_10 + size_11
+// let sig_12 = sig_11 + size_12
+// let sig_error_report = sig_6 + error_report_size
+
 let sockets = {}
 let beforeSendBikeId = ''
 let duplicateGPS = {}
 let failUpdate = 0
+
+// fs.readFile('CH32V203C8T6.bin', (err, data) => {
+//   if (err) console.log(err)
+//   const max = Math.floor(data.length / 1025)
+
+//   var sig_for_app = process.env.IOT_SIG
+//   var group_for_app = process.env.IOT_GROUP
+//   var op_code_for_app = '3' // 3번이 보내는 경우이다.
+
+//   var version_for_app = 'APP'
+//   var message_length_for_app = '1024' //IOT_ERROR_MESSAGE_LENGTH???
+//   var send_default_data_preparation =
+//     sig_for_app + group_for_app + op_code_for_app + 'test' + version_for_app + message_length_for_app
+
+//   const headerBuf = new Buffer(send_default_data_preparation)
+//   for (let i = 0; i < max; i++) {
+//     const sendBuf = data.slice(i * 1025, (i + 1) * 1025)
+//     let checksum = 0
+
+//     for (let j = 0; j < sendBuf.length; j++) {
+//       checksum += sendBuf[j]
+//     }
+//     console.log(checksum.toString(16))
+//     if (checksum.toString(16).length > 4) checksum = checksum.toString(16).slice(-4)
+//     else checksum = checksum.toString(16)
+
+//     // console.log(checksum)
+
+//     const checksumBuf = new Buffer(checksum)
+//     const len = headerBuf.length + sendBuf.length + checksumBuf.length
+//     const arr = [headerBuf, sendBuf, checksumBuf]
+
+//     const concatBuf = Buffer.concat(arr, len)
+//     // sockets[bike_id_from_iot].write(concatBuf)
+//   }
+
+//   let lastBuffer = data.slice(max * 1025, data.length)
+//   let lastCheckSum = 0
+//   for (let i = 0; lastBuffer.length; i++) {
+//     lastCheckSum += lastBuffer[i]
+//   }
+
+//   if (lastCheckSum.toString(16).length > 4) lastCheckSum = lastCheckSum.toString(16).slice(-4)
+//   else lastCheckSum = lastCheckSum.toString(16)
+
+//   const lastCheckSumBuf = new Buffer(lastCheckSum)
+
+//   const lastLen = headerBuf.length + lastBuffer.length + lastCheckSumBuf.length
+//   const lastArr = [headerBuf, lastBuffer, lastCheckSumBuf]
+//   const lastConcatBuf = Buffer.concat(lastArr, lastLen)
+
+//   // sockets[bike_id_from_iot].write(lastConcatBuf)
+// })
 
 // 서버 생성
 var server = net.createServer(async function (socket) {
@@ -41,6 +134,7 @@ var server = net.createServer(async function (socket) {
     console.log('\n')
     console.log(socket.address().address + ' Started Broonge IoT Server on ' + getCurrentTime())
     socket.setNoDelay(true)
+    // socket.setKeepAlive(true, 2000)
 
     socket.id = socket.remoteAddress + ':' + socket.remotePort
 
@@ -67,6 +161,18 @@ var server = net.createServer(async function (socket) {
         const data_elements = data.toString('utf-8').trim()
         console.log('\n')
         console.log('받은 값 : ' + data_elements)
+        console.log(getCurrentTime())
+        // console.log('server에 올라가 있는 파일', { lastBuffer })
+
+        // const [result] = await (await connection()).query(`SELECT * FROM update_mgmt LIMIT 1`)
+        // const readFile = result[0].file_body
+        // let readFile30 = Buffer.alloc(30)
+        // for (let i = 0; i < 30; i++) {
+        //   readFile30[i] = readFile[i]
+        // }
+
+        // console.log('front에서 넘긴 파일', { readFile30 })
+        // BR01486867506000147608930???????????????????????59903990725
 
         console.log('연결된 자전거 ' + Object.keys(sockets))
         // IoT 로부터 받는 정보이다.
@@ -76,8 +182,6 @@ var server = net.createServer(async function (socket) {
         const op_code = data_elements.slice(sig_2, sig_3)
 
         let size_4 = 10 // USIM
-
-        if (op_code == 1 && data_elements.length > 53) console.log('나 캐릭터 53개 넘었다.')
 
         if (op_code == 4) size_4 = 15 // IMEI
 
@@ -260,6 +364,21 @@ var server = net.createServer(async function (socket) {
           // web 관리자가 firmware update 요청시
           //BR02F.user_admin_id
           console.log('here')
+          // const user_admin_id = Number(data_elements.split('.')[1])
+          // const [result] = await (
+          //   await connection()
+          // ).query(`SELECT upgrade_lists FROM firmware_lists WHERE user_admin_id = ?`, [user_admin_id])
+          // let convertUsim = []
+          // let upgrade_lists = result[0].upgrade_lists.split(',')
+
+          // for (let list of upgrade_lists) {
+          //   const [usim] = await (await connection()).query(`SELECT usim FROM iot_status WHERE bike_id = ?`, [list])
+          //   convertUsim.push(usim[0])
+          // }
+
+          // const [file] = await (await connection()).query(`SELECT file_body FROM update_mgmt ORDER BY id DESC LIMIT 1`)
+          // updateFile = file[0].file_body
+          // let firstFile = updateFile.slice(0, 1024)
 
           const firstFile = FILE.slice(0, 128)
           const usim_list = '1223129999'
