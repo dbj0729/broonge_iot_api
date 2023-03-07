@@ -161,6 +161,7 @@ var server = net.createServer(async function (socket) {
         const data_elements = data.toString('utf-8').trim()
         console.log('\n')
         console.log('받은 값 : ' + data_elements)
+        console.log(getCurrentTime())
         // console.log('server에 올라가 있는 파일', { lastBuffer })
 
         // const [result] = await (await connection()).query(`SELECT * FROM update_mgmt LIMIT 1`)
@@ -332,7 +333,7 @@ var server = net.createServer(async function (socket) {
             msgLength = '0' + msgLength
           }
 
-          console.log('보낸는 DATA 길이 : ', sendData.length)
+          console.log('보내는 DATA 길이 : ', sendData.length)
 
           var send_default_data_preparation =
             sig_for_app + group_for_app + op_code_for_app + bike_id_from_iot + version_for_app + msgLength
