@@ -91,6 +91,9 @@ var server = net.createServer(async function (socket) {
         // { f_1_lat: '36.4949533', f_1_lng: '127.2668250' } <-- 첫 번쨰 것만 들어왔다.
         // { '이동거리': 0.30508623381388655 }
         // 업데이트 실패 횟수 : 0
+        //
+        // iot socket 은 서버에 저장해서 불러오는 형식으로 진행
+        // iot 저렇게 뭉쳐서 들어오면 sockets 에서 해당 바이크가 사라지는 것 같다는 다수견 발생
 
         if (op_code == 4) size_4 = 15 // IMEI
 
