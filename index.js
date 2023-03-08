@@ -295,7 +295,7 @@ var server = net.createServer(async function (socket) {
           console.log('here')
 
           const firstFile = FILE.slice(0, 512)
-          const usim_list = '1223129999'
+          const usim_list = '1223128888'
 
           // for (let usim_list of convertUsim) {
           //to send iot op code = 9
