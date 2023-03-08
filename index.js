@@ -64,7 +64,7 @@ var server = net.createServer(async function (socket) {
       })
 
       socket.on('data', async function (data) {
-        const data_elements = data.toString('utf-8').trim()
+        let data_elements = data.toString('utf-8').trim()
         console.log('\n')
         console.log('받은 값 : ' + data_elements)
 
@@ -77,13 +77,20 @@ var server = net.createServer(async function (socket) {
 
         let size_4 = 10 // USIM
 
-        if (op_code == 1 && data_elements.length > 54) console.log('나 캐릭터 54개 넘었다.')
+        if (op_code == 1 && data_elements.length > 54) {
+          let tempConvert = data_elements.split('BR')
+          data_elements = 'BR' + tempConvert[tempConvert.length - 1]
+          console.log('바뀐 data_elements', data_elements)
+        }
 
         // 이 곳에 54개가 넘을 경우, BR단위로 배열에 넣는다.
         // BR011 단위로 계속 LAT, LNG 에 넣는다.
         // 중요한 것은 BR 로 나온 값이 제대로 들어온 값이어야 한다.
 
-        // 받은 값 : BR0111221772601T033036.4949533N127.2668250E09700000634BR0111221772601T033036.4966500N127.2693633E59700000635BR0111221772601T033036.4966500N127.2693633E59700000635BR0111221772601T033036.4966150N127.2693616E59701000638
+        // 받은 값 : BR0111221772601T033036.4949533N127.2668250E09700000634
+        //BR0111221772601T033036.4966500N127.2693633E59700000635
+        //BR0111221772601T033036.4966500N127.2693633E59700000635
+        //BR0111221772601T033036.4966150N127.2693616E59701000638
         // 연결된 자전거 1221694989,1221772601,1221960754
         // 바이크 아이디 1221772601
         // socketAddress ::ffff:110.70.29.66:64023
