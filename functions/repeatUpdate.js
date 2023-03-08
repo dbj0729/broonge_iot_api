@@ -1,5 +1,5 @@
-const { connection } = require('./config/database')
-const { distance } = require('./functions/distance')
+const { connection } = require('../config/database')
+const { distance } = require('./distance')
 
 module.exports.repeatUpdate = async data_elements => {
   let size_1 = 2 // Sig.
@@ -157,6 +157,7 @@ module.exports.repeatUpdate = async data_elements => {
           ).query(updateBikeRiding, [JSON.stringify(coordinates), dist.toFixed(1), bike_id_imei])
         }
         console.log('업데이트 성공!!!!')
+        console.log(data_elements)
       } catch (error) {
         console.log('업데이트 실패')
         console.log(error)
