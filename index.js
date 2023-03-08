@@ -453,62 +453,62 @@ var server = net.createServer(async function (socket) {
               }
 
               //TODO: firmware test server
-              // if (bike_id_from_iot === '1223129999' && process.env.IOT === 'dev') {
-              //   let lastBuffer = Buffer.alloc(512)
-              //   for (let i = 0; i < 512; i++) {
-              //     lastBuffer[i] = FILE[i]
-              //   }
+              if (bike_id_from_iot === '1223128888' && process.env.IOT === 'dev') {
+                let lastBuffer = Buffer.alloc(512)
+                for (let i = 0; i < 512; i++) {
+                  lastBuffer[i] = FILE[i]
+                }
 
-              //   // if (testLength === 73) testLength = 973
-              //   // else if (testLength === 973) testLength = 1024
-              //   // else if (testLength === 1024) testLength = 73
+                // if (testLength === 73) testLength = 973
+                // else if (testLength === 973) testLength = 1024
+                // else if (testLength === 1024) testLength = 73
 
-              //   //header
-              //   var sig_for_app = process.env.IOT_SIG
-              //   var group_for_app = process.env.IOT_GROUP
-              //   var op_code_for_app = '9' // firmware update
-              //   var version_for_app = 'APP'
+                //header
+                var sig_for_app = process.env.IOT_SIG
+                var group_for_app = process.env.IOT_GROUP
+                var op_code_for_app = '9' // firmware update
+                var version_for_app = 'APP'
 
-              //   let msgLength = String(lastBuffer.length)
-              //   console.log('while 문 전 msgLength', msgLength)
-              //   while (msgLength.length < 4) {
-              //     msgLength = '0' + msgLength
-              //   }
-              //   console.log('while 문 후 msgLength', msgLength)
+                let msgLength = String(lastBuffer.length)
+                console.log('while 문 전 msgLength', msgLength)
+                while (msgLength.length < 4) {
+                  msgLength = '0' + msgLength
+                }
+                console.log('while 문 후 msgLength', msgLength)
 
-              //   var message_length_for_app = lastBuffer.length >= 1000 ? lastBuffer.length : msgLength
-              //   var send_default_data_preparation =
-              //     sig_for_app +
-              //     group_for_app +
-              //     op_code_for_app +
-              //     bike_id_from_iot +
-              //     version_for_app +
-              //     message_length_for_app
-              //   const headerBuf = Buffer.from(send_default_data_preparation)
+                var message_length_for_app = lastBuffer.length >= 1000 ? lastBuffer.length : msgLength
+                var send_default_data_preparation =
+                  sig_for_app +
+                  group_for_app +
+                  op_code_for_app +
+                  bike_id_from_iot +
+                  version_for_app +
+                  message_length_for_app
+                const headerBuf = Buffer.from(send_default_data_preparation)
 
-              //   let lastCheckSum = 0
+                let lastCheckSum = 0
 
-              //   //checksum
-              //   for (let i = 0; i < lastBuffer.length; i++) {
-              //     lastCheckSum += lastBuffer[i]
-              //   }
+                //checksum
+                for (let i = 0; i < lastBuffer.length; i++) {
+                  lastCheckSum += lastBuffer[i]
+                }
 
-              //   lastCheckSum = lastCheckSum.toString(16)
-              //   if (lastCheckSum.length >= 4) lastCheckSum = lastCheckSum.slice(-4)
-              //   else {
-              //     while (lastCheckSum.length < 4) {
-              //       lastCheckSum = '0' + lastCheckSum
-              //     }
-              //   }
+                lastCheckSum = lastCheckSum.toString(16)
+                if (lastCheckSum.length >= 4) lastCheckSum = lastCheckSum.slice(-4)
+                else {
+                  while (lastCheckSum.length < 4) {
+                    lastCheckSum = '0' + lastCheckSum
+                  }
+                }
 
-              //   const lastCheckSumBuf = Buffer.from(lastCheckSum)
-              //   const lastArr = [headerBuf, lastBuffer, lastCheckSumBuf]
-              //   const lastConcatBuf = Buffer.concat(lastArr)
+                const lastCheckSumBuf = Buffer.from(lastCheckSum)
+                const lastArr = [headerBuf, lastBuffer, lastCheckSumBuf]
+                const lastConcatBuf = Buffer.concat(lastArr)
 
-              //   await new Promise(resolve => setTimeout(resolve, 200))
-              //   sockets[bike_id_from_iot].write(lastConcatBuf)
-              //   return
-              // }
+                await new Promise(resolve => setTimeout(resolve, 200))
+                sockets[bike_id_from_iot].write(lastConcatBuf)
+                return
+              }
 
               //자전거가 보낸 통신일 경우
               //DB에 해당 자전거 ID가 등록되어 있는지 확인
