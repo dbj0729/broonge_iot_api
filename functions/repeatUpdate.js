@@ -5,6 +5,7 @@ module.exports.repeatUpdate = async data_elements => {
   let size_1 = 2 // Sig.
   let size_2 = 2 // Group
   let size_3 = 1 // OP Code
+  let size_4 = 10
 
   let sig_1 = size_1
   let sig_2 = sig_1 + size_2
