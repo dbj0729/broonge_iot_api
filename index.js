@@ -11,6 +11,7 @@ const semaphore = new Semaphore(1)
 
 const { distance } = require('./functions/distance')
 const { getCurrentTime } = require('./functions/getCurrentTime')
+const { repeatUpdate } = require('./functions/repeatUpdate')
 const { connection } = require('./config/database')
 const IOT_PORT = process.env.IOT_PORT || '8000'
 
@@ -79,9 +80,18 @@ var server = net.createServer(async function (socket) {
 
         if (op_code == 1 && data_elements.length > 54) {
           let tempConvert = data_elements.split('BR')
-          data_elements = 'BR' + tempConvert[tempConvert.length - 1]
-          console.log('바뀐 data_elements', data_elements)
+          let dataArr = []
+          for (let cd of tempConvert) {
+            if (!cd) continue
+            dataArr.push('BR' + cd)
+          }
+
+          for (let d of dataArr) {
+            repeatUpdate(d)
+          }
+          return
         }
+        //BR0111221772601T033036.4949533N127.2668250E09700000634BR0111221772601T033036.4966500N127.2693633E59700000635BR0111221772601T033036.4966500N127.2693633E59700000635BR0111221772601T033036.4966150N127.2693616E59701000638
 
         // 이 곳에 54개가 넘을 경우, BR단위로 배열에 넣는다.
         // BR011 단위로 계속 LAT, LNG 에 넣는다.
