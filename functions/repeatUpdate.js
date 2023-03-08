@@ -46,10 +46,10 @@ module.exports.repeatUpdate = async data_elements => {
   const gps_reformatted = f_1_gps.split('N') // 이 부분이 IoT 좌표에서 넘어올 때 구분되어 지는 값이다.
   let f_1_lat = gps_reformatted[0].slice(0, 10) // 딱 10자리만 가져온다.
   let f_1_lng = gps_reformatted[1] ? gps_reformatted[1].slice(0, 11) : undefined
-  sig == process.env.IOT_SIG &&
-    group == process.env.IOT_GROUP &&
-    op_code == process.env.IOT_OP_CODE &&
-    manual_codes.length !== 0
+
+  const sig = data_elements.slice(0, sig_1)
+  const group = data_elements.slice(sig_1, sig_2)
+  const op_code = data_elements.slice(sig_2, sig_3)
 
   if (
     sig == process.env.IOT_SIG &&
