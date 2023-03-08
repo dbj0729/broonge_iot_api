@@ -50,6 +50,7 @@ module.exports.repeatUpdate = async data_elements => {
   const sig = data_elements.slice(0, sig_1)
   const group = data_elements.slice(sig_1, sig_2)
   const op_code = data_elements.slice(sig_2, sig_3)
+  let manual_codes = f_1_gps + f_2_signal_strength + f_3_battery + f_4_device_status + f_5_err_info
 
   if (
     sig == process.env.IOT_SIG &&
