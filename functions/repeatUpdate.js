@@ -137,7 +137,7 @@ module.exports.repeatUpdate = async data_elements => {
 
           let coordinates = []
           let dist = selectResult[0].distance ? Number(selectResult[0].distance) : 0
-
+          console.log({ f_1_lat, f_1_lng })
           if (selectResult[0].coordinates) {
             coordinates = JSON.parse(selectResult[0].coordinates)
             const distPoints = distance(
@@ -148,6 +148,7 @@ module.exports.repeatUpdate = async data_elements => {
               'K',
             )
 
+            console.log({ 이동거리: distPoints })
             if (distPoints === 0) return
             else dist += distPoints
           }
