@@ -68,6 +68,7 @@ module.exports.repeatUpdate = async data_elements => {
 
     if (checksum == manually_added_0x) {
       try {
+        console.time('잠금상태 업데이트하는 데 걸리는 총 시간')
         const [convertToBikeId] = await (
           await connection()
         ).query(`SELECT bike_id FROM iot_status WHERE usim = ?`, [bike_id_from_iot])
@@ -130,6 +131,8 @@ module.exports.repeatUpdate = async data_elements => {
           Number(f_1_lat),
           bike_id_imei,
         ])
+
+        console.timeEnd('잠금상태 업데이트하는 데 걸리는 총 시간')
 
         if (f_4_device_status === '00') {
           const selectBikeRiding = `SELECT distance, coordinates FROM riding_data WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
