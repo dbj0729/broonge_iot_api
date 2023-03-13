@@ -87,7 +87,7 @@ var server = net.createServer(async function (socket) {
           }
 
           for (let d of dataArr) {
-            repeatUpdate(d)
+            await repeatUpdate(d)
           }
           return
         }
