@@ -1,30 +1,22 @@
 {
-    "sqltools.connections": [
-        {
-            "mysqlOptions": {
-                "authProtocol": "default"
-            },
-            "previewLimit": 50,
-            "server": "localhost",
-            "port": 3306,
-            "driver": "MySQL",
-            "name": "broonge",
-            "database": "test",
-            "username": "root",
-            "password": "Nc_02075!!"
-        },
-        {
-            "mysqlOptions": {
-                "authProtocol": "default"
-            },
-            "previewLimit": 50,
-            "server": "localhost",
-            "port": 3306,
-            "driver": "MariaDB",
-            "name": "mariadb",
-            "database": "broonge",
-            "username": "root",
-            "password": "Nc_02075!!"
-        }
-    ]
+  "workbench.colorCustomizations": {
+    "activityBar.activeBackground": "#929db2",
+    "activityBar.background": "#929db2",
+    "activityBar.foreground": "#15202b",
+    "activityBar.inactiveForeground": "#15202b99",
+    "activityBarBadge.background": "#e5dadd",
+    "activityBarBadge.foreground": "#15202b",
+    "commandCenter.border": "#15202b99",
+    "sash.hoverBorder": "#929db2",
+    "statusBar.background": "#74829d",
+    "statusBar.foreground": "#15202b",
+    "statusBarItem.hoverBackground": "#5c6982",
+    "statusBarItem.remoteBackground": "#74829d",
+    "statusBarItem.remoteForeground": "#15202b",
+    "titleBar.activeBackground": "#74829d",
+    "titleBar.activeForeground": "#15202b",
+    "titleBar.inactiveBackground": "#74829d99",
+    "titleBar.inactiveForeground": "#15202b99"
+  },
+  "peacock.color": "#74829d"
 }
