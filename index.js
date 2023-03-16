@@ -71,6 +71,7 @@ var server = net.createServer(async function (socket) {
       socket.on('data', async function (data) {
         let data_elements = data.toString('utf-8').trim()
         console.log('\n')
+        console.log('-----------------------------------------')
         console.log('받은 값 : ' + data_elements)
 
         console.log('연결된 자전거 ' + Object.keys(sockets))

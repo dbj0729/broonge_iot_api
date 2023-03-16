@@ -1,5 +1,6 @@
 const { connection } = require('../config/database')
 const { distance } = require('./distance')
+const { getCurrentTime } = require('./getCurrentTime')
 
 module.exports.repeatUpdate = async data_elements => {
   let size_1 = 2 // Sig.
@@ -68,7 +69,6 @@ module.exports.repeatUpdate = async data_elements => {
 
     if (checksum == manually_added_0x) {
       try {
-        console.time('잠금상태 업데이트하는 데 걸리는 총 시간')
         const [convertToBikeId] = await (
           await connection()
         ).query(`SELECT bike_id FROM iot_status WHERE usim = ?`, [bike_id_from_iot])
@@ -132,8 +132,6 @@ module.exports.repeatUpdate = async data_elements => {
           bike_id_imei,
         ])
 
-        console.timeEnd('잠금상태 업데이트하는 데 걸리는 총 시간')
-
         if (f_4_device_status === '00') {
           const selectBikeRiding = `SELECT distance, coordinates FROM riding_data WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
           const [selectResult] = await (await connection()).query(selectBikeRiding, [bike_id_imei])
@@ -163,7 +161,7 @@ module.exports.repeatUpdate = async data_elements => {
             await connection()
           ).query(updateBikeRiding, [JSON.stringify(coordinates), dist.toFixed(1), bike_id_imei])
         }
-        console.log('업데이트 성공!!!!')
+        console.log('업데이트 성공 시간', getCurrentTime)
         console.log(data_elements)
       } catch (error) {
         console.log('업데이트 실패')
