@@ -43,7 +43,6 @@ var server = net.createServer(async function (socket) {
     console.log(socket.address().address + ' Started Broonge IoT Server on ' + getCurrentTime())
     socket.setNoDelay(true)
     socket.setKeepAlive(true)
-    socket.setKeepAliveInterval(60 * 1000)
     socket.setSendBufferSize(1024 * 1024)
     socket.setReceiveBufferSize(1024 * 1024)
 
