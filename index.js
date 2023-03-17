@@ -13,6 +13,7 @@ const { distance } = require('./functions/distance')
 const { getCurrentTime } = require('./functions/getCurrentTime')
 const { repeatUpdate } = require('./functions/repeatUpdate')
 const { connection } = require('./config/database')
+const { updateCoords } = require('./functions/updateCoords')
 const IOT_PORT = process.env.IOT_PORT || '8000'
 
 let testLength = 1024
@@ -565,12 +566,34 @@ var server = net.createServer(async function (socket) {
 
               if (f_4_device_status === '00') {
                 // 여기를 파일로 저장했다가 보내는 방식으로 진행하는 것이 좋을 것 같다 @DBJ 230213
-                const selectBikeRiding = `SELECT distance, coordinates FROM riding_data WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
+                const selectBikeRiding = `SELECT distance, coordinates, id FROM riding_data WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
                 const [selectResult] = await (await connection()).query(selectBikeRiding, [bike_id_imei])
+
+                if (selectResult.length === 0) {
+                  const [ridingDataManager] = await (
+                    await connection()
+                  ).query(
+                    `SELECT * FROM riding_data_manager WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`,
+                    [bike_id_imei],
+                  )
+
+                  const { coordinates, dist } = updateCoords(ridingDataManager, f_1_lat, f_1_lng)
+
+                  if (dist === 0) return
+
+                  await (
+                    await connection()
+                  ).query('UPDATE riding_data_manager SET coordinates = ?, distance = ? WHERE id = ?', [
+                    JSON.stringify(coordinates),
+                    dist.toFixed(1),
+                    ridingDataManager[0].id,
+                  ])
+
+                  return
+                }
 
                 let coordinates = []
                 let dist = selectResult[0].distance ? Number(selectResult[0].distance) : 0
-                console.log({ f_1_lat, f_1_lng })
 
                 if (selectResult[0].coordinates) {
                   coordinates = JSON.parse(selectResult[0].coordinates)
@@ -589,10 +612,26 @@ var server = net.createServer(async function (socket) {
 
                 coordinates = [...coordinates, { lat: Number(f_1_lat), lng: Number(f_1_lng) }]
 
-                const updateBikeRiding = `UPDATE riding_data set coordinates = ?, distance = ? WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
+                const updateBikeRiding = `UPDATE riding_data set coordinates = ?, distance = ? WHERE id = ?`
                 await (
                   await connection()
-                ).query(updateBikeRiding, [JSON.stringify(coordinates), dist.toFixed(1), bike_id_imei])
+                ).query(updateBikeRiding, [JSON.stringify(coordinates), dist.toFixed(1), selectResult[0].id])
+              } else if (f_4_device_status === '01') {
+                const [riding_data_manager] = await (
+                  await connection()
+                ).query(
+                  'SELECT id FROM riding_data_manager WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1',
+                  [bike_id_imei],
+                )
+
+                if (riding_data_manager.length > 0) {
+                  await (
+                    await connection()
+                  ).query('UPDATE riding_data_manager SET end_datetime = ? WHERE id = ?', [
+                    getCurrentTime(),
+                    riding_data_manager[0].id,
+                  ])
+                }
               }
               console.log('업데이트 실패 횟수 : ' + failUpdate)
             } catch (error) {
