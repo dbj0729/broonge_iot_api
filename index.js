@@ -411,18 +411,18 @@ var server = net.createServer(async function (socket) {
               console.log('IoT 로 부터 받은 값이 모두 문제 없이 다 통과한 시간 : ' + getCurrentTime())
               console.time('잠금상태 업데이트하는 데 걸리는 총 시간')
               // version check
-              const [bike_version] = await (
-                await connection()
-              ).query(`SELECT iot_version FROM bikes WHERE id = ?`, [bike_id_imei])
+              // const [bike_version] = await (
+              //   await connection()
+              // ).query(`SELECT iot_version FROM bikes WHERE id = ?`, [bike_id_imei])
 
-              if (!bike_version[0].iot_version || bike_version[0].iot_version !== version) {
-                await (
-                  await connection()
-                ).query(`UPDATE bikes SET iot_version = ?, is_updated_to_the_latest = 'YES' WHERE id = ?`, [
-                  version,
-                  bike_id_imei,
-                ])
-              }
+              // if (!bike_version[0].iot_version || bike_version[0].iot_version !== version) {
+              //   await (
+              //     await connection()
+              //   ).query(`UPDATE bikes SET iot_version = ?, is_updated_to_the_latest = 'YES' WHERE id = ?`, [
+              //     version,
+              //     bike_id_imei,
+              //   ])
+              // }
 
               // to IMEI test Change ip
               if (bike_id_from_iot === '1223129999' && process.env.IOT === 'deploy') {
@@ -577,6 +577,9 @@ var server = net.createServer(async function (socket) {
                     [bike_id_imei],
                   )
 
+                  if (ridingDataManager.length === 0)
+                    return console.log('라이딩 데이터가 없는 자전거가 움직이는 중입니다.')
+
                   const { coordinates, dist } = updateCoords(ridingDataManager, f_1_lat, f_1_lng)
 
                   if (dist === 0) return
@@ -593,6 +596,7 @@ var server = net.createServer(async function (socket) {
                 }
 
                 let coordinates = []
+                console.log()
                 let dist = selectResult[0].distance ? Number(selectResult[0].distance) : 0
 
                 if (selectResult[0].coordinates) {
