@@ -625,6 +625,10 @@ var server = net.createServer(async function (socket) {
           ).query(`SELECT usim FROM iot_status WHERE bike_id = ?`, [bike_id_for_app])
           const bike_id_usim = result[0].usim
 
+          if (app_to_iot_data[0] === 'b001') {
+            return sockets[bike_id_usim].write(app_to_iot_data[2])
+          }
+
           var send_default_data_preparation =
             sig_for_app + group_for_app + op_code_for_app + bike_id_usim + version_for_app + message_length_for_app
 
@@ -638,18 +642,18 @@ var server = net.createServer(async function (socket) {
           }
 
           async function updateBikeStatus(order) {
+            if (order === 'AA') {
+              return sockets[bike_id_usim].write(sending_codes(order))
+            }
             const code = order === 'unlock' ? '01' : order === 'page' ? '02' : '03'
-            await new Promise(resolve => setTimeout(resolve, 200))
             if (!code) return socket.write('not order')
 
             if (beforeSendBikeId === bike_id_usim) await new Promise(resolve => setTimeout(resolve, 1000))
 
-            await new Promise(resolve => setTimeout(resolve, 200))
             sockets[bike_id_usim].write(sending_codes(code))
             console.log('apptoIOT : ' + sending_codes(code))
             beforeSendBikeId = bike_id_usim
 
-            await new Promise(resolve => setTimeout(resolve, 200))
             socket.write(sending_codes(code))
             socket.write('   ') // App 한테 보내는 것
             socket.write(getCurrentTime())
@@ -658,12 +662,10 @@ var server = net.createServer(async function (socket) {
 
           if (app_to_iot_data[0] == process.env.APP_SIG) {
             if (!app_to_iot_data[2]) {
-              await new Promise(resolve => setTimeout(resolve, 200))
               console.log('appSocket : data parsing error')
               socket.write('something wrong')
             } else {
               if (!sockets[bike_id_usim]) {
-                await new Promise(resolve => setTimeout(resolve, 200))
                 socket.write('no connected bike!')
                 console.log('통신이 연결된 자전거가 아닙니다')
                 return

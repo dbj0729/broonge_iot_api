@@ -161,7 +161,7 @@ module.exports.repeatUpdate = async data_elements => {
             await connection()
           ).query(updateBikeRiding, [JSON.stringify(coordinates), dist.toFixed(1), bike_id_imei])
         }
-        console.log('업데이트 성공 시간', getCurrentTime)
+        console.log('업데이트 성공 시간', getCurrentTime())
         console.log(data_elements)
       } catch (error) {
         console.log('업데이트 실패')
