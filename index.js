@@ -409,7 +409,7 @@ var server = net.createServer(async function (socket) {
 
             try {
               console.log('IoT 로 부터 받은 값이 모두 문제 없이 다 통과한 시간 : ' + getCurrentTime())
-              console.time('잠금상태 업데이트하는 데 걸리는 총 시간')
+
               // version check
               // const [bike_version] = await (
               //   await connection()
@@ -561,8 +561,6 @@ var server = net.createServer(async function (socket) {
                 Number(f_1_lat),
                 bike_id_imei,
               ])
-
-              console.timeEnd('잠금상태 업데이트하는 데 걸리는 총 시간')
 
               if (f_4_device_status === '00') {
                 // 여기를 파일로 저장했다가 보내는 방식으로 진행하는 것이 좋을 것 같다 @DBJ 230213
