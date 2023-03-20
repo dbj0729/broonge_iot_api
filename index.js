@@ -630,11 +630,12 @@ var server = net.createServer(async function (socket) {
                   await (
                     await connection()
                   ).query('UPDATE riding_data_manager SET end_datetime = ? WHERE id = ?', [
-                    moment().format('YYYY-MM-DD HH:mm:ss'),
+                    moment().add(9, 'h').format('YYYY-MM-DD HH:mm:ss'),
                     riding_data_manager[0].id,
                   ])
                 }
               }
+
               console.log('업데이트 실패 횟수 : ' + failUpdate)
             } catch (error) {
               failUpdate += 1
