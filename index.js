@@ -630,7 +630,7 @@ var server = net.createServer(async function (socket) {
                   await (
                     await connection()
                   ).query('UPDATE riding_data_manager SET end_datetime = ? WHERE id = ?', [
-                    getCurrentTime(),
+                    moment().format('YYYY-MM-DD HH:mm:ss'),
                     riding_data_manager[0].id,
                   ])
                 }
