@@ -202,9 +202,10 @@ var server = net.createServer(async function (socket) {
 
               await (
                 await connection()
-              ).query(`INSERT INTO bikes SET id = ?, is_active = 'YES', reg_date = ?`, [
+              ).query(`INSERT INTO bikes SET id = ?, is_active = 'YES', reg_date = ?, owner_user_admin_id = ?`, [
                 bike_id_from_iot,
                 moment().format('YYYY-MM-DD HH:mm:ss'),
+                14
               ])
             }
 
