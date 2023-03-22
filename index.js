@@ -81,7 +81,7 @@ var server = net.createServer(async function (socket) {
 
         let size_4 = 10 // USIM
 
-        if (op_code == 1 && data_elements.length > 54) {
+        if (op_code == 4 && data_elements.length > 54) {
           let tempConvert = data_elements.split('BR')
           let dataArr = []
           for (let cd of tempConvert) {
@@ -94,26 +94,6 @@ var server = net.createServer(async function (socket) {
           }
           return
         }
-        //BR0111221772601T033036.4949533N127.2668250E09700000634BR0111221772601T033036.4966500N127.2693633E59700000635BR0111221772601T033036.4966500N127.2693633E59700000635BR0111221772601T033036.4966150N127.2693616E59701000638
-
-        // 이 곳에 54개가 넘을 경우, BR단위로 배열에 넣는다.
-        // BR011 단위로 계속 LAT, LNG 에 넣는다.
-        // 중요한 것은 BR 로 나온 값이 제대로 들어온 값이어야 한다.
-
-        // 받은 값 : BR0111221772601T033036.4949533N127.2668250E09700000634
-        //BR0111221772601T033036.4966500N127.2693633E59700000635
-        //BR0111221772601T033036.4966500N127.2693633E59700000635
-        //BR0111221772601T033036.4966150N127.2693616E59701000638
-        // 연결된 자전거 1221694989,1221772601,1221960754
-        // 바이크 아이디 1221772601
-        // socketAddress ::ffff:110.70.29.66:64023
-        // IoT 로 부터 받은 값이 모두 문제 없이 다 통과한 시간 : 2023. 3. 6. 오후 6:05:21
-        // { f_1_lat: '36.4949533', f_1_lng: '127.2668250' } <-- 첫 번쨰 것만 들어왔다.
-        // { '이동거리': 0.30508623381388655 }
-        // 업데이트 실패 횟수 : 0
-        //
-        // iot socket 은 서버에 저장해서 불러오는 형식으로 진행
-        // iot 저렇게 뭉쳐서 들어오면 sockets 에서 해당 바이크가 사라지는 것 같다는 다수견 발생
 
         if (op_code == 4) size_4 = 15 // IMEI
 
@@ -156,19 +136,23 @@ var server = net.createServer(async function (socket) {
         const checksum = data_elements.slice(sig_11, sig_12)
 
         console.log('바이크 아이디', bike_id_from_iot)
-
         // 변경되는 값; 이 부분을 저장해야 한다.
         let manual_codes = f_1_gps + f_2_signal_strength + f_3_battery + f_4_device_status + f_5_err_info
 
         if (sig == process.env.IOT_SIG && group == process.env.IOT_GROUP && op_code == 4) {
           //IMEI로 통신
+          sockets[bike_id_from_iot] = socket
+          console.log(
+            'socketAddress',
+            sockets[bike_id_from_iot].remoteAddress + ':' + sockets[bike_id_from_iot].remotePort,
+          )
+
           const combined_manual_codes = manual_codes.split('')
           const manual_codes_value = combined_manual_codes
             .map(item => item.charCodeAt())
             .reduce((acc, curr) => acc + curr)
           let manual_codes_value_verification = '0' + manual_codes_value.toString(16)
 
-          console.log({ checksum, verification: manual_codes_value_verification })
           if (checksum === manual_codes_value_verification) {
             //bike_id_from_iot 는 IEMI 값
             const [findImei] = await (
@@ -205,36 +189,39 @@ var server = net.createServer(async function (socket) {
               ).query(`INSERT INTO bikes SET id = ?, is_active = 'YES', reg_date = ?, owner_user_admin_id = ?`, [
                 bike_id_from_iot,
                 moment().format('YYYY-MM-DD HH:mm:ss'),
-                14
+                14,
               ])
             }
 
-            let sig_for_app = process.env.IOT_SIG
-            let group_for_app = process.env.IOT_GROUP
-            let op_code_for_app = '3' // 3번이 보내는 경우이다.
+            await repeatUpdate(data_elements)
 
-            let version_for_app = 'APP'
-            let message_length_for_app = '02' //IOT_ERROR_MESSAGE_LENGTH???
-            let send_default_data_preparation =
-              sig_for_app +
-              group_for_app +
-              op_code_for_app +
-              bike_id_from_iot +
-              version_for_app +
-              message_length_for_app
+            //TODO: usim으로 바꿔달라는 code 현재 사용하지 않음
+            // let sig_for_app = process.env.IOT_SIG
+            // let group_for_app = process.env.IOT_GROUP
+            // let op_code_for_app = '3' // 3번이 보내는 경우이다.
 
-            function sending_codes(send_code) {
-              let combined_send_codes = send_code.split('')
-              let send_codes_value = combined_send_codes
-                .map(item => item.charCodeAt())
-                .reduce((acc, curr) => acc + curr)
-              let send_codes_value_verification = send_codes_value.toString(16)
-              let send_codes_manually_added_0x = '00' + send_codes_value_verification
-              let final_send_codes = send_default_data_preparation + send_code + send_codes_manually_added_0x
-              return final_send_codes
-            }
-            await new Promise(resolve => setTimeout(resolve, 200))
-            socket.write(sending_codes('11')) //toUsim
+            // let version_for_app = 'APP'
+            // let message_length_for_app = '02' //IOT_ERROR_MESSAGE_LENGTH???
+            // let send_default_data_preparation =
+            //   sig_for_app +
+            //   group_for_app +
+            //   op_code_for_app +
+            //   bike_id_from_iot +
+            //   version_for_app +
+            //   message_length_for_app
+
+            // function sending_codes(send_code) {
+            //   let combined_send_codes = send_code.split('')
+            //   let send_codes_value = combined_send_codes
+            //     .map(item => item.charCodeAt())
+            //     .reduce((acc, curr) => acc + curr)
+            //   let send_codes_value_verification = send_codes_value.toString(16)
+            //   let send_codes_manually_added_0x = '00' + send_codes_value_verification
+            //   let final_send_codes = send_default_data_preparation + send_code + send_codes_manually_added_0x
+            //   return final_send_codes
+            // }
+            // await new Promise(resolve => setTimeout(resolve, 200))
+            // socket.write(sending_codes('11')) //toUsim
           }
         } else if (sig == process.env.IOT_SIG && group == process.env.IOT_GROUP && op_code === 'B') {
           // firmware upgrade ack opcode = 'B'
@@ -337,44 +324,49 @@ var server = net.createServer(async function (socket) {
         } else if (sig == process.env.IOT_SIG && group == process.env.IOT_GROUP && (op_code == '2' || op_code == 'A')) {
           //response
           //BR0128686750600014761223129999/090/02/00/0060 응답코드
+
           // ver/msgl/msg/checksum
           const imei = data_elements.slice(5, 20)
-          const usim = data_elements.slice(20, 30)
-          const message = data_elements.slice(35, 37)
-          const checksum = data_elements.slice(37)
-          const verification =
-            '00' +
-            message
-              .split('')
-              .reduce((acc, curr) => acc + curr.charCodeAt(), 0)
-              .toString(16)
+          const version = data_elements.slice(20, 23)
+          const message = data_elements.slice(25, 27) === '00' ? '정상' : '오류'
 
-          //opcode A ack 00 정상 01 error
+          console.log({ 바이크아이디: imei, 버전: version, 결과: message })
+          // const usim = data_elements.slice(20, 30)
+          // const message = data_elements.slice(35, 37)
+          // const checksum = data_elements.slice(37)
+          // const verification =
+          //   '00' +
+          //   message
+          //     .split('')
+          //     .reduce((acc, curr) => acc + curr.charCodeAt(), 0)
+          //     .toString(16)
 
-          if (checksum !== verification || message !== '00') {
-            return console.log('req error')
-          }
+          // //opcode A ack 00 정상 01 error
 
-          sockets[usim] = socket
+          // if (checksum !== verification || message !== '00') {
+          //   return console.log('req error')
+          // }
 
-          const [findUsim] = await (
-            await connection()
-          ).query('SELECT bike_id, usim FROM iot_status WHERE usim = ? LIMIT 1', [usim])
+          // sockets[usim] = socket
 
-          if (findUsim.length !== 0) {
-            if (findUsim[0].bike_id !== imei) {
-              await (
-                await connection()
-              ).query('UPDATE iot_status SET usim = ? WHERE bike_id = ?', [findUsim[0].bike_id, findUsim[0].bike_id])
+          // const [findUsim] = await (
+          //   await connection()
+          // ).query('SELECT bike_id, usim FROM iot_status WHERE usim = ? LIMIT 1', [usim])
 
-              await (await connection()).query('UPDATE iot_status SET usim = ? WHERE bike_id = ?', [usim, imei])
-            }
-          } else {
-            // 등록된 usim이 없으면 usim을 등록한다
-            await (await connection()).query(`UPDATE iot_status SET usim = ? WHERE bike_id = ?`, [usim, imei])
-          }
+          // if (findUsim.length !== 0) {
+          //   if (findUsim[0].bike_id !== imei) {
+          //     await (
+          //       await connection()
+          //     ).query('UPDATE iot_status SET usim = ? WHERE bike_id = ?', [findUsim[0].bike_id, findUsim[0].bike_id])
 
-          console.log('responseCode', { data_elements, imei, usim, message, checksum, verification })
+          //     await (await connection()).query('UPDATE iot_status SET usim = ? WHERE bike_id = ?', [usim, imei])
+          //   }
+          // } else {
+          //   // 등록된 usim이 없으면 usim을 등록한다
+          //   await (await connection()).query(`UPDATE iot_status SET usim = ? WHERE bike_id = ?`, [usim, imei])
+          // }
+
+          // console.log('responseCode', { data_elements, imei, usim, message, checksum, verification })
         } else if (
           sig == process.env.IOT_SIG &&
           group == process.env.IOT_GROUP &&
@@ -518,7 +510,7 @@ var server = net.createServer(async function (socket) {
               //자전거가 보낸 통신일 경우
               //DB에 해당 자전거 ID가 등록되어 있는지 확인
               //FIXME: 기존에 SELECT * FROM iot_status 였는데, 이건 생각해 보니 위도경도 모두를 불러오는 격인데, delay 가 생겨서 IoT 가 밀린 것은 아닌가? @DBJ on 230213
-              const findBikeInIotStatusQuery = `SELECT lng, lat FROM iot_status WHERE bike_id = ? limit 1`
+              const findBikeInIotStatusQuery = `SELECT lng, lat, status FROM iot_status WHERE bike_id = ? limit 1`
               const [findBikeInIotStatus] = await (await connection()).query(findBikeInIotStatusQuery, [bike_id_imei])
 
               if (findBikeInIotStatus.length === 0) {
@@ -536,20 +528,32 @@ var server = net.createServer(async function (socket) {
                 f_1_lat = 37.2115683
               }
 
-              // const findBikeInBikesQuery = `SELECT id FROM bikes WHERE id = ? limit 1`
-              // const [findBikeInBikes] = await (await connection()).query(findBikeInBikesQuery, [bike_id_from_iot])
+              const isPossibleUpdateStatus =
+                findBikeInIotStatus[0].status === 'stand_by' ||
+                findBikeInIotStatus[0].status === 'in_use' ||
+                findBikeInIotStatus[0].status === 'malfunctioning'
 
-              //TODO: 자전거가 bikes 와 iot 동시에 없거나 있어도 bikes is_active 가 NO 이면 소켓을 끊어야 한다.
-              // `SELECT id FROM bikes AS b JOIN iot_status AS iot ON iot.bike_id = b.id WHERE b.is_active = 'YES'`
+              let partQuery = ''
+              if (isPossibleUpdateStatus) {
+                partQuery =
+                  f_4_device_status === '03'
+                    ? `status = 'malfunctioning'`
+                    : f_4_device_status === '00' // 00 이 해제상태
+                    ? `status = 'in_use', is_locked = 'NO'`
+                    : f_4_device_status === '01' // 01 이 잠긴상태
+                    ? `status = 'stand_by', is_locked = 'YES'`
+                    : `status = 'malfunctioning'`
+              } else {
+                partQuery =
+                  f_4_device_status === '03'
+                    ? `status = 'malfunctioning'`
+                    : f_4_device_status === '00' // 00 이 해제상태
+                    ? `is_locked = 'NO'`
+                    : f_4_device_status === '01' // 01 이 잠긴상태
+                    ? `is_locked = 'YES'`
+                    : `status = 'malfunctioning'`
+              }
 
-              const partQuery =
-                f_4_device_status === '03'
-                  ? `status = 'malfunctioning', is_locked = 'malfunctioning'`
-                  : f_4_device_status === '00' // 00 이 해제상태
-                  ? `status = 'in_use', is_locked = 'NO'`
-                  : f_4_device_status === '01' // 01 이 잠긴상태
-                  ? `status = 'stand_by', is_locked = 'YES'`
-                  : `status = 'malfunctioning', is_locked = 'malfunctioning'` // 문제가 발생했다는 의미..? @DBJ on 20221213
               const updateBikeStatusQuery = `UPDATE iot_status SET battery = ?, lat = ?, lng = ?, signal_strength = ?, point = ST_GeomFromText('POINT(? ?)'), ${partQuery} WHERE bike_id = ?`
               const [result] = await (
                 await connection()
@@ -663,17 +667,20 @@ var server = net.createServer(async function (socket) {
           var version_for_app = 'APP'
           var message_length_for_app = '02'
 
-          const [result] = await (
-            await connection()
-          ).query(`SELECT usim FROM iot_status WHERE bike_id = ?`, [bike_id_for_app])
-          const bike_id_usim = result[0].usim
+          //imei -> usim
+          // const [result] = await (
+          //   await connection()
+          // ).query(`SELECT usim FROM iot_status WHERE bike_id = ?`, [bike_id_for_app])
+          // const bike_id_usim = result[0].usim
 
           if (app_to_iot_data[0] === 'b001') {
-            return sockets[bike_id_usim].write(app_to_iot_data[2])
+            sockets[bike_id_for_app].write(app_to_iot_data[2])
+            socket.write('ok')
+            return
           }
 
           var send_default_data_preparation =
-            sig_for_app + group_for_app + op_code_for_app + bike_id_usim + version_for_app + message_length_for_app
+            sig_for_app + group_for_app + op_code_for_app + bike_id_for_app + version_for_app + message_length_for_app
 
           function sending_codes(send_code) {
             var combined_send_codes = send_code.split('')
@@ -686,16 +693,18 @@ var server = net.createServer(async function (socket) {
 
           async function updateBikeStatus(order) {
             if (order === 'AA') {
-              return sockets[bike_id_usim].write(sending_codes(order))
+              sockets[bike_id_for_app].write(sending_codes(order))
+              socket.write('ok')
+              return
             }
             const code = order === 'unlock' ? '01' : order === 'page' ? '02' : '03'
             if (!code) return socket.write('not order')
 
-            if (beforeSendBikeId === bike_id_usim) await new Promise(resolve => setTimeout(resolve, 1000))
+            if (beforeSendBikeId === bike_id_for_app) await new Promise(resolve => setTimeout(resolve, 1000))
 
-            sockets[bike_id_usim].write(sending_codes(code))
+            sockets[bike_id_for_app].write(sending_codes(code))
             console.log('apptoIOT : ' + sending_codes(code))
-            beforeSendBikeId = bike_id_usim
+            beforeSendBikeId = bike_id_for_app
 
             socket.write(sending_codes(code))
             socket.write('   ') // App 한테 보내는 것
@@ -708,7 +717,7 @@ var server = net.createServer(async function (socket) {
               console.log('appSocket : data parsing error')
               socket.write('something wrong')
             } else {
-              if (!sockets[bike_id_usim]) {
+              if (!sockets[bike_id_for_app]) {
                 socket.write('no connected bike!')
                 console.log('통신이 연결된 자전거가 아닙니다')
                 return

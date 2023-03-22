@@ -1,12 +1,13 @@
 const { connection } = require('../config/database')
 const { distance } = require('./distance')
 const { getCurrentTime } = require('./getCurrentTime')
+const { updateCoords } = require('./updateCoords')
 
 module.exports.repeatUpdate = async data_elements => {
   let size_1 = 2 // Sig.
   let size_2 = 2 // Group
   let size_3 = 1 // OP Code
-  let size_4 = 10
+  let size_4 = 15 //imei
 
   let sig_1 = size_1
   let sig_2 = sig_1 + size_2
@@ -54,12 +55,7 @@ module.exports.repeatUpdate = async data_elements => {
   const op_code = data_elements.slice(sig_2, sig_3)
   let manual_codes = f_1_gps + f_2_signal_strength + f_3_battery + f_4_device_status + f_5_err_info
 
-  if (
-    sig == process.env.IOT_SIG &&
-    group == process.env.IOT_GROUP &&
-    op_code == process.env.IOT_OP_CODE &&
-    manual_codes.length !== 0
-  ) {
+  if (sig == process.env.IOT_SIG && group == process.env.IOT_GROUP && op_code == 4 && manual_codes.length !== 0) {
     const combined_manual_codes = manual_codes.split('') // data 에서 온 raw 값을 글자 단위로 쪼갠 결과
     const manual_codes_value = combined_manual_codes.map(item => item.charCodeAt()).reduce((acc, curr) => acc + curr) // 쪼갠 결과를 하나씩 분배
 
@@ -69,23 +65,23 @@ module.exports.repeatUpdate = async data_elements => {
 
     if (checksum == manually_added_0x) {
       try {
-        const [convertToBikeId] = await (
-          await connection()
-        ).query(`SELECT bike_id FROM iot_status WHERE usim = ?`, [bike_id_from_iot])
+        // const [convertToBikeId] = await (
+        //   await connection()
+        // ).query(`SELECT bike_id FROM iot_status WHERE usim = ?`, [bike_id_from_iot])
 
-        if (convertToBikeId.length === 0) {
-          console.log('등록되지 않은 자전거입니다.')
-          return
-        }
+        // if (convertToBikeId.length === 0) {
+        //   console.log('등록되지 않은 자전거입니다.')
+        //   return
+        // }
 
-        const bike_id_imei = convertToBikeId[0].bike_id
+        // const bike_id_imei = convertToBikeId[0].bike_id
 
         const [bike_version] = await (
           await connection()
-        ).query(`SELECT iot_version FROM bikes WHERE id = ?`, [bike_id_imei])
+        ).query(`SELECT iot_version FROM bikes WHERE id = ?`, [bike_id_from_iot])
 
-        const findBikeInIotStatusQuery = `SELECT lng, lat FROM iot_status WHERE bike_id = ? limit 1`
-        const [findBikeInIotStatus] = await (await connection()).query(findBikeInIotStatusQuery, [bike_id_imei])
+        const findBikeInIotStatusQuery = `SELECT lng, lat, status FROM iot_status WHERE bike_id = ? limit 1`
+        const [findBikeInIotStatus] = await (await connection()).query(findBikeInIotStatusQuery, [bike_id_from_iot])
 
         if (findBikeInIotStatus.length === 0) {
           console.log('등록되지 않은 자전거입니다.')
@@ -97,7 +93,7 @@ module.exports.repeatUpdate = async data_elements => {
             await connection()
           ).query(`UPDATE bikes SET iot_version = ?, is_updated_to_the_latest = 'YES' WHERE id = ?`, [
             version,
-            bike_id_imei,
+            bike_id_from_iot,
           ])
         }
 
@@ -111,16 +107,33 @@ module.exports.repeatUpdate = async data_elements => {
           f_1_lat = 37.2115683
         }
 
-        const partQuery =
-          f_4_device_status === '03'
-            ? `status = 'malfunctioning', is_locked = 'malfunctioning'`
-            : f_4_device_status === '00' // 00 이 해제상태
-            ? `status = 'in_use', is_locked = 'NO'`
-            : f_4_device_status === '01' // 01 이 잠긴상태
-            ? `status = 'stand_by', is_locked = 'YES'`
-            : `status = 'malfunctioning', is_locked = 'malfunctioning'` // 문제가 발생했다는 의미..? @DBJ on 20221213
+        const isPossibleUpdateStatus =
+          findBikeInIotStatus[0].status === 'stand_by' ||
+          findBikeInIotStatus[0].status === 'in_use' ||
+          findBikeInIotStatus[0].status === 'malfunctioning'
+
+        let partQuery = ''
+        if (isPossibleUpdateStatus) {
+          partQuery =
+            f_4_device_status === '03'
+              ? `status = 'malfunctioning'`
+              : f_4_device_status === '00' // 00 이 해제상태
+              ? `status = 'in_use', is_locked = 'NO'`
+              : f_4_device_status === '01' // 01 이 잠긴상태
+              ? `status = 'stand_by', is_locked = 'YES'`
+              : `status = 'malfunctioning'`
+        } else {
+          partQuery =
+            f_4_device_status === '03'
+              ? `status = 'malfunctioning'`
+              : f_4_device_status === '00' // 00 이 해제상태
+              ? `is_locked = 'NO'`
+              : f_4_device_status === '01' // 01 이 잠긴상태
+              ? `is_locked = 'YES'`
+              : `status = 'malfunctioning'`
+        }
         const updateBikeStatusQuery = `UPDATE iot_status SET battery = ?, lat = ?, lng = ?, signal_strength = ?, point = ST_GeomFromText('POINT(? ?)'), ${partQuery} WHERE bike_id = ?`
-        const [result] = await (
+        await (
           await connection()
         ).query(updateBikeStatusQuery, [
           f_3_battery,
@@ -129,12 +142,37 @@ module.exports.repeatUpdate = async data_elements => {
           f_2_signal_strength,
           Number(f_1_lng),
           Number(f_1_lat),
-          bike_id_imei,
+          bike_id_from_iot,
         ])
 
         if (f_4_device_status === '00') {
           const selectBikeRiding = `SELECT distance, coordinates FROM riding_data WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
-          const [selectResult] = await (await connection()).query(selectBikeRiding, [bike_id_imei])
+          const [selectResult] = await (await connection()).query(selectBikeRiding, [bike_id_from_iot])
+
+          if (selectResult.length === 0) {
+            const [ridingDataManager] = await (
+              await connection()
+            ).query(
+              `SELECT * FROM riding_data_manager WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`,
+              [bike_id_from_iot],
+            )
+
+            if (ridingDataManager.length === 0) return console.log('라이딩 데이터가 없는 자전거가 움직이는 중입니다.')
+
+            const { coordinates, dist } = updateCoords(ridingDataManager, f_1_lat, f_1_lng)
+
+            if (dist === 0) return
+
+            await (
+              await connection()
+            ).query('UPDATE riding_data_manager SET coordinates = ?, distance = ? WHERE id = ?', [
+              JSON.stringify(coordinates),
+              dist.toFixed(1),
+              ridingDataManager[0].id,
+            ])
+
+            return
+          }
 
           let coordinates = []
           let dist = selectResult[0].distance ? Number(selectResult[0].distance) : 0
@@ -159,7 +197,23 @@ module.exports.repeatUpdate = async data_elements => {
           const updateBikeRiding = `UPDATE riding_data set coordinates = ?, distance = ? WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
           await (
             await connection()
-          ).query(updateBikeRiding, [JSON.stringify(coordinates), dist.toFixed(1), bike_id_imei])
+          ).query(updateBikeRiding, [JSON.stringify(coordinates), dist.toFixed(1), bike_id_from_iot])
+        } else if (f_4_device_status === '01') {
+          const [riding_data_manager] = await (
+            await connection()
+          ).query(
+            'SELECT id FROM riding_data_manager WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1',
+            [bike_id_from_iot],
+          )
+
+          if (riding_data_manager.length > 0) {
+            await (
+              await connection()
+            ).query('UPDATE riding_data_manager SET end_datetime = ? WHERE id = ?', [
+              moment().add(9, 'h').format('YYYY-MM-DD HH:mm:ss'),
+              riding_data_manager[0].id,
+            ])
+          }
         }
         console.log('업데이트 성공 시간', getCurrentTime())
         console.log(data_elements)
