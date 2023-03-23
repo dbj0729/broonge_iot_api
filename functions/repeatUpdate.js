@@ -2,6 +2,7 @@ const { connection } = require('../config/database')
 const { distance } = require('./distance')
 const { getCurrentTime } = require('./getCurrentTime')
 const { updateCoords } = require('./updateCoords')
+const moment = require('moment')
 
 module.exports.repeatUpdate = async data_elements => {
   let size_1 = 2 // Sig.
