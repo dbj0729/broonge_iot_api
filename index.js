@@ -81,7 +81,7 @@ var server = net.createServer(async function (socket) {
 
         let size_4 = 10 // USIM
 
-        if (op_code == 4 && data_elements.length > 54) {
+        if (op_code == 4 && data_elements.length > 59) {
           let tempConvert = data_elements.split('BR')
           let dataArr = []
           for (let cd of tempConvert) {
