@@ -165,6 +165,11 @@ var server = net.createServer(async function (socket) {
               const is_locked =
                 f_4_device_status === '03' ? 'malfunctioning' : f_4_device_status === '00' ? 'NO' : 'YES'
 
+              if (gps_reformatted.length === 1) {
+                f_1_lng = 127.0895133
+                f_1_lat = 37.2115683
+              }
+
               await (
                 await connection()
               ).query(
@@ -186,11 +191,10 @@ var server = net.createServer(async function (socket) {
 
               await (
                 await connection()
-              ).query(`INSERT INTO bikes SET id = ?, is_active = 'YES', reg_date = ?, owner_user_admin_id = ?`, [
-                bike_id_from_iot,
-                moment().format('YYYY-MM-DD HH:mm:ss'),
-                14,
-              ])
+              ).query(
+                `INSERT INTO bikes SET id = ?, is_active = 'YES', reg_date = ?, owner_user_admin_id = ?, iot_version = ?, is_updated_to_the_latest = 'YES'`,
+                [bike_id_from_iot, moment().format('YYYY-MM-DD HH:mm:ss'), 14, version],
+              )
             }
 
             await repeatUpdate(data_elements)
@@ -282,8 +286,20 @@ var server = net.createServer(async function (socket) {
           return
         } else if (sig == process.env.IOT_SIG && group == 'FF' && op_code == 'F') {
           // web 관리자가 firmware update 요청시
-          //BR02F.user_admin_id
+          //BRFFF.user_admin_id
           console.log('here')
+
+          const admin_id = Number(data_elements.split('.')[1])
+
+          //업데이트할 자전거 리스트
+          // const [upgradeLists] = await (
+          //   await connection()
+          // ).query(`SELECT upgrade_lists FROM firmware_lists WHERE user_admin_id = ?`, [admin_id])
+          // const bikeLists = upgradeLists[0].upgrade_lists.split(',')
+
+          //파일 읽어 오기
+          // const [result] = await (await connection()).query(`SELECT * FROM update_mgmt LIMIT 1`)
+          // const readFile = result[0].file_body
 
           const firstFile = FILE.slice(0, 512)
           const usim_list = '1223128888'
