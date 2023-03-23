@@ -245,7 +245,11 @@ var server = net.createServer(async function (socket) {
 
           const currentNum = Number(message)
 
-          const sendData = FILE.slice(currentNum * 512, (currentNum + 1) * 512)
+          //파일 읽어 오기
+          const [result] = await (await connection()).query(`SELECT * FROM update_mgmt ORDER BY id DESC LIMIT 1`)
+          const readFile = result[0].file_body
+
+          const sendData = readFile.slice(currentNum * 512, (currentNum + 1) * 512)
           //header
           var sig_for_app = process.env.IOT_SIG
           var group_for_app = process.env.IOT_GROUP
@@ -287,56 +291,53 @@ var server = net.createServer(async function (socket) {
         } else if (sig == process.env.IOT_SIG && group == 'FF' && op_code == 'F') {
           // web 관리자가 firmware update 요청시
           //BRFFF.user_admin_id
-          console.log('here')
-
           const admin_id = Number(data_elements.split('.')[1])
 
           //업데이트할 자전거 리스트
-          // const [upgradeLists] = await (
-          //   await connection()
-          // ).query(`SELECT upgrade_lists FROM firmware_lists WHERE user_admin_id = ?`, [admin_id])
-          // const bikeLists = upgradeLists[0].upgrade_lists.split(',')
+          const [upgradeLists] = await (
+            await connection()
+          ).query(`SELECT upgrade_lists FROM firmware_lists WHERE user_admin_id = ?`, [admin_id])
+          const bikeLists = upgradeLists[0].upgrade_lists.split(',')
+          console.log({ bikeLists })
 
           //파일 읽어 오기
-          // const [result] = await (await connection()).query(`SELECT * FROM update_mgmt LIMIT 1`)
-          // const readFile = result[0].file_body
+          const [result] = await (await connection()).query(`SELECT * FROM update_mgmt ORDER BY id DESC LIMIT 1`)
+          const readFile = result[0].file_body
 
-          const firstFile = FILE.slice(0, 512)
-          const usim_list = '1223128888'
+          const firstFile = readFile.slice(0, 512)
 
-          // for (let usim_list of convertUsim) {
-          //to send iot op code = 9
-          var sig_for_app = process.env.IOT_SIG
-          var group_for_app = process.env.IOT_GROUP
-          var op_code_for_app = '9' // firmware update
-          var version_for_app = 'APP'
-          var message_length_for_app = firstFile.length
-          var send_default_data_preparation =
-            sig_for_app + group_for_app + op_code_for_app + usim_list + version_for_app + message_length_for_app
-          const headerBuf = Buffer.from(send_default_data_preparation)
+          for (let bike of bikeLists) {
+            //to send iot op code = 9
+            var sig_for_app = process.env.IOT_SIG
+            var group_for_app = process.env.IOT_GROUP
+            var op_code_for_app = '9' // firmware update
+            var version_for_app = 'APP'
+            var message_length_for_app = firstFile.length
+            var send_default_data_preparation =
+              sig_for_app + group_for_app + op_code_for_app + bike + version_for_app + message_length_for_app
+            const headerBuf = Buffer.from(send_default_data_preparation)
 
-          let lastCheckSum = 0
+            let lastCheckSum = 0
 
-          //checksum
-          for (let i = 0; i < firstFile.length; i++) {
-            lastCheckSum += firstFile[i]
-          }
-
-          lastCheckSum = lastCheckSum.toString(16)
-          if (lastCheckSum.length >= 4) lastCheckSum = lastCheckSum.slice(-4)
-          else {
-            while (lastCheckSum.length < 4) {
-              lastCheckSum = '0' + lastCheckSum
+            //checksum
+            for (let i = 0; i < firstFile.length; i++) {
+              lastCheckSum += firstFile[i]
             }
+
+            lastCheckSum = lastCheckSum.toString(16)
+            if (lastCheckSum.length >= 4) lastCheckSum = lastCheckSum.slice(-4)
+            else {
+              while (lastCheckSum.length < 4) {
+                lastCheckSum = '0' + lastCheckSum
+              }
+            }
+
+            const lastCheckSumBuf = Buffer.from(lastCheckSum)
+            const lastArr = [headerBuf, firstFile, lastCheckSumBuf]
+            const lastConcatBuf = Buffer.concat(lastArr)
+
+            sockets[bike].write(lastConcatBuf)
           }
-
-          const lastCheckSumBuf = Buffer.from(lastCheckSum)
-          const lastArr = [headerBuf, firstFile, lastCheckSumBuf]
-          const lastConcatBuf = Buffer.concat(lastArr)
-
-          await new Promise(resolve => setTimeout(resolve, 200))
-          sockets[usim_list].write(lastConcatBuf)
-          // }
         } else if (sig == process.env.IOT_SIG && group == process.env.IOT_GROUP && (op_code == '2' || op_code == 'A')) {
           //response
           //BR0128686750600014761223129999/090/02/00/0060 응답코드
