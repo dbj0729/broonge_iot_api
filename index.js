@@ -315,8 +315,10 @@ var server = net.createServer(async function (socket) {
             var op_code_for_app = '9' // firmware update
             var version_for_app = 'APP'
             var message_length_for_app = firstFile.length
+
+            //무조건 length는 0512라 따로
             var send_default_data_preparation =
-              sig_for_app + group_for_app + op_code_for_app + bike + version_for_app + message_length_for_app
+              sig_for_app + group_for_app + op_code_for_app + bike + version_for_app + '0' + message_length_for_app
             const headerBuf = Buffer.from(send_default_data_preparation)
 
             let lastCheckSum = 0
