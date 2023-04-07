@@ -229,8 +229,9 @@ var server = net.createServer(async function (socket) {
           }
         } else if (sig == process.env.IOT_SIG && group == process.env.IOT_GROUP && op_code === 'B') {
           // firmware upgrade ack opcode = 'B'
+          //BR01B868675060022852T99030000090
           //BR01B / 1223129999 / ver / 03 / 000 / csum
-          const message = data_elements.slice(20, 23)
+          const message = data_elements.slice(25, 28)
           const checksum = data_elements.slice(-4)
           const verification =
             '00' +
