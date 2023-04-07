@@ -340,6 +340,7 @@ var server = net.createServer(async function (socket) {
 
             sockets[bike].write(lastConcatBuf)
           }
+          socket.write('ok')
         } else if (sig == process.env.IOT_SIG && group == process.env.IOT_GROUP && (op_code == '2' || op_code == 'A')) {
           //response
           //BR0128686750600014761223129999/090/02/00/0060 응답코드
