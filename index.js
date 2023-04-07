@@ -266,7 +266,7 @@ var server = net.createServer(async function (socket) {
           console.log('보내는 DATA 길이 : ', sendData.length)
 
           var send_default_data_preparation =
-            sig_for_app + group_for_app + op_code_for_app + bike_id_from_iot + version_for_app + msgLength
+            sig_for_app + group_for_app + op_code_for_app + bike + version_for_app + msgLength
           const headerBuf = Buffer.from(send_default_data_preparation)
 
           //checksum
