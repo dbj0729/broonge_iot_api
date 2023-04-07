@@ -231,6 +231,7 @@ var server = net.createServer(async function (socket) {
           // firmware upgrade ack opcode = 'B'
           //BR01B868675060022852T99030000090
           //BR01B / 1223129999 / ver / 03 / 000 / csum
+          const bike = data_elements.slice(5, 20)
           const message = data_elements.slice(25, 28)
           const checksum = data_elements.slice(-4)
           const verification =
@@ -287,7 +288,7 @@ var server = net.createServer(async function (socket) {
           const lastConcatBuf = Buffer.concat(lastArr)
 
           await new Promise(resolve => setTimeout(resolve, 200))
-          sockets[bike_id_from_iot].write(lastConcatBuf)
+          sockets[bike].write(lastConcatBuf)
           return
         } else if (sig == process.env.IOT_SIG && group == 'FF' && op_code == 'F') {
           // web 관리자가 firmware update 요청시
