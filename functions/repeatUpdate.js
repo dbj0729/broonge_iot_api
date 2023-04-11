@@ -18,15 +18,21 @@ module.exports.repeatUpdate = async data_elements => {
   let size_6 = 2 // MSG Length
   let size_7 = 23 // GPS
   let size_8 = 1 // Signal Strength
-  let size_9 = 2 // Battery
+
+  // Slice 로 진행하기에 그에 따른 글자 수에 따라 다음 단계를 불러오는 방식
+  let sig_4 = sig_3 + size_4
+  let sig_5 = sig_4 + size_5
+
+  const version = data_elements.slice(sig_4, sig_5)
+  const vName = version.slice(0, 1)
+  const vNumber = Number(version.slice(1))
+
+  let size_9 = vName === 'V' && vNumber > 1 ? 4 : 2 // Battery
   let size_10 = 2 // Device Status
   let size_11 = 2 // Error Info
   let size_12 = 4 // Checksum
   let error_report_size = 2 //Error Report: “01”:Sig error “02”:Group error “03”:OP code error “04”:ID error “05”:chksum error
 
-  // Slice 로 진행하기에 그에 따른 글자 수에 따라 다음 단계를 불러오는 방식
-  let sig_4 = sig_3 + size_4
-  let sig_5 = sig_4 + size_5
   let sig_6 = sig_5 + size_6 //20
   let sig_7 = sig_6 + size_7 //43
   let sig_8 = sig_7 + size_8
@@ -37,13 +43,13 @@ module.exports.repeatUpdate = async data_elements => {
   let sig_error_report = sig_6 + error_report_size
 
   const bike_id_from_iot = data_elements.slice(sig_3, sig_4)
-  const version = data_elements.slice(sig_4, sig_5) // version 을 넣으니까 if 문에서 막힌다.
+
   const message_length = data_elements.slice(sig_5, sig_6)
 
   const f_1_gps = data_elements.slice(sig_6, sig_7)
 
   const f_2_signal_strength = data_elements.slice(sig_7, sig_8)
-  const f_3_battery = data_elements.slice(sig_8, sig_9)
+  let f_3_battery = data_elements.slice(sig_8, sig_9)
   const f_4_device_status = data_elements.slice(sig_9, sig_10)
   const f_5_err_info = data_elements.slice(sig_10, sig_11)
   const gps_reformatted = f_1_gps.split('N') // 이 부분이 IoT 좌표에서 넘어올 때 구분되어 지는 값이다.
@@ -56,13 +62,15 @@ module.exports.repeatUpdate = async data_elements => {
   const op_code = data_elements.slice(sig_2, sig_3)
   let manual_codes = f_1_gps + f_2_signal_strength + f_3_battery + f_4_device_status + f_5_err_info
 
+  f_3_battery =
+    vName === 'V' && vNumber > 1 ? convertBattery(data_elements.slice(sig_8, sig_9)) : data_elements.slice(sig_8, sig_9)
+
   if (sig == process.env.IOT_SIG && group == process.env.IOT_GROUP && op_code == 4 && manual_codes.length !== 0) {
     const combined_manual_codes = manual_codes.split('') // data 에서 온 raw 값을 글자 단위로 쪼갠 결과
     const manual_codes_value = combined_manual_codes.map(item => item.charCodeAt()).reduce((acc, curr) => acc + curr) // 쪼갠 결과를 하나씩 분배
-
     let manual_codes_value_verification = manual_codes_value.toString(16) // 분배된 값을 16진수로 변경
-
-    let manually_added_0x = '0' + manual_codes_value_verification
+    let manually_added_0x = manual_codes_value_verification.slice(-4)
+    while (manually_added_0x.length < 4) manually_added_0x = '0' + manually_added_0x
 
     if (checksum == manually_added_0x) {
       try {
