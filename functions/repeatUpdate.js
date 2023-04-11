@@ -2,6 +2,7 @@ const { connection } = require('../config/database')
 const { distance } = require('./distance')
 const { getCurrentTime } = require('./getCurrentTime')
 const { updateCoords } = require('./updateCoords')
+const { convertBattery } = require('./convertBattery')
 const moment = require('moment')
 
 module.exports.repeatUpdate = async data_elements => {
