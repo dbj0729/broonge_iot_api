@@ -171,7 +171,7 @@ module.exports.repeatUpdate = async data_elements => {
 
             const { coordinates, dist } = updateCoords(ridingDataManager, f_1_lat, f_1_lng)
 
-            if (dist === 0) return
+            // if (dist === 0) return
 
             await (
               await connection()

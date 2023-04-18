@@ -72,6 +72,7 @@ var server = net.createServer(async function (socket) {
         console.log('\n')
         console.log('-----------------------------------------')
         console.log('받은 값 : ' + data_elements)
+        console.log('데이터 받은 시간', getCurrentTime())
 
         console.log('연결된 자전거 ' + Object.keys(sockets))
         // IoT 로부터 받는 정보이다.
@@ -701,33 +702,49 @@ var server = net.createServer(async function (socket) {
           var version_for_app = 'APP'
           var message_length_for_app = '02'
 
-          //imei -> usim
-          // const [result] = await (
-          //   await connection()
-          // ).query(`SELECT usim FROM iot_status WHERE bike_id = ?`, [bike_id_for_app])
-          // const bike_id_usim = result[0].usim
+          function sending_codes(send_code, header) {
+            let combined_send_codes = send_code.split('')
+            let send_codes_value = combined_send_codes.map(item => item.charCodeAt()).reduce((acc, curr) => acc + curr)
+            let send_codes_value_verification = send_codes_value.toString(16)
+            while (send_codes_value_verification.length < 4) {
+              send_codes_value_verification = '0' + send_codes_value_verification
+            }
+            let final_send_codes = header + send_code + send_codes_value_verification
+            return final_send_codes
+          }
 
           if (app_to_iot_data[0] === 'b001') {
             sockets[bike_id_for_app].write(app_to_iot_data[2])
             socket.write('ok')
+            socket.destroy()
+            return
+          }
+
+          if (app_to_iot_data[0] === 'c001') {
+            // ip change
+            let message_length = app_to_iot_data[2].length
+            let send_default_data_preparation =
+              sig_for_app + group_for_app + op_code_for_app + bike_id_for_app + version_for_app + message_length
+
+            await new Promise(resolve => setTimeout(resolve, 200))
+            sockets[bike_id_for_app].write(sending_codes(app_to_iot_data[2], send_default_data_preparation))
+            socket.write('ok')
+            socket.destroy()
             return
           }
 
           var send_default_data_preparation =
             sig_for_app + group_for_app + op_code_for_app + bike_id_for_app + version_for_app + message_length_for_app
 
-          function sending_codes(send_code) {
-            var combined_send_codes = send_code.split('')
-            var send_codes_value = combined_send_codes.map(item => item.charCodeAt()).reduce((acc, curr) => acc + curr)
-            var send_codes_value_verification = send_codes_value.toString(16)
-            var send_codes_manually_added_0x = '00' + send_codes_value_verification
-            var final_send_codes = send_default_data_preparation + send_code + send_codes_manually_added_0x
-            return final_send_codes
+          if (app_to_iot_data[0] === 'r001') {
+            socket[bike_id_for_app].write(sending_codes('99', send_default_data_preparation))
+            socket.write('ok')
+            return
           }
 
           async function updateBikeStatus(order) {
             if (order === 'AA') {
-              sockets[bike_id_for_app].write(sending_codes(order))
+              sockets[bike_id_for_app].write(sending_codes(order, send_default_data_preparation))
               socket.write('ok')
               return
             }
@@ -736,11 +753,11 @@ var server = net.createServer(async function (socket) {
 
             if (beforeSendBikeId === bike_id_for_app) await new Promise(resolve => setTimeout(resolve, 1000))
 
-            sockets[bike_id_for_app].write(sending_codes(code))
-            console.log('apptoIOT : ' + sending_codes(code))
+            sockets[bike_id_for_app].write(sending_codes(code, send_default_data_preparation))
+            console.log('apptoIOT : ' + sending_codes(code, send_default_data_preparation))
             beforeSendBikeId = bike_id_for_app
 
-            socket.write(sending_codes(code))
+            socket.write(sending_codes(code, send_default_data_preparation))
             socket.write('   ') // App 한테 보내는 것
             socket.write(getCurrentTime())
             socket.destroy()
