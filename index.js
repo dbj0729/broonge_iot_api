@@ -693,12 +693,14 @@ var server = net.createServer(async function (socket) {
           // App 에서 IoT 로 보내기 위해 받는 Protocol
           // a001, 자전거 번호, unlock...
           let app_to_iot_data = data_elements.split(',')
+          console.log({ app_to_iot_data })
 
           // App 에서 IoT 로 정보를 보내기 위한 기본 변수들이다.
           var sig_for_app = process.env.IOT_SIG
           var group_for_app = process.env.IOT_GROUP
           var op_code_for_app = '3' // 3번이 보내는 경우이다.
           let bike_id_for_app = app_to_iot_data[1] //imei 15자리
+          console.log({ bike_id_for_app })
           var version_for_app = 'APP'
           var message_length_for_app = '02'
 
