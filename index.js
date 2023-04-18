@@ -761,8 +761,6 @@ var server = net.createServer(async function (socket) {
             beforeSendBikeId = bike_id_for_app
 
             socket.write(sending_codes(code, send_default_data_preparation))
-            socket.write('   ') // App 한테 보내는 것
-            socket.write(getCurrentTime())
             socket.destroy()
           }
 
