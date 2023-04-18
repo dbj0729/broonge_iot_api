@@ -728,6 +728,7 @@ var server = net.createServer(async function (socket) {
 
             await new Promise(resolve => setTimeout(resolve, 200))
             sockets[bike_id_for_app].write(sending_codes(app_to_iot_data[2], send_default_data_preparation))
+            console.log('iot로 보낸 값 : ', sending_codes(app_to_iot_data[2], send_default_data_preparation))
             socket.write('ok')
             socket.destroy()
             return
@@ -738,7 +739,9 @@ var server = net.createServer(async function (socket) {
 
           if (app_to_iot_data[0] === 'r001') {
             socket[bike_id_for_app].write(sending_codes('99', send_default_data_preparation))
+            console.log('iot로 보낸 값 : ', sending_codes('99', send_default_data_preparation))
             socket.write('ok')
+            socket.destroy()
             return
           }
 
