@@ -90,7 +90,7 @@ module.exports.repeatUpdate = async data_elements => {
           await connection()
         ).query(`SELECT iot_version FROM bikes WHERE id = ?`, [bike_id_from_iot])
 
-        const findBikeInIotStatusQuery = `SELECT lng, lat, status FROM iot_status WHERE bike_id = ? limit 1`
+        const findBikeInIotStatusQuery = `SELECT CONVERT(AES_DECRYPT(UNHEX(lng), SHA2('${process.env.KEY}', 256)) USING UTF8) AS lng, CONVERT(AES_DECRYPT(UNHEX(lat), SHA2('${process.env.KEY}', 256)) USING UTF8) AS lat, status FROM iot_status WHERE bike_id = ? limit 1`
         const [findBikeInIotStatus] = await (await connection()).query(findBikeInIotStatusQuery, [bike_id_from_iot])
 
         if (findBikeInIotStatus.length === 0) {
@@ -142,7 +142,7 @@ module.exports.repeatUpdate = async data_elements => {
               ? `is_locked = 'YES'`
               : `status = 'malfunctioning'`
         }
-        const updateBikeStatusQuery = `UPDATE iot_status SET battery = ?, lat = ?, lng = ?, signal_strength = ?, point = ST_GeomFromText('POINT(? ?)'), ${partQuery} WHERE bike_id = ?`
+        const updateBikeStatusQuery = `UPDATE iot_status SET battery = ?, lat = HEX(AES_ENCRYPT(?, SHA2('${process.env.KEY}', 256))), lng = HEX(AES_ENCRYPT(?, SHA2('${process.env.KEY}', 256))), signal_strength = ?, point = ST_GeomFromText('POINT(? ?)'), ${partQuery} WHERE bike_id = ?`
         await (
           await connection()
         ).query(updateBikeStatusQuery, [
@@ -156,7 +156,7 @@ module.exports.repeatUpdate = async data_elements => {
         ])
 
         if (f_4_device_status === '00') {
-          const selectBikeRiding = `SELECT distance, coordinates FROM riding_data WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
+          const selectBikeRiding = `SELECT distance, CONVERT(AES_DECRYPT(UNHEX(coordinates), SHA2('${process.env.KEY}', 256)) USING UTF8) AS coordinates FROM riding_data WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
           const [selectResult] = await (await connection()).query(selectBikeRiding, [bike_id_from_iot])
 
           if (selectResult.length === 0) {
@@ -204,7 +204,7 @@ module.exports.repeatUpdate = async data_elements => {
 
           coordinates = [...coordinates, { lat: Number(f_1_lat), lng: Number(f_1_lng) }]
 
-          const updateBikeRiding = `UPDATE riding_data set coordinates = ?, distance = ? WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
+          const updateBikeRiding = `UPDATE riding_data set coordinates = HEX(AES_ENCRYPT(?, SHA2('${process.env.KEY}', 256))), distance = ? WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
           await (
             await connection()
           ).query(updateBikeRiding, [JSON.stringify(coordinates), dist.toFixed(1), bike_id_from_iot])

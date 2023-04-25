@@ -186,7 +186,7 @@ var server = net.createServer(async function (socket) {
               await (
                 await connection()
               ).query(
-                `INSERT INTO iot_status SET bike_id = ?, usim = ?, battery = ?, lat = ?, lng = ?, signal_strength = ?, status = ?, is_locked = ?, point =  ST_GeomFromText('POINT(? ?)')`,
+                `INSERT INTO iot_status SET bike_id = ?, usim = ?, battery = ?, lat = HEX(AES_ENCRYPT(?, SHA2('${process.env.KEY}', 256))), lng = HEX(AES_ENCRYPT(?, SHA2('${process.env.KEY}', 256))), signal_strength = ?, status = ?, is_locked = ?, point =  ST_GeomFromText('POINT(? ?)')`,
                 [
                   // imei => usim
                   bike_id_from_iot,
@@ -545,7 +545,7 @@ var server = net.createServer(async function (socket) {
               //자전거가 보낸 통신일 경우
               //DB에 해당 자전거 ID가 등록되어 있는지 확인
               //FIXME: 기존에 SELECT * FROM iot_status 였는데, 이건 생각해 보니 위도경도 모두를 불러오는 격인데, delay 가 생겨서 IoT 가 밀린 것은 아닌가? @DBJ on 230213
-              const findBikeInIotStatusQuery = `SELECT lng, lat, status FROM iot_status WHERE bike_id = ? limit 1`
+              const findBikeInIotStatusQuery = `SELECT CONVERT(AES_DECRYPT(UNHEX(lng), SHA2('${process.env.KEY}', 256)) USING UTF8) AS lng, CONVERT(AES_DECRYPT(UNHEX(lat), SHA2('${process.env.KEY}', 256)) USING UTF8) AS lat, status FROM iot_status WHERE bike_id = ? limit 1`
               const [findBikeInIotStatus] = await (await connection()).query(findBikeInIotStatusQuery, [bike_id_imei])
 
               if (findBikeInIotStatus.length === 0) {
@@ -589,7 +589,7 @@ var server = net.createServer(async function (socket) {
                     : `status = 'malfunctioning'`
               }
 
-              const updateBikeStatusQuery = `UPDATE iot_status SET battery = ?, lat = ?, lng = ?, signal_strength = ?, point = ST_GeomFromText('POINT(? ?)'), ${partQuery} WHERE bike_id = ?`
+              const updateBikeStatusQuery = `UPDATE iot_status SET battery = ?, lat = HEX(AES_ENCRYPT(?, SHA2('${process.env.KEY}', 256))), lng = HEX(AES_ENCRYPT(?, SHA2('${process.env.KEY}', 256))), signal_strength = ?, point = ST_GeomFromText('POINT(? ?)'), ${partQuery} WHERE bike_id = ?`
               const [result] = await (
                 await connection()
               ).query(updateBikeStatusQuery, [
@@ -604,7 +604,7 @@ var server = net.createServer(async function (socket) {
 
               if (f_4_device_status === '00') {
                 // 여기를 파일로 저장했다가 보내는 방식으로 진행하는 것이 좋을 것 같다 @DBJ 230213
-                const selectBikeRiding = `SELECT distance, coordinates, id FROM riding_data WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
+                const selectBikeRiding = `SELECT distance, CONVERT(AES_DECRYPT(UNHEX(coordinates), SHA2('${process.env.KEY}', 256)) USING UTF8) AS coordinates, id FROM riding_data WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
                 const [selectResult] = await (await connection()).query(selectBikeRiding, [bike_id_imei])
 
                 if (selectResult.length === 0) {
@@ -654,7 +654,7 @@ var server = net.createServer(async function (socket) {
 
                 coordinates = [...coordinates, { lat: Number(f_1_lat), lng: Number(f_1_lng) }]
 
-                const updateBikeRiding = `UPDATE riding_data set coordinates = ?, distance = ? WHERE id = ?`
+                const updateBikeRiding = `UPDATE riding_data set coordinates = HEX(AES_ENCRYPT(?, SHA2('${process.env.KEY}', 256))), distance = ? WHERE id = ?`
                 await (
                   await connection()
                 ).query(updateBikeRiding, [JSON.stringify(coordinates), dist.toFixed(1), selectResult[0].id])
