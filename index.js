@@ -74,7 +74,6 @@ var server = net.createServer(async function (socket) {
         console.log('받은 값 : ' + data_elements)
         console.log('데이터 받은 시간', getCurrentTime())
 
-        console.log('연결된 자전거 ' + Object.keys(sockets))
         // IoT 로부터 받는 정보이다.
 
         const sig = data_elements.slice(0, sig_1)
@@ -209,6 +208,13 @@ var server = net.createServer(async function (socket) {
                 [bike_id_from_iot, moment().format('YYYY-MM-DD HH:mm:ss'), 14, version],
               )
             }
+
+            await (
+              await connection()
+            ).query(`UPDATE iot_status SET update_date = ? WHERE bike_id = ?`, [
+              moment().format('YYYY-MM-DD HH:mm:ss'),
+              bike_id_from_iot,
+            ])
 
             await repeatUpdate(data_elements)
 

@@ -107,12 +107,10 @@ module.exports.repeatUpdate = async data_elements => {
           ])
         }
 
-        if (gps_reformatted.length === 1) {
+        if (gps_reformatted.length === 1 && findBikeInIotStatus[0].lng && findBikeInIotStatus[0].lat) {
           f_1_lng = findBikeInIotStatus[0].lng
           f_1_lat = findBikeInIotStatus[0].lat
-        }
-
-        if (!f_1_lng && f_1_lat === '??????????') {
+        } else if (!f_1_lng && f_1_lat === '??????????') {
           f_1_lng = 127.0895133
           f_1_lat = 37.2115683
         }
