@@ -20,9 +20,7 @@ const { convertBattery } = require('./functions/convertBattery')
 let testLength = 1024
 
 //TODO: firmware upgrade
-let updateFile
-const FILE = fs.readFileSync('CH32V203C8T6.bin')
-let max = Math.ceil(FILE.length / 1024)
+const FILE = fs.readFileSync('CH32V203C8T6_V20.bin')
 
 let size_1 = 2 // Sig.
 let size_2 = 2 // Group
@@ -147,6 +145,127 @@ var server = net.createServer(async function (socket) {
           vName === 'V' && vNumber > 1
             ? convertBattery(data_elements.slice(sig_8, sig_9))
             : data_elements.slice(sig_8, sig_9)
+
+        //BR014868675060052958V203237.0708333N127.0584250E5503400000684
+        // dev server FOTA test code
+        if (
+          sig == process.env.IOT_SIG &&
+          group == process.env.IOT_GROUP &&
+          op_code == 4 &&
+          process.env.IOT === 'dev' &&
+          vNumber === '99'
+        ) {
+          sockets[bike_id_from_iot] = socket
+
+          // 맨 처음 version upgrade trigger
+          let fileBuffer = Buffer.alloc(512)
+          for (let i = 0; i < 512; i++) {
+            fileBuffer[i] = FILE[i]
+          }
+
+          const sig_for_app = process.env.IOT_SIG
+          const group_for_app = process.env.IOT_GROUP
+          const op_code_for_app = '9' // firmware update
+          const version_for_app = 'APP'
+          const message_length_for_app = fileBuffer.length
+
+          const send_default_data_preparation =
+            sig_for_app +
+            group_for_app +
+            op_code_for_app +
+            bike_id_from_iot +
+            version_for_app +
+            '0' +
+            message_length_for_app
+
+          const headerBuf = Buffer.from(send_default_data_preparation)
+
+          let lastCheckSum = 0
+
+          for (let i = 0; i < message_length_for_app; i++) {
+            lastCheckSum += fileBuffer[i]
+          }
+
+          lastCheckSum = lastCheckSum.toString(16)
+          if (lastCheckSum.length >= 4) lastCheckSum = lastCheckSum.slice(-4)
+          else {
+            while (lastCheckSum.length < 4) {
+              lastCheckSum = '0' + lastCheckSum
+            }
+          }
+
+          const lastCheckSumBuf = Buffer.from(lastCheckSum)
+          const finalArr = [headerBuf, fileBuffer, lastCheckSumBuf]
+          const finalConcatBuf = Buffer.concat(finalArr)
+
+          socket.write(finalConcatBuf)
+          return
+        }
+
+        // dev server firmware upgrade
+        if (
+          sig == process.env.IOT_SIG &&
+          group == process.env.IOT_GROUP &&
+          op_code === 'B' &&
+          process.env.IOT === 'dev'
+        ) {
+          //BR01B868675060022852T99030000090
+          const bike = data_elements.slice(5, 20)
+          const message = data_elements.slice(25, 28)
+          const checksum = data_elements.slice(-4)
+          const verification =
+            '00' +
+            message
+              .split('')
+              .reduce((acc, curr) => acc + curr.charCodeAt(), 0)
+              .toString(16)
+          //message 999 = fail / 888 = success
+          if (checksum !== verification) return console.log('firmware checksum error')
+          if (message == '999') return console.log('this bike is not ready to be updated')
+          if (message == '888') return console.log('update completed')
+
+          const currentNum = Number(message)
+
+          const sendData = FILE.slice(currentNum * 512, (currentNum + 1) * 512)
+
+          //header
+          const sig_for_app = process.env.IOT_SIG
+          const group_for_app = process.env.IOT_GROUP
+          const op_code_for_app = '9' // firmware update
+          const version_for_app = 'APP'
+
+          let msgLength = String(sendData.length)
+          while (msgLength.length < 4) {
+            msgLength = '0' + msgLength
+          }
+
+          const send_default_data_preparation =
+            sig_for_app + group_for_app + op_code_for_app + bike + version_for_app + msgLength
+
+          const headerBuf = Buffer.from(send_default_data_preparation)
+
+          //checksum
+          let checkSum = 0
+          for (let i = 0; i < sendData.length; i++) {
+            checkSum += sendData[i]
+          }
+
+          checkSum = checkSum.toString(16)
+          if (checkSum.length >= 4) checkSum = checkSum.slice(-4)
+          else {
+            while (checkSum.length < 4) {
+              checkSum = '0' + checkSum
+            }
+          }
+
+          const checkSumBuf = Buffer.from(checkSum)
+          const lastArr = [headerBuf, sendData, checkSumBuf]
+          const lastConcatBuf = Buffer.concat(lastArr)
+
+          await new Promise(resolve => setTimeout(() => resolve(), 200))
+          sockets[bike].write(lastConcatBuf)
+          return
+        }
 
         if (sig == process.env.IOT_SIG && group == process.env.IOT_GROUP && op_code == 4) {
           //IMEI로 통신
