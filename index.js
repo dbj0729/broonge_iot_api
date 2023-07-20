@@ -146,7 +146,7 @@ var server = net.createServer(async function (socket) {
             ? convertBattery(data_elements.slice(sig_8, sig_9))
             : data_elements.slice(sig_8, sig_9)
 
-        //BR014868675060052958V203237.0708333N127.0584250E5503400000684
+        //BR014868675060052958V993237.0708333N127.0584250E5503400000684
         // dev server FOTA test code
         if (
           sig == process.env.IOT_SIG &&
@@ -188,7 +188,7 @@ var server = net.createServer(async function (socket) {
             lastCheckSum += fileBuffer[i]
           }
 
-          // IOT
+          // IOT update message의 checksum
           lastCheckSum = lastCheckSum.toString(16)
           if (lastCheckSum.length >= 4) lastCheckSum = lastCheckSum.slice(-4)
           else {
@@ -197,10 +197,12 @@ var server = net.createServer(async function (socket) {
             }
           }
 
+          // checksu
           const lastCheckSumBuf = Buffer.from(lastCheckSum)
           const finalArr = [headerBuf, fileBuffer, lastCheckSumBuf]
           const finalConcatBuf = Buffer.concat(finalArr)
 
+          console.log({ finalConcatBuf })
           socket.write(finalConcatBuf)
           return
         }
@@ -266,6 +268,7 @@ var server = net.createServer(async function (socket) {
           const lastConcatBuf = Buffer.concat(lastArr)
 
           await new Promise(resolve => setTimeout(() => resolve(), 200))
+          console.log({ second: lastConcatBuf })
           sockets[bike].write(lastConcatBuf)
           return
         }
