@@ -153,11 +153,12 @@ var server = net.createServer(async function (socket) {
           group == process.env.IOT_GROUP &&
           op_code == 4 &&
           process.env.IOT === 'dev' &&
-          vNumber === '99'
+          vNumber === 99 //test 용도는 version 99로 보내기로 했습니다.
         ) {
           sockets[bike_id_from_iot] = socket
 
           // 맨 처음 version upgrade trigger
+          // FILE은 index.js와 같은 경로에 있는 CH32V203C8T6_V20.bin 파일을 불러 옵니다.
           let fileBuffer = Buffer.alloc(512)
           for (let i = 0; i < 512; i++) {
             fileBuffer[i] = FILE[i]
@@ -178,6 +179,7 @@ var server = net.createServer(async function (socket) {
             '0' +
             message_length_for_app
 
+          // IOT update message의 header 부분
           const headerBuf = Buffer.from(send_default_data_preparation)
 
           let lastCheckSum = 0
@@ -186,6 +188,7 @@ var server = net.createServer(async function (socket) {
             lastCheckSum += fileBuffer[i]
           }
 
+          // IOT
           lastCheckSum = lastCheckSum.toString(16)
           if (lastCheckSum.length >= 4) lastCheckSum = lastCheckSum.slice(-4)
           else {
