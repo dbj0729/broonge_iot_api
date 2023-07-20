@@ -159,6 +159,7 @@ var server = net.createServer(async function (socket) {
 
           // 맨 처음 version upgrade trigger
           // FILE은 index.js와 같은 경로에 있는 CH32V203C8T6_V20.bin 파일을 불러 옵니다.
+          // data는 512byte 씩 보냅니다.
           let fileBuffer = Buffer.alloc(512)
           for (let i = 0; i < 512; i++) {
             fileBuffer[i] = FILE[i]
@@ -197,12 +198,11 @@ var server = net.createServer(async function (socket) {
             }
           }
 
-          // checksu
+          // header와 보낼 DATA checksum을 합쳐서 보냅니다.
           const lastCheckSumBuf = Buffer.from(lastCheckSum)
           const finalArr = [headerBuf, fileBuffer, lastCheckSumBuf]
           const finalConcatBuf = Buffer.concat(finalArr)
 
-          console.log({ finalConcatBuf })
           socket.write(finalConcatBuf)
           return
         }
@@ -214,6 +214,9 @@ var server = net.createServer(async function (socket) {
           op_code === 'B' &&
           process.env.IOT === 'dev'
         ) {
+          // update 시작하라고 보내면 아래와 같이 응답값이 옵니다.
+          // message length 3이며 정상적으로 data를 주고 받으면 메시지가 1씩 증가해서 옵니다
+          // ex) 001 -> 002 -> 003
           //BR01B868675060022852T99030000090
           const bike = data_elements.slice(5, 20)
           const message = data_elements.slice(25, 28)
@@ -231,6 +234,7 @@ var server = net.createServer(async function (socket) {
 
           const currentNum = Number(message)
 
+          //FILE에서 512byte 씩 잘라서 보내줍니다
           const sendData = FILE.slice(currentNum * 512, (currentNum + 1) * 512)
 
           //header
@@ -268,7 +272,6 @@ var server = net.createServer(async function (socket) {
           const lastConcatBuf = Buffer.concat(lastArr)
 
           await new Promise(resolve => setTimeout(() => resolve(), 200))
-          console.log({ second: lastConcatBuf })
           sockets[bike].write(lastConcatBuf)
           return
         }
