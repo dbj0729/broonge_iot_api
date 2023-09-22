@@ -58,7 +58,7 @@ var server = net.createServer(async function (socket) {
 
       socket.on('end', () => {
         console.log('socket 연결을 상대방이 끊었습니다.')
-        console.log(Object.keys(sockets).pop().length) // 현재 연결된 자전거 수
+        console.log(Object.keys(sockets).pop().length - 1) // 현재 연결된 자전거 수
       })
 
       // client와 접속이 끊기는 메시지 출력
@@ -73,7 +73,6 @@ var server = net.createServer(async function (socket) {
         console.log('받은 값 : ' + data_elements)
         console.log('데이터 받은 시간', getCurrentTime())
         console.log('누적 연결된 자전거 수 : ', Object.keys(sockets).length)
-        console.log(JSON.stringify(sockets))
         // IoT 로부터 받는 정보이다.
 
         const sig = data_elements.slice(0, sig_1)
