@@ -737,6 +737,10 @@ var server = net.createServer(async function (socket) {
                 bike_id_imei,
               ])
 
+              // 현재 상황 : 유저가 열던 매니저가 열던 열었을 때 이후로 매니저인지 여부를 체크한다.... 유저인지 매니저인지 여부는 미리 체크해야 한다.
+              // 유저 또는 관리자 앱에서 QR 을 찍을 때 그 사람의 type 과 id 를 보내줘야 한다. 9/25 작업 예정 w/ LCH
+
+              // 매니저 라이딩
               if (f_4_device_status === '00') {
                 // 여기를 파일로 저장했다가 보내는 방식으로 진행하는 것이 좋을 것 같다 @DBJ 230213
                 const selectBikeRiding = `SELECT distance, CONVERT(AES_DECRYPT(UNHEX(coordinates), SHA2('${process.env.KEY}', 256)) USING UTF8) AS coordinates, id FROM riding_data WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
@@ -759,11 +763,14 @@ var server = net.createServer(async function (socket) {
 
                   await (
                     await connection()
-                  ).query('UPDATE riding_data_manager SET coordinates = ?, distance = ? WHERE id = ?', [
-                    JSON.stringify(coordinates),
-                    dist.toFixed(1),
-                    ridingDataManager[0].id,
-                  ])
+                  )
+                    //이동 중 경로는 필요 없어서 coordinates 는 제외함
+                    //).query('UPDATE riding_data_manager SET coordinates = ?, distance = ? WHERE id = ?', [
+                    .query('UPDATE riding_data_manager SET distance = ? WHERE id = ?', [
+                      JSON.stringify(coordinates),
+                      dist.toFixed(1),
+                      ridingDataManager[0].id,
+                    ])
 
                   return
                 }
@@ -790,7 +797,8 @@ var server = net.createServer(async function (socket) {
                 coordinates = [...coordinates, { lat: Number(f_1_lat), lng: Number(f_1_lng) }]
 
                 // coordinates 는 나중에 종료가 되었을 때 업데이트
-                const updateBikeRiding = `UPDATE riding_data SET coordinates = HEX(AES_ENCRYPT(?, SHA2('${process.env.KEY}', 256))), distance = ? WHERE id = ?`
+                // [old] const updateBikeRiding = `UPDATE riding_data SET coordinates = HEX(AES_ENCRYPT(?, SHA2('${process.env.KEY}', 256))), distance = ? WHERE id = ?`
+                const updateBikeRiding = `UPDATE riding_data SET distance = ? WHERE id = ?`
                 await (
                   await connection()
                 ).query(updateBikeRiding, [JSON.stringify(coordinates), dist.toFixed(1), selectResult[0].id])

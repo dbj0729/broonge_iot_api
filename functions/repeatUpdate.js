@@ -203,7 +203,8 @@ module.exports.repeatUpdate = async data_elements => {
 
           coordinates = [...coordinates, { lat: Number(f_1_lat), lng: Number(f_1_lng) }]
 
-          const updateBikeRiding = `UPDATE riding_data set coordinates = HEX(AES_ENCRYPT(?, SHA2('${process.env.KEY}', 256))), distance = ? WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
+          // const updateBikeRiding = `UPDATE riding_data SET coordinates = HEX(AES_ENCRYPT(?, SHA2('${process.env.KEY}', 256))), distance = ? WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
+          const updateBikeRiding = `UPDATE riding_data SET distance = ? WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
           await (
             await connection()
           ).query(updateBikeRiding, [JSON.stringify(coordinates), dist.toFixed(1), bike_id_from_iot])
