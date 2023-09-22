@@ -73,7 +73,7 @@ var server = net.createServer(async function (socket) {
         console.log('받은 값 : ' + data_elements)
         console.log('데이터 받은 시간', getCurrentTime())
         console.log('누적 연결된 자전거 수 : ', Object.keys(sockets).length + 1)
-
+        console.log(JSON.stringify(sockets))
         // IoT 로부터 받는 정보이다.
 
         const sig = data_elements.slice(0, sig_1)
