@@ -20,7 +20,9 @@ const { convertBattery } = require('./functions/convertBattery')
 let testLength = 1024
 
 //TODO: firmware upgrade
-const FILE = fs.readFileSync('CH32V203C8T6_V20.bin')
+let updateFile
+const FILE = fs.readFileSync('CH32V203C8T6.bin')
+let max = Math.ceil(FILE.length / 1024)
 
 let size_1 = 2 // Sig.
 let size_2 = 2 // Group
@@ -30,7 +32,7 @@ let sig_1 = size_1
 let sig_2 = sig_1 + size_2
 let sig_3 = sig_2 + size_3
 
-let sockets = { 0: 0 }
+let sockets = {}
 let beforeSendBikeId = ''
 let duplicateGPS = {}
 let failUpdate = 0
@@ -58,7 +60,7 @@ var server = net.createServer(async function (socket) {
 
       socket.on('end', () => {
         console.log('socket 연결을 상대방이 끊었습니다.')
-        console.log(Object.keys(sockets).pop().length - 1) // 현재 연결된 자전거 수
+        console.log('현재 연결된 자전거 수', Object.keys(sockets).pop().length - 1) // 현재 연결된 자전거 수
       })
 
       // client와 접속이 끊기는 메시지 출력
@@ -73,6 +75,7 @@ var server = net.createServer(async function (socket) {
         console.log('받은 값 : ' + data_elements)
         console.log('데이터 받은 시간', getCurrentTime())
         console.log('누적 연결된 자전거 수 : ', Object.keys(sockets).length)
+
         // IoT 로부터 받는 정보이다.
 
         const sig = data_elements.slice(0, sig_1)
@@ -146,136 +149,6 @@ var server = net.createServer(async function (socket) {
           vName === 'V' && vNumber > 1
             ? convertBattery(data_elements.slice(sig_8, sig_9))
             : data_elements.slice(sig_8, sig_9)
-
-        //BR014868675060052958V993237.0708333N127.0584250E5503400000684
-        // dev server FOTA test code
-        if (
-          sig == process.env.IOT_SIG &&
-          group == process.env.IOT_GROUP &&
-          op_code == 4 &&
-          process.env.IOT === 'dev' &&
-          vNumber === 99 //test 용도는 version 99로 보내기로 했습니다.
-        ) {
-          sockets[bike_id_from_iot] = socket
-
-          // 맨 처음 version upgrade trigger
-          // FILE은 index.js와 같은 경로에 있는 CH32V203C8T6_V20.bin 파일을 불러 옵니다.
-          // data는 512byte 씩 보냅니다.
-          let fileBuffer = Buffer.alloc(512)
-          for (let i = 0; i < 512; i++) {
-            fileBuffer[i] = FILE[i]
-          }
-
-          const sig_for_app = process.env.IOT_SIG
-          const group_for_app = process.env.IOT_GROUP
-          const op_code_for_app = '9' // firmware update
-          const version_for_app = 'APP'
-          const message_length_for_app = fileBuffer.length
-
-          const send_default_data_preparation =
-            sig_for_app +
-            group_for_app +
-            op_code_for_app +
-            bike_id_from_iot +
-            version_for_app +
-            '0' +
-            message_length_for_app
-
-          // IOT update message의 header 부분
-          const headerBuf = Buffer.from(send_default_data_preparation)
-
-          let lastCheckSum = 0
-
-          for (let i = 0; i < message_length_for_app; i++) {
-            lastCheckSum += fileBuffer[i]
-          }
-
-          // IOT update message의 checksum
-          lastCheckSum = lastCheckSum.toString(16)
-          if (lastCheckSum.length >= 4) lastCheckSum = lastCheckSum.slice(-4)
-          else {
-            while (lastCheckSum.length < 4) {
-              lastCheckSum = '0' + lastCheckSum
-            }
-          }
-
-          // header와 보낼 DATA checksum을 합쳐서 보냅니다.
-          const lastCheckSumBuf = Buffer.from(lastCheckSum)
-          const finalArr = [headerBuf, fileBuffer, lastCheckSumBuf]
-          const finalConcatBuf = Buffer.concat(finalArr)
-
-          socket.write(finalConcatBuf)
-          return
-        }
-
-        // dev server firmware upgrade
-        if (
-          sig == process.env.IOT_SIG &&
-          group == process.env.IOT_GROUP &&
-          op_code === 'B' &&
-          process.env.IOT === 'dev'
-        ) {
-          // update 시작하라고 보내면 아래와 같이 응답값이 옵니다.
-          // message length 3이며 정상적으로 data를 주고 받으면 메시지가 1씩 증가해서 옵니다
-          // ex) 001 -> 002 -> 003
-          //BR01B868675060022852T99030000090
-          const bike = data_elements.slice(5, 20)
-          const message = data_elements.slice(25, 28)
-          const checksum = data_elements.slice(-4)
-          const verification =
-            '00' +
-            message
-              .split('')
-              .reduce((acc, curr) => acc + curr.charCodeAt(), 0)
-              .toString(16)
-          //message 999 = fail / 888 = success
-          if (checksum !== verification) return console.log('firmware checksum error')
-          if (message == '999') return console.log('this bike is not ready to be updated')
-          if (message == '888') return console.log('update completed')
-
-          const currentNum = Number(message)
-
-          //FILE에서 512byte 씩 잘라서 보내줍니다
-          const sendData = FILE.slice(currentNum * 512, (currentNum + 1) * 512)
-
-          //header
-          const sig_for_app = process.env.IOT_SIG
-          const group_for_app = process.env.IOT_GROUP
-          const op_code_for_app = '9' // firmware update
-          const version_for_app = 'APP'
-
-          let msgLength = String(sendData.length)
-          while (msgLength.length < 4) {
-            msgLength = '0' + msgLength
-          }
-
-          const send_default_data_preparation =
-            sig_for_app + group_for_app + op_code_for_app + bike + version_for_app + msgLength
-
-          const headerBuf = Buffer.from(send_default_data_preparation)
-
-          //checksum
-          let checkSum = 0
-          for (let i = 0; i < sendData.length; i++) {
-            checkSum += sendData[i]
-          }
-
-          checkSum = checkSum.toString(16)
-          if (checkSum.length >= 4) checkSum = checkSum.slice(-4)
-          else {
-            while (checkSum.length < 4) {
-              checkSum = '0' + checkSum
-            }
-          }
-
-          const checkSumBuf = Buffer.from(checkSum)
-          const lastArr = [headerBuf, sendData, checkSumBuf]
-          const lastConcatBuf = Buffer.concat(lastArr)
-
-          await new Promise(resolve => setTimeout(() => resolve(), 200))
-          sockets[bike].write(lastConcatBuf)
-          return
-        }
 
         if (sig == process.env.IOT_SIG && group == process.env.IOT_GROUP && op_code == 4) {
           //IMEI로 통신
@@ -737,10 +610,6 @@ var server = net.createServer(async function (socket) {
                 bike_id_imei,
               ])
 
-              // 현재 상황 : 유저가 열던 매니저가 열던 열었을 때 이후로 매니저인지 여부를 체크한다.... 유저인지 매니저인지 여부는 미리 체크해야 한다.
-              // 유저 또는 관리자 앱에서 QR 을 찍을 때 그 사람의 type 과 id 를 보내줘야 한다. 9/25 작업 예정 w/ LCH
-
-              // 매니저 라이딩
               if (f_4_device_status === '00') {
                 // 여기를 파일로 저장했다가 보내는 방식으로 진행하는 것이 좋을 것 같다 @DBJ 230213
                 const selectBikeRiding = `SELECT distance, CONVERT(AES_DECRYPT(UNHEX(coordinates), SHA2('${process.env.KEY}', 256)) USING UTF8) AS coordinates, id FROM riding_data WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
@@ -763,14 +632,11 @@ var server = net.createServer(async function (socket) {
 
                   await (
                     await connection()
-                  )
-                    //이동 중 경로는 필요 없어서 coordinates 는 제외함
-                    //).query('UPDATE riding_data_manager SET coordinates = ?, distance = ? WHERE id = ?', [
-                    .query('UPDATE riding_data_manager SET distance = ? WHERE id = ?', [
-                      JSON.stringify(coordinates),
-                      dist.toFixed(1),
-                      ridingDataManager[0].id,
-                    ])
+                  ).query('UPDATE riding_data_manager SET coordinates = ?, distance = ? WHERE id = ?', [
+                    JSON.stringify(coordinates),
+                    dist.toFixed(1),
+                    ridingDataManager[0].id,
+                  ])
 
                   return
                 }
@@ -796,9 +662,7 @@ var server = net.createServer(async function (socket) {
 
                 coordinates = [...coordinates, { lat: Number(f_1_lat), lng: Number(f_1_lng) }]
 
-                // coordinates 는 나중에 종료가 되었을 때 업데이트
-                // [old] const updateBikeRiding = `UPDATE riding_data SET coordinates = HEX(AES_ENCRYPT(?, SHA2('${process.env.KEY}', 256))), distance = ? WHERE id = ?`
-                const updateBikeRiding = `UPDATE riding_data SET distance = ? WHERE id = ?`
+                const updateBikeRiding = `UPDATE riding_data SET coordinates = HEX(AES_ENCRYPT(?, SHA2('${process.env.KEY}', 256))), distance = ? WHERE id = ?`
                 await (
                   await connection()
                 ).query(updateBikeRiding, [JSON.stringify(coordinates), dist.toFixed(1), selectResult[0].id])
