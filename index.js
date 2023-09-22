@@ -30,7 +30,7 @@ let sig_1 = size_1
 let sig_2 = sig_1 + size_2
 let sig_3 = sig_2 + size_3
 
-let sockets = {}
+let sockets = { 0: 0 }
 let beforeSendBikeId = ''
 let duplicateGPS = {}
 let failUpdate = 0
@@ -72,7 +72,7 @@ var server = net.createServer(async function (socket) {
         console.log('-----------------------------------------')
         console.log('받은 값 : ' + data_elements)
         console.log('데이터 받은 시간', getCurrentTime())
-        console.log('누적 연결된 자전거 수 : ', Object.keys(sockets).length + 1)
+        console.log('누적 연결된 자전거 수 : ', Object.keys(sockets).length)
         console.log(JSON.stringify(sockets))
         // IoT 로부터 받는 정보이다.
 
