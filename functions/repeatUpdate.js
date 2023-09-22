@@ -165,7 +165,8 @@ module.exports.repeatUpdate = async data_elements => {
               [bike_id_from_iot],
             )
 
-            if (ridingDataManager.length === 0) return console.log('라이딩 데이터가 없는 자전거가 움직이는 중입니다.')
+            if (ridingDataManager.length === 0)
+              return console.log('라이딩 데이터가 없는 자전거가 움직이는 중입니다!!!!', bike_id_from_iot)
 
             const { coordinates, dist } = updateCoords(ridingDataManager, f_1_lat, f_1_lng)
 

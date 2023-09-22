@@ -71,6 +71,7 @@ var server = net.createServer(async function (socket) {
         console.log('-----------------------------------------')
         console.log('받은 값 : ' + data_elements)
         console.log('데이터 받은 시간', getCurrentTime())
+        console.log('연결된 자전거 수 : ', Object.keys(sockets).length)
 
         // IoT 로부터 받는 정보이다.
 
@@ -683,7 +684,7 @@ var server = net.createServer(async function (socket) {
               const [findBikeInIotStatus] = await (await connection()).query(findBikeInIotStatusQuery, [bike_id_imei])
 
               if (findBikeInIotStatus.length === 0) {
-                console.log('등록되지 않은 자전거입니다.')
+                console.log('등록되지 않은 자전거입니다.', bike_id_from_iot)
                 return
               }
 
@@ -750,7 +751,7 @@ var server = net.createServer(async function (socket) {
                   )
 
                   if (ridingDataManager.length === 0)
-                    return console.log('라이딩 데이터가 없는 자전거가 움직이는 중입니다.')
+                    return console.log('라이딩 데이터가 없는 자전거가 움직이는 중입니다.', bike_id_imei)
 
                   const { coordinates, dist } = updateCoords(ridingDataManager, f_1_lat, f_1_lng)
 
@@ -788,7 +789,8 @@ var server = net.createServer(async function (socket) {
 
                 coordinates = [...coordinates, { lat: Number(f_1_lat), lng: Number(f_1_lng) }]
 
-                const updateBikeRiding = `UPDATE riding_data set coordinates = HEX(AES_ENCRYPT(?, SHA2('${process.env.KEY}', 256))), distance = ? WHERE id = ?`
+                // coordinates 는 나중에 종료가 되었을 때 업데이트
+                const updateBikeRiding = `UPDATE riding_data SET coordinates = HEX(AES_ENCRYPT(?, SHA2('${process.env.KEY}', 256))), distance = ? WHERE id = ?`
                 await (
                   await connection()
                 ).query(updateBikeRiding, [JSON.stringify(coordinates), dist.toFixed(1), selectResult[0].id])
