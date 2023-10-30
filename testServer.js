@@ -79,7 +79,7 @@ const server = net.createServer(async socket => {
         message_length_for_app
 
       async function updateBikeStatus(order) {
-        const code = order === 'unlock' ? '01' : order === 'page' ? '02' : null
+        const code = order === 'unlock' ? '01' : order === 'page' ? '02' : order === 'reset' ? '99' : null
         if (!code) return socket.write('not order')
 
         sockets[bike_id_for_app].write(sendingCode(code, send_default_data_preparation))

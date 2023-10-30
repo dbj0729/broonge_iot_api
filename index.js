@@ -117,6 +117,7 @@ var server = net.createServer(async function (socket) {
         const f_2_signal_strength = data_elements.slice(sig_7, sig_8)
         let f_3_battery = data_elements.slice(sig_8, sig_9)
         const f_4_device_status = data_elements.slice(sig_9, sig_10)
+        console.log('f_4_device_status : ', f_4_device_status)
         const f_5_err_info = data_elements.slice(sig_10, sig_11)
         const gps_reformatted = f_1_gps.split('N') // 이 부분이 IoT 좌표에서 넘어올 때 구분되어 지는 값이다.
         let f_1_lat = gps_reformatted[0].slice(0, 10) // 딱 10자리만 가져온다.
@@ -585,6 +586,10 @@ var server = net.createServer(async function (socket) {
                     ? `status = 'in_use', is_locked = 'NO'`
                     : f_4_device_status === '01' // 01 이 잠긴상태
                     ? `status = 'stand_by', is_locked = 'YES'`
+                    : f_4_device_status === '05' // V22버젼, 해제상태
+                    ? `status = 'in_use', is_locked = 'NO'`
+                    : f_4_device_status === '13' // V22버젼 잠금 상태
+                    ? `status = 'stand_by', is_locked = 'YES'`
                     : `status = 'malfunctioning'`
               } else {
                 partQuery =
@@ -593,6 +598,10 @@ var server = net.createServer(async function (socket) {
                     : f_4_device_status === '00' // 00 이 해제상태
                     ? `is_locked = 'NO'`
                     : f_4_device_status === '01' // 01 이 잠긴상태
+                    ? `is_locked = 'YES'`
+                    : f_4_device_status === '05' // V22 해제상태
+                    ? `is_locked = 'NO'`
+                    : f_4_device_status === '13' // V22 잠금상태
                     ? `is_locked = 'YES'`
                     : `status = 'malfunctioning'`
               }
@@ -642,7 +651,6 @@ var server = net.createServer(async function (socket) {
                 }
 
                 let coordinates = []
-                console.log()
                 let dist = selectResult[0].distance ? Number(selectResult[0].distance) : 0
 
                 if (selectResult[0].coordinates) {
@@ -759,7 +767,17 @@ var server = net.createServer(async function (socket) {
               socket.write('ok')
               return
             }
-            const code = order === 'unlock' ? '01' : order === 'page' ? '02' : '03'
+            const code =
+              order === 'unlock'
+                ? '01'
+                : order === 'page'
+                ? '02'
+                : order === 'reset'
+                ? '99'
+                : order === 'enable'
+                ? '04'
+                : '03'
+
             if (!code) return socket.write('not order')
 
             if (beforeSendBikeId === bike_id_for_app) await new Promise(resolve => setTimeout(resolve, 1000))
