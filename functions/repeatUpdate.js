@@ -129,6 +129,10 @@ module.exports.repeatUpdate = async data_elements => {
               ? `status = 'in_use', is_locked = 'NO'`
               : f_4_device_status === '01' // 01 이 잠긴상태
               ? `status = 'stand_by', is_locked = 'YES'`
+              : f_4_device_status === '05' // V22버젼, 해제상태
+              ? `status = 'in_use', is_locked = 'NO'`
+              : f_4_device_status === '13' // V22버젼 잠금 상태
+              ? `status = 'stand_by', is_locked = 'YES'`
               : `status = 'malfunctioning'`
         } else {
           partQuery =
@@ -137,6 +141,10 @@ module.exports.repeatUpdate = async data_elements => {
               : f_4_device_status === '00' // 00 이 해제상태
               ? `is_locked = 'NO'`
               : f_4_device_status === '01' // 01 이 잠긴상태
+              ? `is_locked = 'YES'`
+              : f_4_device_status === '05' // V22 해제상태
+              ? `is_locked = 'NO'`
+              : f_4_device_status === '13' // V22 잠금상태
               ? `is_locked = 'YES'`
               : `status = 'malfunctioning'`
         }
