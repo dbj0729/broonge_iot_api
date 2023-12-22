@@ -161,7 +161,7 @@ module.exports.repeatUpdate = async data_elements => {
           bike_id_from_iot,
         ])
 
-        if (f_4_device_status === '00') {
+        if (f_4_device_status === '00' || f_4_device_status === '05') {
           const selectBikeRiding = `SELECT distance, CONVERT(AES_DECRYPT(UNHEX(coordinates), SHA2('${process.env.KEY}', 256)) USING UTF8) AS coordinates FROM riding_data WHERE bike_id = ? AND start_datetime IS NOT NULL AND end_datetime IS NULL ORDER BY id DESC LIMIT 1`
           const [selectResult] = await (await connection()).query(selectBikeRiding, [bike_id_from_iot])
 
@@ -215,7 +215,7 @@ module.exports.repeatUpdate = async data_elements => {
           await (
             await connection()
           ).query(updateBikeRiding, [JSON.stringify(coordinates), dist.toFixed(1), bike_id_from_iot])
-        } else if (f_4_device_status === '01') {
+        } else if (f_4_device_status === '01' || f_4_device_status === '13') {
           const [riding_data_manager] = await (
             await connection()
           ).query(
